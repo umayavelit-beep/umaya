@@ -1,0 +1,612 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alpos Python - Installation Guide</title>
+    <style>
+        :root {
+            --primary-color: #2c3e50;
+            --secondary-color: #3498db;
+            --accent-color: #e74c3c;
+            --light-color: #ecf0f1;
+            --dark-color: #34495e;
+            --success-color: #27ae60;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        header {
+            background: linear-gradient(135deg, var(--primary-color), var(--dark-color));
+            color: white;
+            padding: 30px 0;
+            text-align: center;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .section {
+            background-color: white;
+            border-radius: 10px;
+            padding: 25px;
+            margin-bottom: 25px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            border-left: 4px solid var(--secondary-color);
+        }
+        
+        .section-title {
+            color: var(--primary-color);
+            margin-bottom: 15px;
+            font-size: 1.5rem;
+            display: flex;
+            align-items: center;
+        }
+        
+        .section-title i {
+            margin-right: 10px;
+            font-size: 1.2rem;
+        }
+        
+        .code-block {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+        }
+        
+        .copy-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: var(--secondary-color);
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background-color 0.3s;
+        }
+        
+        .copy-btn:hover {
+            background-color: #2980b9;
+        }
+        
+        .copy-btn.copied {
+            background-color: var(--success-color);
+        }
+        
+        .note {
+            background-color: #fff8e1;
+            border-left: 4px solid #ffc107;
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .warning {
+            background-color: #ffebee;
+            border-left: 4px solid var(--accent-color);
+            padding: 15px;
+            margin: 15px 0;
+            border-radius: 4px;
+        }
+        
+        .step {
+            margin-bottom: 20px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .step:last-child {
+            border-bottom: none;
+        }
+        
+        .step-number {
+            display: inline-block;
+            background-color: var(--secondary-color);
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            text-align: center;
+            line-height: 30px;
+            margin-right: 10px;
+        }
+        
+        ul {
+            padding-left: 20px;
+            margin: 15px 0;
+        }
+        
+        li {
+            margin-bottom: 8px;
+        }
+        
+        .download-btn {
+            display: inline-block;
+            background-color: var(--success-color);
+            color: white;
+            padding: 12px 25px;
+            border-radius: 5px;
+            text-decoration: none;
+            font-weight: bold;
+            margin: 10px 0;
+            transition: background-color 0.3s;
+        }
+        
+        .download-btn:hover {
+            background-color: #219653;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            color: #7f8c8d;
+            font-size: 0.9rem;
+        }
+        
+        .printer-config {
+            margin: 20px 0;
+        }
+        
+        .printer-selector {
+            display: flex;
+            align-items: center;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .printer-selector label {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+        
+        .printer-selector select {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+            font-size: 1rem;
+            min-width: 200px;
+        }
+        
+        .command-box {
+            background-color: #2d3748;
+            color: #e2e8f0;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-family: 'Courier New', monospace;
+            position: relative;
+            overflow-x: auto;
+            min-height: 100px;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+            
+            h1 {
+                font-size: 2rem;
+            }
+            
+            .section {
+                padding: 15px;
+            }
+            
+            .printer-selector {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚀 Alpos Python</h1>
+            <p class="subtitle">Compatibility: Linux Mint 19.3 - 22.2</p>
+        </header>
+        
+        <section class="section">
+            <h2 class="section-title">📋 Overview</h2>
+            <p>Alpos Python is a printer utility package for Linux Mint systems that provides HTTP server functionality for printer management and text printing operations.</p>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">⚙️ System Requirements</h2>
+            <h3>Prerequisites</h3>
+            <ul>
+                <li><strong>Operating System:</strong> Linux Mint 19.3 to 22.2 (64-bit)</li>
+                <li><strong>Python:</strong> Python 3.x (included with Linux Mint)</li>
+                <li><strong>Administrative Access:</strong> sudo privileges required for installation and configuration</li>
+            </ul>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">📥 Installation Guide</h2>
+            
+            <div class="step">
+                <h3><span class="step-number">1</span> Download the Package</h3>
+                <p>Download the Debian package (.deb file) from the provided link:</p>
+                <a href="https://drive.usercontent.google.com/download?id=1H6pJPC-6MP8D9J_rd3VAUuvEJ7EjIYOE&export=download&authuser=0" class="download-btn">👉 Click to Download alpos_python</a>
+                
+                <h4>Installation Methods:</h4>
+                <p><strong>GUI Method:</strong> Double-click the downloaded .deb file and follow the installation prompts</p>
+                
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <code>sudo dpkg -i alpos_python.deb
+sudo apt-get install -f</code>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3><span class="step-number">2</span> Verify Installation</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <code>sudo systemctl status http-server.service</code>
+                </div>
+            </div>
+            
+            <div class="step">
+                <h3>Uninstallation</h3>
+                <div class="code-block">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <code>sudo apt-get remove alpospython</code>
+                </div>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">🔍 Printer Port Detection</h2>
+            <p>Printer Port Check Commands:</p>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/usb/lp0</code>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/usb/lp1</code>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/usb/lp2</code>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/usb/lp3</code>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/lp0</code>
+            </div>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>sudo su ls >/dev/usblp0</code>
+            </div>
+            
+            <div class="note">
+                <p><strong>Note:</strong> The command that successfully prints indicates your correct printer port.</p>
+            </div>
+        </section>
+        
+        <section class="section">
+            <h2 class="section-title">🛠️ Universal Configuration</h2>
+            <div class="warning">
+                <p><strong>Important:</strong> Select your printer port from the dropdown below. The configuration command will update automatically.</p>
+            </div>
+            
+            <div class="printer-config">
+                <div class="printer-selector">
+                    <label for="printer-path">Select Printer Path:</label>
+                    <select id="printer-path" onchange="updateCommand()">
+                        <option value="/dev/usb/lp0">/dev/usb/lp0</option>
+                        <option value="/dev/usb/lp1">/dev/usb/lp1</option>
+                        <option value="/dev/usb/lp2" selected>/dev/usb/lp2</option>
+                        <option value="/dev/usb/lp3">/dev/usb/lp3</option>
+                        <option value="/dev/lp0">/dev/lp0</option>
+                        <option value="/dev/usblp0">/dev/usblp0</option>
+                    </select>
+                </div>
+                
+                <p>🖨️ Configuration command with selected printer path:</p>
+                
+                <div class="command-box" id="config-command">
+                    <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                    <code id="command-text"># Stop the service first
+sudo systemctl stop http-server.service
+
+# Apply custom configuration
+sudo bash -c 'cat > /usr/local/bin/http_server.py << EOF
+#!/usr/bin/env python3
+import sys, socket, traceback, base64, io, os, time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+from uuid import getnode as get_mac
+
+PORT_NUMBER = 8080
+
+class BaseHTTPRequestHandlerInHerit(BaseHTTPRequestHandler):
+    def handle_one_request(self):
+        try:
+            self.raw_requestline = self.rfile.readline(65537000)
+            if len(self.raw_requestline) > 65536000:
+                self.send_error(414)
+                return
+            if not self.raw_requestline:
+                self.close_connection = 1
+                return
+            if not self.parse_request():
+                return
+            method = getattr(self, 'do_' + self.command, None)
+            if not method:
+                self.send_error(501, "Unsupported method")
+                return
+            method()
+            self.wfile.flush()
+        except socket.timeout as e:
+            self.log_error("Request timed out: %r" % e)
+            self.close_connection = 1
+
+class UnifiedHandler(BaseHTTPRequestHandlerInHerit):
+    def printit(self, content):
+        try:
+            if not content:
+                return
+            if isinstance(content, str):
+                content = content.encode('utf-8')
+
+            if os.path.exists('/var/p.txt'):
+                os.remove('/var/p.txt')
+
+            with open('/var/p.txt', "wb") as f1:
+                f1.write(content)
+
+            target_path = '/dev/usb/lp2'
+            if os.path.exists(target_path):
+                with open(target_path, "wb") as fo:
+                    fo.write(content)
+
+            print("Wrote content to /var/p.txt and printer device")
+        except Exception as e:
+            print("Error writing file:", e)
+
+    def do_GET(self):
+        o = urlparse('http://localhost:8080' + self.path)
+        qs = parse_qs(o.query)
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+        mac = get_mac()
+        mac_hex = ':'.join(("%012X" % mac)[i:i + 2] for i in range(0, 12, 2))
+
+        try:
+            if qs.get('printer_text', [''])[0]:
+                self.printit(qs.get('printer_text', [''])[0])
+                cb = qs.get('callback', [''])[0]
+                self._write(cb + "({'mac_address':'" + mac_hex + "','status':'success'})")
+            elif qs.get('barcodes', [''])[0]:
+                self.printit(qs.get('barcodes', [''])[0])
+                self._write("Working!!!\\n")
+            else:
+                self._write("Server is running, but no valid parameters provided.\\n")
+        except Exception as e:
+            traceback.print_exc()
+            self.send_error(500, "Internal Server Error")
+
+    def _write(self, content):
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+        self.wfile.write(content)
+
+def run_server():
+    try:
+        server = HTTPServer(('', PORT_NUMBER), UnifiedHandler)
+        print("Started httpserver on port", PORT_NUMBER)
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("^C received, shutting down the web server")
+        server.socket.close()
+
+if __name__ == '__main__':
+    run_server()
+EOF'
+
+# Restart the service
+sudo systemctl restart http-server.service</code>
+                </div>
+            </div>
+        </section>
+        
+        <footer>
+            <p>Alpos Python Installation Guide &copy; 2023</p>
+        </footer>
+    </div>
+
+    <script>
+        function copyToClipboard(button) {
+            const codeBlock = button.parentElement;
+            const code = codeBlock.querySelector('code').textContent;
+            
+            navigator.clipboard.writeText(code).then(() => {
+                // Visual feedback
+                const originalText = button.textContent;
+                button.textContent = 'Copied!';
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.textContent = originalText;
+                    button.classList.remove('copied');
+                }, 2000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                button.textContent = 'Failed!';
+                
+                setTimeout(() => {
+                    button.textContent = 'Copy';
+                }, 2000);
+            });
+        }
+        
+        function updateCommand() {
+            const printerPath = document.getElementById('printer-path').value;
+            const commandText = document.getElementById('command-text');
+            
+            // Update the command with the selected printer path
+            const baseCommand = `# Stop the service first
+sudo systemctl stop http-server.service
+
+# Apply custom configuration
+sudo bash -c 'cat > /usr/local/bin/http_server.py << EOF
+#!/usr/bin/env python3
+import sys, socket, traceback, base64, io, os, time
+from http.server import BaseHTTPRequestHandler, HTTPServer
+from urllib.parse import urlparse, parse_qs
+from uuid import getnode as get_mac
+
+PORT_NUMBER = 8080
+
+class BaseHTTPRequestHandlerInHerit(BaseHTTPRequestHandler):
+    def handle_one_request(self):
+        try:
+            self.raw_requestline = self.rfile.readline(65537000)
+            if len(self.raw_requestline) > 65536000:
+                self.send_error(414)
+                return
+            if not self.raw_requestline:
+                self.close_connection = 1
+                return
+            if not self.parse_request():
+                return
+            method = getattr(self, 'do_' + self.command, None)
+            if not method:
+                self.send_error(501, "Unsupported method")
+                return
+            method()
+            self.wfile.flush()
+        except socket.timeout as e:
+            self.log_error("Request timed out: %r" % e)
+            self.close_connection = 1
+
+class UnifiedHandler(BaseHTTPRequestHandlerInHerit):
+    def printit(self, content):
+        try:
+            if not content:
+                return
+            if isinstance(content, str):
+                content = content.encode('utf-8')
+
+            if os.path.exists('/var/p.txt'):
+                os.remove('/var/p.txt')
+
+            with open('/var/p.txt', "wb") as f1:
+                f1.write(content)
+
+            target_path = '${printerPath}'
+            if os.path.exists(target_path):
+                with open(target_path, "wb") as fo:
+                    fo.write(content)
+
+            print("Wrote content to /var/p.txt and printer device")
+        except Exception as e:
+            print("Error writing file:", e)
+
+    def do_GET(self):
+        o = urlparse('http://localhost:8080' + self.path)
+        qs = parse_qs(o.query)
+        self.send_response(200)
+        self.send_header('Content-type', 'text/html')
+        self.end_headers()
+
+        mac = get_mac()
+        mac_hex = ':'.join(("%012X" % mac)[i:i + 2] for i in range(0, 12, 2))
+
+        try:
+            if qs.get('printer_text', [''])[0]:
+                self.printit(qs.get('printer_text', [''])[0])
+                cb = qs.get('callback', [''])[0]
+                self._write(cb + "({'mac_address':'" + mac_hex + "','status':'success'})")
+            elif qs.get('barcodes', [''])[0]:
+                self.printit(qs.get('barcodes', [''])[0])
+                self._write("Working!!!\\\\n")
+            else:
+                self._write("Server is running, but no valid parameters provided.\\\\n")
+        except Exception as e:
+            traceback.print_exc()
+            self.send_error(500, "Internal Server Error")
+
+    def _write(self, content):
+        if isinstance(content, str):
+            content = content.encode('utf-8')
+        self.wfile.write(content)
+
+def run_server():
+    try:
+        server = HTTPServer(('', PORT_NUMBER), UnifiedHandler)
+        print("Started httpserver on port", PORT_NUMBER)
+        server.serve_forever()
+    except KeyboardInterrupt:
+        print("^C received, shutting down the web server")
+        server.socket.close()
+
+if __name__ == '__main__':
+    run_server()
+EOF'
+
+# Restart the service
+sudo systemctl restart http-server.service`;
+            
+            commandText.textContent = baseCommand;
+        }
+        
+        // Initialize with default value
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCommand();
+        });
+    </script>
+</body>
+</html>

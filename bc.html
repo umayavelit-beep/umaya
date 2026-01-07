@@ -1,0 +1,1220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Madurai Branch Bundle Tracker</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+        
+        :root {
+            --color-background: #fcfcf9;
+            --color-surface: #fffffd;
+            --color-text: #13343b;
+            --color-text-secondary: #626c71;
+            --color-primary: #21808d;
+            --color-primary-hover: #1d7480;
+            --color-border: rgba(94, 82, 64, 0.2);
+            --color-success: #21808d;
+            --color-warning: #a84b2f;
+            --color-error: #c0152f;
+            --color-card-border: rgba(94, 82, 64, 0.12);
+            --font-family-base: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.04);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: #1f2121;
+                --color-surface: #262828;
+                --color-text: #f5f5f5;
+                --color-text-secondary: rgba(167, 169, 169, 0.7);
+                --color-primary: #32b8c6;
+                --color-primary-hover: #2da6b2;
+                --color-border: rgba(119, 124, 124, 0.3);
+                --color-card-border: rgba(119, 124, 124, 0.2);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font-family-base);
+            background: var(--color-background);
+            color: var(--color-text);
+            padding: 20px;
+            line-height: 1.6;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            background: var(--color-surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 8px;
+            color: var(--color-text);
+            letter-spacing: -0.5px;
+        }
+
+        .header .report-title {
+            font-size: 18px;
+            color: var(--color-text-secondary);
+            margin-top: 8px;
+            font-weight: 600;
+        }
+
+        .upload-section {
+            background: var(--color-surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-sm);
+            margin-bottom: 24px;
+        }
+
+        .upload-area {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+
+        .file-input-wrapper input[type=file] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--color-primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--color-primary-hover);
+        }
+
+        .btn-danger {
+            background: var(--color-error);
+            color: white;
+        }
+
+        .btn-danger:hover {
+            opacity: 0.9;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .file-info {
+            font-size: 14px;
+            color: var(--color-text-secondary);
+        }
+
+        .reports-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(700px, 1fr));
+            gap: 24px;
+            margin-bottom: 24px;
+        }
+
+        .report-card {
+            background: var(--color-surface);
+            padding: 24px;
+            border-radius: 12px;
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .report-card h2 {
+            font-size: 20px;
+            font-weight: 800;
+            margin-bottom: 16px;
+            letter-spacing: -0.3px;
+            color: var(--color-text);
+            padding-bottom: 12px;
+            border-bottom: 2px solid var(--color-primary);
+        }
+
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .report-header h2 {
+            margin: 0;
+            padding: 0;
+            border: none;
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex-shrink: 0;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 12px;
+        }
+
+        th, td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: rgba(33, 128, 141, 0.08);
+            font-weight: 700;
+            color: var(--color-text);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        td {
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--color-text);
+        }
+
+        tr:hover {
+            background: rgba(33, 128, 141, 0.04);
+        }
+
+        .aging-cell {
+            font-weight: 500;
+        }
+
+        .aging-0-21 { color: var(--color-success); }
+        .aging-22-45 { color: #e68161; }
+        .aging-46-90 { color: var(--color-warning); }
+        .aging-90plus { color: var(--color-error); font-weight: 600; }
+        
+        /* Keep original classes for Report 4 */
+        .aging-0-30 { color: var(--color-success); }
+        .aging-31-60 { color: #e68161; }
+        .aging-61-90 { color: var(--color-warning); }
+
+        .total-row {
+            font-weight: 700;
+            background: rgba(33, 128, 141, 0.1) !important;
+            border-top: 2px solid var(--color-primary);
+        }
+
+        .no-data {
+            text-align: center;
+            padding: 40px;
+            color: var(--color-text-secondary);
+            font-style: italic;
+        }
+
+        .alert {
+            padding: 12px 16px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 14px;
+        }
+
+        .alert-info {
+            background: rgba(33, 128, 141, 0.1);
+            color: var(--color-text);
+            border-left: 4px solid var(--color-primary);
+        }
+
+        .alert-error {
+            background: rgba(192, 21, 47, 0.1);
+            color: var(--color-error);
+            border-left: 4px solid var(--color-error);
+        }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: 600;
+            background: rgba(33, 128, 141, 0.1);
+            color: var(--color-primary);
+        }
+
+        .copy-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            background: var(--color-primary);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 12px;
+        }
+
+        .copy-btn:hover {
+            background: var(--color-primary-hover);
+            transform: translateY(-1px);
+        }
+
+        .copy-btn:active {
+            transform: translateY(0);
+        }
+
+        .copy-btn.copied {
+            background: var(--color-success);
+        }
+
+        .copy-btn svg {
+            width: 14px;
+            height: 14px;
+        }
+
+        .report-content {
+            position: relative;
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        @media (max-width: 768px) {
+            .reports-grid {
+                grid-template-columns: 1fr;
+            }
+
+            table {
+                font-size: 11px;
+                min-width: 100%;
+            }
+
+            th, td {
+                padding: 8px 6px;
+                white-space: nowrap;
+            }
+
+            .header h1 {
+                font-size: 24px;
+            }
+
+            .header .report-title {
+                font-size: 14px;
+            }
+
+            .report-card {
+                padding: 16px;
+            }
+
+            .report-card h2 {
+                font-size: 17px;
+            }
+
+            .copy-btn {
+                font-size: 11px;
+                padding: 5px 10px;
+            }
+
+            .upload-section {
+                padding: 16px;
+            }
+
+            .btn {
+                font-size: 13px;
+                padding: 8px 16px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            body {
+                padding: 12px;
+            }
+
+            .header {
+                padding: 16px;
+            }
+
+            .header h1 {
+                font-size: 18px;
+            }
+
+            .header .report-title {
+                font-size: 12px;
+            }
+
+            table {
+                font-size: 10px;
+            }
+
+            th, td {
+                padding: 6px 4px;
+            }
+
+            .report-card {
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Madurai Branch Bundle Tracker Dashboard</h1>
+            <div class="report-title" id="reportTitle">Upload CSV file to view reports</div>
+        </div>
+
+        <div class="upload-section">
+            <div class="upload-area">
+                <div class="file-input-wrapper">
+                    <label for="csvFile" class="btn btn-primary">Choose CSV File</label>
+                    <input type="file" id="csvFile" accept=".csv" />
+                </div>
+                <button id="removeBtn" class="btn btn-danger" disabled>Remove CSV</button>
+                <span class="file-info" id="fileInfo">No file selected</span>
+            </div>
+            <div id="alertArea"></div>
+        </div>
+
+        <div class="reports-grid">
+            <!-- Report 1: No of Bundles in MDU JAWAHAR WH -->
+            <div class="report-card">
+                <div class="report-header">
+                    <h2>No of Bundles in MDU JAWAHAR WH</h2>
+                    <button class="copy-btn" onclick="copyReportAsImage('report1-content', 'No of Bundles in MDU JAWAHAR WH')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy as Image
+                    </button>
+                </div>
+                <div class="report-content" id="report1-content">
+                    <div id="report1"></div>
+                </div>
+            </div>
+
+            <!-- Report 2: Aging Report MDU JAWAHAR WH -->
+            <div class="report-card">
+                <div class="report-header">
+                    <h2>Aging Report MDU JAWAHAR WH</h2>
+                    <button class="copy-btn" onclick="copyReportAsImage('report2-content', 'Aging Report MDU JAWAHAR WH')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy as Image
+                    </button>
+                </div>
+                <div class="report-content" id="report2-content">
+                    <div id="report2"></div>
+                </div>
+            </div>
+
+            <!-- Report 3: Open WH No Of Bundles -->
+            <div class="report-card">
+                <div class="report-header">
+                    <h2>Open WH No Of Bundles</h2>
+                    <button class="copy-btn" onclick="copyReportAsImage('report3-content', 'Open WH No Of Bundles')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy as Image
+                    </button>
+                </div>
+                <div class="report-content" id="report3-content">
+                    <div id="report3"></div>
+                </div>
+            </div>
+
+            <!-- Report 4: Aging Report Open WH Received Bundles -->
+            <div class="report-card">
+                <div class="report-header">
+                    <h2>Aging Report Open WH Received Bundles</h2>
+                    <button class="copy-btn" onclick="copyReportAsImage('report4-content', 'Aging Report Open WH Received Bundles')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy as Image
+                    </button>
+                </div>
+                <div class="report-content" id="report4-content">
+                    <div id="report4"></div>
+                </div>
+            </div>
+
+            <!-- Report 5: Duplicate Entries by Division -->
+            <div class="report-card" style="grid-column: 1 / -1;">
+                <div class="report-header">
+                    <h2>Duplicate Entries by Division</h2>
+                    <button class="copy-btn" onclick="copyReportAsImage('report5-content', 'Duplicate Entries by Division')">
+                        <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                        Copy as Image
+                    </button>
+                </div>
+                <div class="report-content" id="report5-content">
+                    <div id="report5"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let csvData = [];
+        let uploadDate = null;
+
+        const csvFileInput = document.getElementById('csvFile');
+        const removeBtn = document.getElementById('removeBtn');
+        const fileInfo = document.getElementById('fileInfo');
+        const reportTitle = document.getElementById('reportTitle');
+        const alertArea = document.getElementById('alertArea');
+
+        csvFileInput.addEventListener('change', handleFileUpload);
+        removeBtn.addEventListener('click', removeFile);
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const text = e.target.result;
+                    csvData = parseCSV(text);
+                    uploadDate = new Date();
+                    
+                    fileInfo.textContent = `${file.name} (${csvData.length} records)`;
+                    removeBtn.disabled = false;
+                    
+                    updateReportTitle();
+                    generateReports();
+                    showAlert('CSV file loaded successfully!', 'info');
+                } catch (error) {
+                    showAlert('Error parsing CSV file: ' + error.message, 'error');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function removeFile() {
+            csvData = [];
+            uploadDate = null;
+            csvFileInput.value = '';
+            fileInfo.textContent = 'No file selected';
+            removeBtn.disabled = true;
+            reportTitle.textContent = 'Upload CSV file to view reports';
+            clearReports();
+            clearAlert();
+        }
+
+        function parseCSV(text) {
+            const lines = text.trim().split('\n');
+            const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+            
+            const data = [];
+            for (let i = 1; i < lines.length; i++) {
+                const values = parseCSVLine(lines[i]);
+                if (values.length === headers.length) {
+                    const row = {};
+                    headers.forEach((header, index) => {
+                        row[header] = values[index].trim().replace(/"/g, '');
+                    });
+                    data.push(row);
+                }
+            }
+            return data;
+        }
+
+        function parseCSVLine(line) {
+            const result = [];
+            let current = '';
+            let inQuotes = false;
+            
+            for (let i = 0; i < line.length; i++) {
+                const char = line[i];
+                
+                if (char === '"') {
+                    inQuotes = !inQuotes;
+                } else if (char === ',' && !inQuotes) {
+                    result.push(current);
+                    current = '';
+                } else {
+                    current += char;
+                }
+            }
+            result.push(current);
+            return result;
+        }
+
+        function updateReportTitle() {
+            const dateStr = uploadDate.toLocaleDateString('en-IN', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+            reportTitle.textContent = `Report Title: On date ${dateStr} - Madurai Bundle Tracker Report`;
+        }
+
+        function generateReports() {
+            generateReport1();
+            generateReport2();
+            generateReport3();
+            generateReport4();
+            generateReport5();
+        }
+
+        function clearReports() {
+            document.getElementById('report1').innerHTML = '<div class="no-data">No data available</div>';
+            document.getElementById('report2').innerHTML = '<div class="no-data">No data available</div>';
+            document.getElementById('report3').innerHTML = '<div class="no-data">No data available</div>';
+            document.getElementById('report4').innerHTML = '<div class="no-data">No data available</div>';
+            document.getElementById('report5').innerHTML = '<div class="no-data">No data available</div>';
+        }
+
+        function showAlert(message, type) {
+            alertArea.innerHTML = `<div class="alert alert-${type}">${message}</div>`;
+        }
+
+        function clearAlert() {
+            alertArea.innerHTML = '';
+        }
+
+        // Report 1: No of Bundles in MDU JAWAHAR WH
+        function generateReport1() {
+            const filtered = csvData.filter(row => {
+                const status = (row.Status || '').trim().toLowerCase();
+                const source = (row.Source || '').trim();
+                return (status === 'draft' || status === 'submitted') && source === 'MDU JAWAHAR WH';
+            });
+
+            const groupedByDivision = {};
+            let totalBundles = 0;
+            let totalBillCount = 0;
+
+            filtered.forEach(row => {
+                const division = row.Division || 'Unassigned';
+                const bundles = parseInt(row['No Of Bundles']) || 0;
+                const billNo = (row['Bill No'] || '').trim();
+
+                if (!groupedByDivision[division]) {
+                    groupedByDivision[division] = {
+                        bundles: 0,
+                        billCount: new Set()
+                    };
+                }
+
+                groupedByDivision[division].bundles += bundles;
+                if (billNo) {
+                    groupedByDivision[division].billCount.add(billNo);
+                }
+            });
+
+            // Convert to format for display
+            const displayData = {};
+            Object.keys(groupedByDivision).forEach(division => {
+                const data = groupedByDivision[division];
+                totalBundles += data.bundles;
+                totalBillCount += data.billCount.size;
+                displayData[division] = {
+                    bundles: data.bundles,
+                    billCount: data.billCount.size,
+                    display: `${data.bundles.toLocaleString()} (${data.billCount.size})`
+                };
+            });
+
+            renderTableWithBillCount('report1', displayData, 'Division', 'No of Bundles (Bill Count)', totalBundles, totalBillCount);
+        }
+
+        // Report 2: Aging Report MDU JAWAHAR WH - NEW 21-DAY BUCKETS
+        function generateReport2() {
+            const filtered = csvData.filter(row => {
+                const status = (row.Status || '').trim().toLowerCase();
+                const source = (row.Source || '').trim();
+                return (status === 'draft' || status === 'submitted') && source === 'MDU JAWAHAR WH';
+            });
+
+            const agingByDivision = {};
+            const billCountByDivision = {};
+
+            filtered.forEach(row => {
+                const division = row.Division || 'Unassigned';
+                const bundles = parseInt(row['No Of Bundles']) || 0;
+                const billNo = (row['Bill No'] || '').trim();
+                const entryDate = parseDate(row['Entry Date']);
+                const aging = calculateAging21Days(entryDate);
+
+                if (!agingByDivision[division]) {
+                    agingByDivision[division] = {
+                        '0-21 days': 0,
+                        '22-45 days': 0,
+                        '46-90 days': 0,
+                        '90+ days': 0,
+                        total: 0
+                    };
+                }
+
+                if (!billCountByDivision[division]) {
+                    billCountByDivision[division] = {
+                        '0-21 days': new Set(),
+                        '22-45 days': new Set(),
+                        '46-90 days': new Set(),
+                        '90+ days': new Set(),
+                        total: new Set()
+                    };
+                }
+
+                agingByDivision[division][aging] += bundles;
+                agingByDivision[division].total += bundles;
+                
+                if (billNo) {
+                    billCountByDivision[division][aging].add(billNo);
+                    billCountByDivision[division].total.add(billNo);
+                }
+            });
+
+            renderAgingTable21DaysWithBillCount('report2', agingByDivision, billCountByDivision);
+        }
+
+        // Report 3: Open WH No Of Bundles
+        function generateReport3() {
+            const filtered = csvData.filter(row => {
+                const status = (row.Status || '').trim().toLowerCase();
+                return status === 'received' || status === 'in-transit';
+            });
+
+            const groupedByDivision = {};
+            let totalBundles = 0;
+            let totalBillCount = 0;
+
+            filtered.forEach(row => {
+                const division = row.Division || 'Unassigned';
+                const bundles = parseInt(row['No Of Bundles']) || 0;
+                const billNo = (row['Bill No'] || '').trim();
+
+                if (!groupedByDivision[division]) {
+                    groupedByDivision[division] = {
+                        bundles: 0,
+                        billCount: new Set()
+                    };
+                }
+
+                groupedByDivision[division].bundles += bundles;
+                if (billNo) {
+                    groupedByDivision[division].billCount.add(billNo);
+                }
+            });
+
+            // Convert to format for display
+            const displayData = {};
+            Object.keys(groupedByDivision).forEach(division => {
+                const data = groupedByDivision[division];
+                totalBundles += data.bundles;
+                totalBillCount += data.billCount.size;
+                displayData[division] = {
+                    bundles: data.bundles,
+                    billCount: data.billCount.size,
+                    display: `${data.bundles.toLocaleString()} (${data.billCount.size})`
+                };
+            });
+
+            renderTableWithBillCount('report3', displayData, 'Division', 'No of Bundles (Bill Count)', totalBundles, totalBillCount);
+        }
+
+        // Report 4: Aging Report Open WH Received Bundles - ORIGINAL 30-DAY BUCKETS
+        function generateReport4() {
+            const filtered = csvData.filter(row => {
+                const status = (row.Status || '').trim().toLowerCase();
+                return status === 'received' || status === 'in-transit';
+            });
+
+            const agingByDivision = {};
+            const billCountByDivision = {};
+
+            filtered.forEach(row => {
+                const division = row.Division || 'Unassigned';
+                const bundles = parseInt(row['No Of Bundles']) || 0;
+                const billNo = (row['Bill No'] || '').trim();
+                const entryDate = parseDate(row['Entry Date']);
+                const aging = calculateAging(entryDate);
+
+                if (!agingByDivision[division]) {
+                    agingByDivision[division] = {
+                        '0-30 days': 0,
+                        '31-60 days': 0,
+                        '61-90 days': 0,
+                        '90+ days': 0,
+                        total: 0
+                    };
+                }
+
+                if (!billCountByDivision[division]) {
+                    billCountByDivision[division] = {
+                        '0-30 days': new Set(),
+                        '31-60 days': new Set(),
+                        '61-90 days': new Set(),
+                        '90+ days': new Set(),
+                        total: new Set()
+                    };
+                }
+
+                agingByDivision[division][aging] += bundles;
+                agingByDivision[division].total += bundles;
+                
+                if (billNo) {
+                    billCountByDivision[division][aging].add(billNo);
+                    billCountByDivision[division].total.add(billNo);
+                }
+            });
+
+            renderAgingTableWithBillCount('report4', agingByDivision, billCountByDivision);
+        }
+
+        // Report 5: Duplicate Entries by Division
+        function generateReport5() {
+            // Create a map to track duplicates based on: Bill No, Bill Amt, No Of Bundles, Supplier, Purchaser
+            const entryMap = {};
+            
+            csvData.forEach((row, index) => {
+                const key = [
+                    (row['Bill No'] || '').trim(),
+                    (row['Supplier'] || '').trim(),
+                    (row['Purchaser'] || '').trim()
+                ].join('|');
+                
+                if (!entryMap[key]) {
+                    entryMap[key] = [];
+                }
+                entryMap[key].push({ ...row, originalIndex: index + 2 });
+            });
+
+            // Find duplicates (entries that appear more than once)
+            const duplicates = [];
+            Object.keys(entryMap).forEach(key => {
+                if (entryMap[key].length > 1 && key !== '||||') {
+                    duplicates.push(...entryMap[key]);
+                }
+            });
+
+            // Group duplicates by division
+            const divisionGroups = {};
+            duplicates.forEach(row => {
+                const division = row.Division || 'Unassigned';
+                if (!divisionGroups[division]) {
+                    divisionGroups[division] = [];
+                }
+                divisionGroups[division].push(row);
+            });
+
+            renderDuplicatesTable('report5', divisionGroups);
+        }
+
+        function renderDuplicatesTable(elementId, divisionGroups) {
+            const element = document.getElementById(elementId);
+            
+            if (Object.keys(divisionGroups).length === 0) {
+                element.innerHTML = '<div class="no-data">No duplicate entries found</div>';
+                return;
+            }
+
+            let html = '<div style="max-height: 600px; overflow-y: auto;">';
+            let totalDuplicates = 0;
+
+            Object.keys(divisionGroups).sort().forEach(division => {
+                const entries = divisionGroups[division];
+                totalDuplicates += entries.length;
+
+                html += `<div style="margin-bottom: 24px;">`;
+                html += `<h3 style="color: var(--color-primary); margin-bottom: 12px; font-size: 16px;">${division} (${entries.length} duplicate entries)</h3>`;
+                html += '<div class="table-wrapper"><table><thead><tr>';
+                html += '<th>Entry ID</th><th>LR No</th><th>Bill No</th><th>Bill Amt</th><th>No Of Bundles</th>';
+                html += '<th>Supplier</th><th>Purchaser</th><th>Entry Date</th><th>Status</th>';
+                html += '</tr></thead><tbody>';
+
+                entries.forEach(row => {
+                    html += '<tr>';
+                    html += `<td>${row['Entry ID'] || '-'}</td>`;
+                    html += `<td>${row['LR No'] || '-'}</td>`;
+                    html += `<td>${row['Bill No'] || '-'}</td>`;
+                    html += `<td>${row['Bill Amt'] || '-'}</td>`;
+                    html += `<td>${row['No Of Bundles'] || '-'}</td>`;
+                    html += `<td>${row['Supplier'] || '-'}</td>`;
+                    html += `<td>${row['Purchaser'] || '-'}</td>`;
+                    html += `<td>${row['Entry Date'] || '-'}</td>`;
+                    html += `<td><span class="status-badge">${row['Status'] || '-'}</span></td>`;
+                    html += '</tr>';
+                });
+
+                html += '</tbody></table></div></div>';
+            });
+
+            html += `<div style="padding: 16px; background: rgba(33, 128, 141, 0.1); border-radius: 8px; margin-top: 16px;">`;
+            html += `<strong>Total Duplicate Entries: ${totalDuplicates}</strong>`;
+            html += `</div></div>`;
+
+            element.innerHTML = html;
+        }
+
+        function parseDate(dateStr) {
+            if (!dateStr) return new Date();
+            
+            const parts = dateStr.split(/[-\/]/);
+            if (parts.length === 3) {
+                if (parts[0].length <= 2) {
+                    return new Date(parts[2], parts[1] - 1, parts[0]);
+                }
+                return new Date(parts[0], parts[1] - 1, parts[2]);
+            }
+            return new Date(dateStr);
+        }
+
+        // Original aging calculation for Report 4 (30-day buckets)
+        function calculateAging(entryDate) {
+            const today = new Date();
+            const diffTime = Math.abs(today - entryDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 30) return '0-30 days';
+            if (diffDays <= 60) return '31-60 days';
+            if (diffDays <= 90) return '61-90 days';
+            return '90+ days';
+        }
+
+        // NEW: 21-day aging calculation for Report 2
+        function calculateAging21Days(entryDate) {
+            const today = new Date();
+            const diffTime = Math.abs(today - entryDate);
+            const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+            if (diffDays <= 21) return '0-21 days';
+            if (diffDays <= 45) return '22-45 days';
+            if (diffDays <= 90) return '46-90 days';
+            return '90+ days';
+        }
+
+        function renderTableWithBillCount(elementId, data, col1Name, col2Name, totalBundles, totalBillCount) {
+            const element = document.getElementById(elementId);
+            
+            if (Object.keys(data).length === 0) {
+                element.innerHTML = '<div class="no-data">No data available for this report</div>';
+                return;
+            }
+
+            let html = '<div class="table-wrapper"><table><thead><tr>';
+            html += `<th>${col1Name}</th><th>${col2Name}</th>`;
+            html += '</tr></thead><tbody>';
+
+            Object.keys(data).sort().forEach(key => {
+                const value = data[key];
+                html += `<tr><td>${key}</td><td>${value.display}</td></tr>`;
+            });
+
+            html += `<tr class="total-row"><td>Total</td><td>${totalBundles.toLocaleString()} (${totalBillCount})</td></tr>`;
+            html += '</tbody></table></div>';
+            element.innerHTML = html;
+        }
+
+        // Original aging table render for Report 4 with bill count
+        function renderAgingTableWithBillCount(elementId, agingData, billCountData) {
+            const element = document.getElementById(elementId);
+            
+            if (Object.keys(agingData).length === 0) {
+                element.innerHTML = '<div class="no-data">No data available for this report</div>';
+                return;
+            }
+
+            let html = '<div class="table-wrapper"><table><thead><tr>';
+            html += '<th>Division</th><th>0-30 Days</th><th>31-60 Days</th><th>61-90 Days</th><th>90+ Days</th><th>Total(Bill count)</th>';
+            html += '</tr></thead><tbody>';
+
+            const totals = {
+                '0-30 days': { bundles: 0, billCount: 0 },
+                '31-60 days': { bundles: 0, billCount: 0 },
+                '61-90 days': { bundles: 0, billCount: 0 },
+                '90+ days': { bundles: 0, billCount: 0 },
+                total: { bundles: 0, billCount: 0 }
+            };
+
+            Object.keys(agingData).sort().forEach(division => {
+                const row = agingData[division];
+                const billRow = billCountData[division];
+                
+                html += '<tr>';
+                html += `<td>${division}</td>`;
+                
+                // 0-30 days with bill count
+                html += `<td class="aging-cell aging-0-30">${row['0-30 days'].toLocaleString()} (${billRow ? billRow['0-30 days'].size : 0})</td>`;
+                
+                // 31-60 days with bill count
+                html += `<td class="aging-cell aging-31-60">${row['31-60 days'].toLocaleString()} (${billRow ? billRow['31-60 days'].size : 0})</td>`;
+                
+                // 61-90 days with bill count
+                html += `<td class="aging-cell aging-61-90">${row['61-90 days'].toLocaleString()} (${billRow ? billRow['61-90 days'].size : 0})</td>`;
+                
+                // 90+ days with bill count
+                html += `<td class="aging-cell aging-90plus">${row['90+ days'].toLocaleString()} (${billRow ? billRow['90+ days'].size : 0})</td>`;
+                
+                // Total with bill count
+                html += `<td style="font-weight: 600">${row.total.toLocaleString()} (${billRow ? billRow.total.size : 0})</td>`;
+                html += '</tr>';
+
+                // Update totals
+                if (billRow) {
+                    totals['0-30 days'].bundles += row['0-30 days'];
+                    totals['0-30 days'].billCount += billRow['0-30 days'].size;
+                    
+                    totals['31-60 days'].bundles += row['31-60 days'];
+                    totals['31-60 days'].billCount += billRow['31-60 days'].size;
+                    
+                    totals['61-90 days'].bundles += row['61-90 days'];
+                    totals['61-90 days'].billCount += billRow['61-90 days'].size;
+                    
+                    totals['90+ days'].bundles += row['90+ days'];
+                    totals['90+ days'].billCount += billRow['90+ days'].size;
+                    
+                    totals.total.bundles += row.total;
+                    totals.total.billCount += billRow.total.size;
+                }
+            });
+
+            // Total row
+            html += '<tr class="total-row">';
+            html += '<td>Total</td>';
+            html += `<td>${totals['0-30 days'].bundles.toLocaleString()} (${totals['0-30 days'].billCount})</td>`;
+            html += `<td>${totals['31-60 days'].bundles.toLocaleString()} (${totals['31-60 days'].billCount})</td>`;
+            html += `<td>${totals['61-90 days'].bundles.toLocaleString()} (${totals['61-90 days'].billCount})</td>`;
+            html += `<td>${totals['90+ days'].bundles.toLocaleString()} (${totals['90+ days'].billCount})</td>`;
+            html += `<td>${totals.total.bundles.toLocaleString()} (${totals.total.billCount})</td>`;
+            html += '</tr>';
+
+            html += '</tbody></table></div>';
+            element.innerHTML = html;
+        }
+
+        // NEW: 21-day aging table render for Report 2 with bill count
+        function renderAgingTable21DaysWithBillCount(elementId, agingData, billCountData) {
+            const element = document.getElementById(elementId);
+            
+            if (Object.keys(agingData).length === 0) {
+                element.innerHTML = '<div class="no-data">No data available for this report</div>';
+                return;
+            }
+
+            let html = '<div class="table-wrapper"><table><thead><tr>';
+            html += '<th>Division</th><th>0-21 Days</th><th>22-45 Days</th><th>46-90 Days</th><th>90+ Days</th><th>Total(Bill count)</th>';
+            html += '</tr></thead><tbody>';
+
+            const totals = {
+                '0-21 days': { bundles: 0, billCount: 0 },
+                '22-45 days': { bundles: 0, billCount: 0 },
+                '46-90 days': { bundles: 0, billCount: 0 },
+                '90+ days': { bundles: 0, billCount: 0 },
+                total: { bundles: 0, billCount: 0 }
+            };
+
+            Object.keys(agingData).sort().forEach(division => {
+                const row = agingData[division];
+                const billRow = billCountData[division];
+                
+                html += '<tr>';
+                html += `<td>${division}</td>`;
+                
+                // 0-21 days with bill count
+                html += `<td class="aging-cell aging-0-21">${row['0-21 days'].toLocaleString()} (${billRow ? billRow['0-21 days'].size : 0})</td>`;
+                
+                // 22-45 days with bill count
+                html += `<td class="aging-cell aging-22-45">${row['22-45 days'].toLocaleString()} (${billRow ? billRow['22-45 days'].size : 0})</td>`;
+                
+                // 46-90 days with bill count
+                html += `<td class="aging-cell aging-46-90">${row['46-90 days'].toLocaleString()} (${billRow ? billRow['46-90 days'].size : 0})</td>`;
+                
+                // 90+ days with bill count
+                html += `<td class="aging-cell aging-90plus">${row['90+ days'].toLocaleString()} (${billRow ? billRow['90+ days'].size : 0})</td>`;
+                
+                // Total with bill count
+                html += `<td style="font-weight: 600">${row.total.toLocaleString()} (${billRow ? billRow.total.size : 0})</td>`;
+                html += '</tr>';
+
+                // Update totals
+                if (billRow) {
+                    totals['0-21 days'].bundles += row['0-21 days'];
+                    totals['0-21 days'].billCount += billRow['0-21 days'].size;
+                    
+                    totals['22-45 days'].bundles += row['22-45 days'];
+                    totals['22-45 days'].billCount += billRow['22-45 days'].size;
+                    
+                    totals['46-90 days'].bundles += row['46-90 days'];
+                    totals['46-90 days'].billCount += billRow['46-90 days'].size;
+                    
+                    totals['90+ days'].bundles += row['90+ days'];
+                    totals['90+ days'].billCount += billRow['90+ days'].size;
+                    
+                    totals.total.bundles += row.total;
+                    totals.total.billCount += billRow.total.size;
+                }
+            });
+
+            // Total row
+            html += '<tr class="total-row">';
+            html += '<td>Total</td>';
+            html += `<td>${totals['0-21 days'].bundles.toLocaleString()} (${totals['0-21 days'].billCount})</td>`;
+            html += `<td>${totals['22-45 days'].bundles.toLocaleString()} (${totals['22-45 days'].billCount})</td>`;
+            html += `<td>${totals['46-90 days'].bundles.toLocaleString()} (${totals['46-90 days'].billCount})</td>`;
+            html += `<td>${totals['90+ days'].bundles.toLocaleString()} (${totals['90+ days'].billCount})</td>`;
+            html += `<td>${totals.total.bundles.toLocaleString()} (${totals.total.billCount})</td>`;
+            html += '</tr>';
+
+            html += '</tbody></table></div>';
+            element.innerHTML = html;
+        }
+
+        // Copy report as image function using dom-to-image
+        async function copyReportAsImage(elementId, reportTitle) {
+            const button = event.target.closest('.copy-btn');
+            const originalText = button.innerHTML;
+            
+            try {
+                button.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg> Processing...';
+                button.disabled = true;
+
+                if (typeof domtoimage === 'undefined') {
+                    const script = document.createElement('script');
+                    script.src = 'https://cdn.jsdelivr.net/npm/dom-to-image@2.6.0/dist/dom-to-image.min.js';
+                    await new Promise((resolve, reject) => {
+                        script.onload = resolve;
+                        script.onerror = reject;
+                        document.head.appendChild(script);
+                    });
+                }
+
+                const element = document.getElementById(elementId);
+                const dateStr = uploadDate ? uploadDate.toLocaleDateString('en-IN') : new Date().toLocaleDateString('en-IN');
+                
+                const wrapper = document.createElement('div');
+                wrapper.style.cssText = 'background: white; padding: 24px; border-radius: 12px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);';
+                
+                const titleDiv = document.createElement('div');
+                titleDiv.style.cssText = 'margin-bottom: 16px; padding-bottom: 12px; border-bottom: 2px solid #21808d;';
+                titleDiv.innerHTML = `
+                    <h2 style="margin: 0 0 8px 0; color: #13343b; font-size: 18px; font-weight: 600;">${reportTitle}</h2>
+                    <p style="margin: 0; color: #626c71; font-size: 14px;">Madurai Bundle Tracker - ${dateStr}</p>
+                `;
+                
+                const contentClone = element.cloneNode(true);
+                contentClone.style.cssText = 'color: #13343b;';
+                
+                wrapper.appendChild(titleDiv);
+                wrapper.appendChild(contentClone);
+                document.body.appendChild(wrapper);
+
+                const blob = await domtoimage.toBlob(wrapper, {
+                    bgcolor: '#ffffff',
+                    quality: 1,
+                    width: Math.max(wrapper.scrollWidth, 800),
+                    height: wrapper.scrollHeight,
+                    style: {
+                        transform: 'scale(1)',
+                        transformOrigin: 'top left'
+                    }
+                });
+
+                document.body.removeChild(wrapper);
+
+                if (navigator.clipboard && ClipboardItem) {
+                    try {
+                        await navigator.clipboard.write([
+                            new ClipboardItem({ 'image/png': blob })
+                        ]);
+                        
+                        button.classList.add('copied');
+                        button.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg> Copied!';
+                        
+                        setTimeout(() => {
+                            button.classList.remove('copied');
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }, 2000);
+                    } catch (clipErr) {
+                        const url = URL.createObjectURL(blob);
+                        const link = document.createElement('a');
+                        link.download = `${reportTitle.replace(/\s+/g, '_')}_${dateStr}.png`;
+                        link.href = url;
+                        link.click();
+                        URL.revokeObjectURL(url);
+                        
+                        button.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Downloaded!';
+                        
+                        setTimeout(() => {
+                            button.innerHTML = originalText;
+                            button.disabled = false;
+                        }, 2000);
+                    }
+                } else {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${reportTitle.replace(/\s+/g, '_')}_${dateStr}.png`;
+                    link.href = url;
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    
+                    button.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg> Downloaded!';
+                    
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                        button.disabled = false;
+                    }, 2000);
+                }
+
+            } catch (error) {
+                console.error('Copy failed:', error);
+                button.innerHTML = '<svg fill="none" stroke="currentColor" viewBox="0 0 24 24" style="width:14px;height:14px"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg> Failed';
+                setTimeout(() => {
+                    button.innerHTML = originalText;
+                    button.disabled = false;
+                }, 2000);
+            }
+        }
+
+        clearReports();
+    </script>
+</body>
+</html>

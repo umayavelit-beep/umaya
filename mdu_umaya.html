@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Ageing Dashboard</title>
+    <style>
+        :root {
+            --color-cream-50: rgba(252, 252, 249, 1);
+            --color-cream-100: rgba(255, 255, 253, 1);
+            --color-gray-200: rgba(245, 245, 245, 1);
+            --color-gray-300: rgba(167, 169, 169, 1);
+            --color-gray-400: rgba(119, 124, 124, 1);
+            --color-slate-500: rgba(98, 108, 113, 1);
+            --color-charcoal-700: rgba(31, 33, 33, 1);
+            --color-charcoal-800: rgba(38, 40, 40, 1);
+            --color-teal-300: rgba(50, 184, 198, 1);
+            --color-teal-500: rgba(33, 128, 141, 1);
+            --color-teal-600: rgba(29, 116, 128, 1);
+            --color-red-400: rgba(255, 84, 89, 1);
+            --color-red-500: rgba(192, 21, 47, 1);
+            --color-orange-400: rgba(230, 129, 97, 1);
+            --color-brown-600-rgb: 94, 82, 64;
+            --color-teal-500-rgb: 33, 128, 141;
+            --color-background: var(--color-cream-50);
+            --color-surface: var(--color-cream-100);
+            --color-text: rgba(19, 52, 59, 1);
+            --color-text-secondary: var(--color-slate-500);
+            --color-primary: var(--color-teal-500);
+            --color-primary-hover: var(--color-teal-600);
+            --color-border: rgba(var(--color-brown-600-rgb), 0.2);
+            --color-card-border: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-secondary: rgba(var(--color-brown-600-rgb), 0.12);
+            --color-secondary-hover: rgba(var(--color-brown-600-rgb), 0.2);
+            --font-size-sm: 12px;
+            --font-size-base: 14px;
+            --font-size-lg: 16px;
+            --font-size-xl: 18px;
+            --font-size-2xl: 20px;
+            --font-size-3xl: 24px;
+            --space-4: 4px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+            --radius-base: 8px;
+            --radius-lg: 12px;
+            --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04), 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --color-background: var(--color-charcoal-700);
+                --color-surface: var(--color-charcoal-800);
+                --color-text: var(--color-gray-200);
+                --color-primary: var(--color-teal-300);
+                --color-border: rgba(var(--color-gray-400), 0.3);
+            }
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--color-background);
+            color: var(--color-text);
+            padding: var(--space-24);
+            line-height: 1.5;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: var(--font-size-3xl);
+            margin-bottom: var(--space-24);
+            color: var(--color-text);
+        }
+
+        .upload-section {
+            background: var(--color-surface);
+            border: 2px dashed var(--color-border);
+            border-radius: var(--radius-lg);
+            padding: var(--space-32);
+            text-align: center;
+            margin-bottom: var(--space-24);
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .upload-section:hover {
+            border-color: var(--color-primary);
+        }
+
+        .upload-label {
+            cursor: pointer;
+            display: block;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .grouping-section {
+            background: var(--color-surface);
+            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-24);
+            border: 1px solid var(--color-card-border);
+        }
+
+        .grouping-section h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-12);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: var(--space-16);
+            flex-wrap: wrap;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            cursor: pointer;
+            padding: var(--space-8) var(--space-16);
+            border-radius: var(--radius-base);
+            background: var(--color-secondary);
+            transition: background 0.2s;
+        }
+
+        .radio-group label:hover {
+            background: var(--color-secondary-hover);
+        }
+
+        .radio-group input[type="radio"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .ageing-filter-section {
+            background: var(--color-surface);
+            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-24);
+            border: 1px solid var(--color-card-border);
+        }
+
+        .ageing-filter-section h3 {
+            font-size: var(--font-size-lg);
+            margin-bottom: var(--space-12);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: var(--space-16);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-16);
+        }
+
+        .checkbox-group label {
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            cursor: pointer;
+            padding: var(--space-8) var(--space-16);
+            border-radius: var(--radius-base);
+            background: var(--color-secondary);
+            transition: background 0.2s;
+        }
+
+        .checkbox-group label:hover {
+            background: var(--color-secondary-hover);
+        }
+
+        .checkbox-group input[type="checkbox"] {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        .value-type-selector {
+            display: flex;
+            align-items: center;
+            gap: var(--space-12);
+        }
+
+        .value-type-selector select {
+            padding: var(--space-8) var(--space-12);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-base);
+            background: var(--color-surface);
+            color: var(--color-text);
+            font-size: var(--font-size-base);
+            cursor: pointer;
+        }
+
+        .summary-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: var(--space-16);
+            margin-bottom: var(--space-24);
+        }
+
+        .tile {
+            background: var(--color-surface);
+            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            border: 1px solid var(--color-card-border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .tile-label {
+            font-size: var(--font-size-sm);
+            color: var(--color-text-secondary);
+            margin-bottom: var(--space-8);
+        }
+
+        .tile-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 600;
+            color: var(--color-primary);
+        }
+
+        .table-section {
+            background: var(--color-surface);
+            padding: var(--space-20);
+            border-radius: var(--radius-lg);
+            margin-bottom: var(--space-24);
+            border: 1px solid var(--color-card-border);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-16);
+        }
+
+        .table-header h3 {
+            font-size: var(--font-size-lg);
+        }
+
+        .btn {
+            padding: var(--space-8) var(--space-16);
+            border: none;
+            border-radius: var(--radius-base);
+            background: var(--color-primary);
+            color: white;
+            font-size: var(--font-size-sm);
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: var(--color-primary-hover);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-size-sm);
+        }
+
+        th, td {
+            padding: var(--space-12);
+            text-align: left;
+            border-bottom: 1px solid var(--color-border);
+        }
+
+        th {
+            background: var(--color-secondary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+
+        tr:hover {
+            background: var(--color-secondary);
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-red {
+            color: var(--color-red-500);
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 12px;
+            font-size: 11px;
+            background: var(--color-red-400);
+            color: white;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: var(--space-16);
+            }
+
+            .radio-group, .checkbox-group {
+                flex-direction: column;
+            }
+
+            table {
+                font-size: 11px;
+            }
+
+            th, td {
+                padding: var(--space-8);
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📊 Stock Ageing Dashboard</h1>
+
+        <!-- Upload Section -->
+        <div class="upload-section">
+            <label for="csvUpload" class="upload-label">
+                <div style="font-size: 48px;">📁</div>
+                <div style="font-size: var(--font-size-lg); margin-top: var(--space-8);">
+                    Click or drag CSV file to upload
+                </div>
+                <div style="font-size: var(--font-size-sm); color: var(--color-text-secondary); margin-top: var(--space-4);">
+                    Supports CSV files with stock data
+                </div>
+            </label>
+            <input type="file" id="csvUpload" accept=".csv">
+        </div>
+
+        <!-- Grouping Section -->
+        <div class="grouping-section" id="groupingSection" style="display: none;">
+            <h3>📋 Group By</h3>
+            <div class="radio-group" id="groupingRadios"></div>
+        </div>
+
+        <!-- Ageing Filter Section -->
+        <div class="ageing-filter-section" id="ageingFilterSection" style="display: none;">
+            <h3>📅 Ageing Filter Options</h3>
+            <div class="checkbox-group">
+                <label>
+                    <input type="checkbox" id="chk-overall" value="overall" checked>
+                    <span>Overall</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-last30" value="last30">
+                    <span>Last 30 Days</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-last60" value="last60">
+                    <span>Last 60 Days (31-60)</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-last90" value="last90">
+                    <span>Last 90 Days (61-90)</span>
+                </label>
+                <label>
+                    <input type="checkbox" id="chk-oldstock" value="oldstock">
+                    <span>Old Stock (90+)</span>
+                </label>
+            </div>
+            <div class="value-type-selector">
+                <label for="valueType">Value by:</label>
+                <select id="valueType">
+                    <option value="cost">Cost</option>
+                    <option value="netlanding">Net Landing</option>
+                </select>
+            </div>
+        </div>
+
+        <!-- Summary Tiles -->
+        <div class="summary-tiles" id="summaryTiles" style="display: none;"></div>
+
+        <!-- Ageing Summary Table -->
+        <div class="table-section" id="summaryTableSection" style="display: none;">
+            <div class="table-header">
+                <h3>📊 Ageing Summary</h3>
+                <button class="btn" id="copySummaryBtn">📋 Copy as Image</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="summaryTable"></table>
+            </div>
+        </div>
+
+        <!-- Detailed Ageing Table -->
+        <div class="table-section" id="detailedTableSection" style="display: none;">
+            <div class="table-header">
+                <h3>📈 Stock Ageing Analysis</h3>
+                <button class="btn" id="copyTableBtn">📋 Copy as Image</button>
+            </div>
+            <div style="overflow-x: auto;">
+                <table id="ageingTable"></table>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script>
+        // Global state
+        let parsedData = [];
+        let columnMap = {};
+        let availableGroupings = [];
+        let currentGrouping = null;
+        let hasMCMData = false;
+        let selectedBuckets = ['overall'];
+        let selectedValueType = 'cost';
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', () => {
+            const uploadInput = document.getElementById('csvUpload');
+            const copyTableBtn = document.getElementById('copyTableBtn');
+            const copySummaryBtn = document.getElementById('copySummaryBtn');
+
+            uploadInput.addEventListener('change', handleFileUpload);
+            copyTableBtn.addEventListener('click', copyTableAsImage);
+            copySummaryBtn.addEventListener('click', copySummaryAsImage);
+
+            // Add listeners for ageing filter checkboxes
+            const checkboxes = ['chk-overall', 'chk-last30', 'chk-last60', 'chk-last90', 'chk-oldstock'];
+            checkboxes.forEach(id => {
+                const checkbox = document.getElementById(id);
+                if (checkbox) {
+                    checkbox.addEventListener('change', handleAgeingFilterChange);
+                }
+            });
+
+            // Add listener for value type dropdown
+            const valueTypeSelect = document.getElementById('valueType');
+            if (valueTypeSelect) {
+                valueTypeSelect.addEventListener('change', handleValueTypeChange);
+            }
+
+            // Drag and drop support
+            const uploadLabel = document.querySelector('.upload-label');
+            uploadLabel.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                uploadLabel.style.borderColor = 'var(--color-primary)';
+            });
+
+            uploadLabel.addEventListener('dragleave', () => {
+                uploadLabel.style.borderColor = 'var(--color-border)';
+            });
+
+            uploadLabel.addEventListener('drop', (e) => {
+                e.preventDefault();
+                uploadLabel.style.borderColor = 'var(--color-border)';
+                const files = e.dataTransfer.files;
+                if (files.length > 0 && files[0].name.endsWith('.csv')) {
+                    uploadInput.files = files;
+                    handleFileUpload({ target: { files: files } });
+                }
+            });
+        });
+
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            Papa.parse(file, {
+                header: true,
+                skipEmptyLines: true,
+                complete: (results) => {
+                    processData(results.data);
+                },
+                error: (error) => {
+                    alert('Error parsing CSV: ' + error.message);
+                }
+            });
+        }
+
+        function processData(data) {
+            if (!data || data.length === 0) {
+                alert('No data found in CSV');
+                return;
+            }
+
+            // Trim column names
+            const headers = Object.keys(data[0]);
+            columnMap = {};
+            headers.forEach(header => {
+                const trimmed = header.trim();
+                columnMap[trimmed.toLowerCase()] = trimmed;
+            });
+
+            // Process each row
+            parsedData = data.map(row => {
+                const processed = {};
+                Object.keys(row).forEach(key => {
+                    const trimmedKey = key.trim();
+                    processed[trimmedKey] = row[key];
+                });
+
+                // Calculate age in days
+                processed._ageInDays = calculateAgeInDays(processed[columnMap['entrydate']]);
+                processed._ageBucket = getAgeBucket(processed._ageInDays);
+
+                return processed;
+            });
+
+            // Detect MCM
+            hasMCMData = parsedData.some(row => {
+                const unit = row[columnMap['product unit']];
+                return unit && unit.toUpperCase().trim() === 'MCM';
+            });
+
+            // Detect available groupings
+            const possibleGroupings = [
+                { key: 'company name', label: 'Company Name' },
+                { key: 'purchaser name', label: 'Purchaser Name' },
+                { key: 'product name', label: 'Product Name' },
+                { key: 'type name', label: 'Type Name' }
+            ];
+
+            availableGroupings = possibleGroupings.filter(g => columnMap[g.key]);
+
+            if (availableGroupings.length > 0) {
+                currentGrouping = availableGroupings[0].key;
+                renderGroupingOptions();
+                document.getElementById('groupingSection').style.display = 'block';
+                document.getElementById('ageingFilterSection').style.display = 'block';
+                updateDisplay();
+            } else {
+                alert('No grouping columns found (Company Name, Purchaser Name, Product Name, Type Name)');
+            }
+        }
+
+        function calculateAgeInDays(entryDate) {
+            if (!entryDate || entryDate === '0000-00-00') {
+                entryDate = '2024-10-10';
+            }
+
+            const today = new Date();
+            const entry = new Date(entryDate);
+
+            if (isNaN(entry.getTime())) {
+                return 0;
+            }
+
+            const diffTime = Math.abs(today - entry);
+            const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+            return diffDays;
+        }
+
+        function getAgeBucket(days) {
+            if (days <= 30) return 'last30';
+            if (days <= 60) return 'last60';
+            if (days <= 90) return 'last90';
+            return 'oldstock';
+        }
+
+        function renderGroupingOptions() {
+            const container = document.getElementById('groupingRadios');
+            container.innerHTML = '';
+
+            availableGroupings.forEach(group => {
+                const label = document.createElement('label');
+                const input = document.createElement('input');
+                input.type = 'radio';
+                input.name = 'grouping';
+                input.value = group.key;
+                input.checked = group.key === currentGrouping;
+                input.addEventListener('change', (e) => {
+                    currentGrouping = e.target.value;
+                    updateDisplay();
+                });
+
+                label.appendChild(input);
+                label.appendChild(document.createTextNode(group.label));
+                container.appendChild(label);
+            });
+        }
+
+        function handleAgeingFilterChange() {
+            const checkboxes = ['chk-overall', 'chk-last30', 'chk-last60', 'chk-last90', 'chk-oldstock'];
+            selectedBuckets = checkboxes
+                .map(id => document.getElementById(id))
+                .filter(cb => cb.checked)
+                .map(cb => cb.value);
+
+            if (selectedBuckets.length === 0) {
+                selectedBuckets = ['overall'];
+                document.getElementById('chk-overall').checked = true;
+            }
+
+            updateDisplay();
+        }
+
+        function handleValueTypeChange(event) {
+            selectedValueType = event.target.value;
+            updateDisplay();
+        }
+
+        function updateDisplay() {
+            updateSummaryTiles();
+            updateSummaryTable();
+            updateDetailedTable();
+
+            document.getElementById('summaryTiles').style.display = 'grid';
+            document.getElementById('summaryTableSection').style.display = 'block';
+            document.getElementById('detailedTableSection').style.display = 'block';
+        }
+
+        function filterDataByBuckets(data) {
+            if (selectedBuckets.includes('overall')) {
+                return data;
+            }
+
+            return data.filter(row => selectedBuckets.includes(row._ageBucket));
+        }
+
+        function updateSummaryTiles() {
+            const filteredData = filterDataByBuckets(parsedData);
+
+            const totalPCS = filteredData
+                .filter(row => row[columnMap['product unit']]?.toUpperCase().trim() === 'PCS')
+                .reduce((sum, row) => sum + parseFloat(row[columnMap['stockqty']] || 0), 0);
+
+            const totalMCM = filteredData
+                .filter(row => row[columnMap['product unit']]?.toUpperCase().trim() === 'MCM')
+                .reduce((sum, row) => sum + parseFloat(row[columnMap['stockqty']] || 0), 0);
+
+            const totalCost = filteredData.reduce((sum, row) => sum + parseFloat(row[columnMap['cost']] || 0), 0);
+            const totalNetLanding = filteredData.reduce((sum, row) => sum + parseFloat(row[columnMap['net landing']] || 0), 0);
+
+            const container = document.getElementById('summaryTiles');
+            container.innerHTML = `
+                <div class="tile">
+                    <div class="tile-label">Total Stock Qty (PCS)</div>
+                    <div class="tile-value">${totalPCS.toLocaleString()}</div>
+                </div>
+                ${hasMCMData ? `
+                <div class="tile">
+                    <div class="tile-label">Total Stock Qty (MCM)</div>
+                    <div class="tile-value">${totalMCM.toLocaleString()}</div>
+                </div>
+                ` : ''}
+                <div class="tile">
+                    <div class="tile-label">Total Value (Cost)</div>
+                    <div class="tile-value">₹${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+                <div class="tile">
+                    <div class="tile-label">Total Value (Net Landing)</div>
+                    <div class="tile-value">₹${totalNetLanding.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+                </div>
+            `;
+        }
+
+        function updateSummaryTable() {
+            const bucketNames = {
+                'overall': 'Overall',
+                'last30': 'Last 30 Days',
+                'last60': 'Last 60 Days (31-60)',
+                'last90': 'Last 90 Days (61-90)',
+                'oldstock': 'Old Stock (90+)'
+            };
+
+            const valueColumn = selectedValueType === 'cost' ? columnMap['cost'] : columnMap['net landing'];
+            const valueLabel = selectedValueType === 'cost' ? 'Cost' : 'Net Landing';
+
+            let html = '<thead><tr><th>Ageing Bucket</th><th class="text-right">Qty (PCS)</th>';
+            if (hasMCMData) html += '<th class="text-right">Qty (MCM)</th>';
+            html += `<th class="text-right">Total Value (${valueLabel})</th></tr></thead><tbody>`;
+
+            const bucketsToShow = selectedBuckets.includes('overall') 
+                ? ['overall'] 
+                : selectedBuckets;
+
+            bucketsToShow.forEach(bucket => {
+                let bucketData;
+                if (bucket === 'overall') {
+                    bucketData = parsedData;
+                } else {
+                    bucketData = parsedData.filter(row => row._ageBucket === bucket);
+                }
+
+                const qtyPCS = bucketData
+                    .filter(row => row[columnMap['product unit']]?.toUpperCase().trim() === 'PCS')
+                    .reduce((sum, row) => sum + parseFloat(row[columnMap['stockqty']] || 0), 0);
+
+                const qtyMCM = bucketData
+                    .filter(row => row[columnMap['product unit']]?.toUpperCase().trim() === 'MCM')
+                    .reduce((sum, row) => sum + parseFloat(row[columnMap['stockqty']] || 0), 0);
+
+                const totalValue = bucketData.reduce((sum, row) => sum + parseFloat(row[valueColumn] || 0), 0);
+
+                html += `<tr>
+                    <td>${bucketNames[bucket]}</td>
+                    <td class="text-right">${qtyPCS.toLocaleString()}</td>`;
+                if (hasMCMData) html += `<td class="text-right">${qtyMCM.toLocaleString()}</td>`;
+                html += `<td class="text-right">₹${totalValue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>
+                </tr>`;
+            });
+
+            html += '</tbody>';
+            document.getElementById('summaryTable').innerHTML = html;
+        }
+
+        function updateDetailedTable() {
+            const filteredData = filterDataByBuckets(parsedData);
+            const groupingColumn = columnMap[currentGrouping];
+
+            // Group data
+            const grouped = {};
+            filteredData.forEach(row => {
+                const key = String(row[groupingColumn] || 'Unknown').trim();
+                if (!grouped[key]) {
+                    grouped[key] = {
+                        last30: { pcs: 0, mcm: 0, cost: 0, netlanding: 0 },
+                        last60: { pcs: 0, mcm: 0, cost: 0, netlanding: 0 },
+                        last90: { pcs: 0, mcm: 0, cost: 0, netlanding: 0 },
+                        oldstock: { pcs: 0, mcm: 0, cost: 0, netlanding: 0 },
+                        issues: []
+                    };
+                }
+
+                const bucket = row._ageBucket;
+                const qty = parseFloat(row[columnMap['stockqty']] || 0);
+                const cost = parseFloat(row[columnMap['cost']] || 0);
+                const netlanding = parseFloat(row[columnMap['net landing']] || 0);
+                const unit = row[columnMap['product unit']]?.toUpperCase().trim();
+
+                if (unit === 'PCS') {
+                    grouped[key][bucket].pcs += qty;
+                } else if (unit === 'MCM') {
+                    grouped[key][bucket].mcm += qty;
+                }
+
+                grouped[key][bucket].cost += cost;
+                grouped[key][bucket].netlanding += netlanding;
+
+                // Check for issues
+                if (qty < 0 || cost < 0 || netlanding < 0) {
+                    grouped[key].issues.push('Negative');
+                }
+            });
+
+            // Build table
+            const bucketsToShow = selectedBuckets.includes('overall') 
+                ? ['last30', 'last60', 'last90', 'oldstock'] 
+                : selectedBuckets.filter(b => b !== 'overall');
+
+            const bucketLabels = {
+                'last30': 'Last 30',
+                'last60': '31-60',
+                'last90': '61-90',
+                'oldstock': 'Old Stock'
+            };
+
+            let html = '<thead><tr><th>Group Name</th><th class="text-right">Qty (PCS)</th>';
+            if (hasMCMData) html += '<th class="text-right">Qty (MCM)</th>';
+
+            bucketsToShow.forEach(bucket => {
+                html += `<th class="text-right">${bucketLabels[bucket]} (${selectedValueType === 'cost' ? 'Cost' : 'Net Landing'})</th>`;
+            });
+
+            html += '<th>Issues</th></tr></thead><tbody>';
+
+            Object.keys(grouped).sort().forEach(groupName => {
+                const data = grouped[groupName];
+                const totalPCS = bucketsToShow.reduce((sum, b) => sum + data[b].pcs, 0);
+                const totalMCM = bucketsToShow.reduce((sum, b) => sum + data[b].mcm, 0);
+
+                html += `<tr><td>${groupName}</td><td class="text-right">${totalPCS.toLocaleString()}</td>`;
+                if (hasMCMData) html += `<td class="text-right">${totalMCM.toLocaleString()}</td>`;
+
+                bucketsToShow.forEach(bucket => {
+                    const value = selectedValueType === 'cost' ? data[bucket].cost : data[bucket].netlanding;
+                    const className = value < 0 ? 'text-right text-red' : 'text-right';
+                    html += `<td class="${className}">₹${value.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</td>`;
+                });
+
+                html += `<td>${data.issues.length > 0 ? '<span class="badge">⚠ Issues</span>' : ''}</td></tr>`;
+            });
+
+            html += '</tbody>';
+            document.getElementById('ageingTable').innerHTML = html;
+        }
+
+        function copyTableAsImage() {
+            const table = document.getElementById('detailedTableSection');
+            html2canvas(table).then(canvas => {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(() => {
+                        alert('Table copied to clipboard!');
+                    }).catch(err => {
+                        alert('Failed to copy: ' + err);
+                    });
+                });
+            });
+        }
+
+        function copySummaryAsImage() {
+            const table = document.getElementById('summaryTableSection');
+            html2canvas(table).then(canvas => {
+                canvas.toBlob(blob => {
+                    const item = new ClipboardItem({ 'image/png': blob });
+                    navigator.clipboard.write([item]).then(() => {
+                        alert('Summary copied to clipboard!');
+                    }).catch(err => {
+                        alert('Failed to copy: ' + err);
+                    });
+                });
+            });
+        }
+    </script>
+</body>
+</html>

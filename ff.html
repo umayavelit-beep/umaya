@@ -1,0 +1,1478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock Ageing Dashboard</title>
+
+    <!-- Professional font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* New professional indigo + cyan theme */
+            --color-bg: #F8FAFC;              /* background */
+            --color-surface: #FFFFFF;        /* cards */
+            --color-border: #E2E8F0;
+            --color-text: #0F172A;
+            --color-text-soft: #64748B;
+
+            --color-primary: #1E3A8A;        /* deep indigo */
+            --color-primary-soft: #EEF2FF;
+            --color-primary-hover: #1D4ED8;
+            --color-accent: #06B6D4;         /* cyan */
+            --color-accent-soft: #E0F7FA;
+
+            --color-danger: #EF4444;
+
+            --radius-md: 10px;
+            --radius-lg: 14px;
+            --shadow-soft: 0 18px 45px rgba(15, 23, 42, 0.12);
+
+            --font-sm: 12px;
+            --font-base: 14px;
+            --font-lg: 16px;
+            --font-xl: 20px;
+            --font-2xl: 24px;
+
+            --space-4: 4px;
+            --space-8: 8px;
+            --space-12: 12px;
+            --space-16: 16px;
+            --space-20: 20px;
+            --space-24: 24px;
+            --space-32: 32px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: radial-gradient(circle at top left,#EFF6FF,#F8FAFC 40%,#F1F5F9);
+            color: var(--color-text);
+            padding: var(--space-24);
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            font-size: var(--font-2xl);
+            font-weight: 700;
+            letter-spacing: 0.01em;
+            margin-bottom: var(--space-20);
+            color: var(--color-text);
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        h1 span.icon {
+            font-size: 26px;
+        }
+
+        /* Upload section */
+        .upload-section {
+            background: linear-gradient(135deg,#EEF2FF,#F9FAFB);
+            border-radius: var(--radius-lg);
+            padding: var(--space-24) var(--space-32);
+            border: 1px solid rgba(129, 140, 248, 0.4);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: var(--space-20);
+            margin-bottom: var(--space-24);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .upload-left {
+            display: flex;
+            align-items: center;
+            gap: var(--space-16);
+        }
+
+        .upload-icon {
+            width: 44px;
+            height: 44px;
+            border-radius: 999px;
+            background: radial-gradient(circle at 30% 0%,#38BDF8,#6366F1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 22px;
+        }
+
+        .upload-text-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+        }
+
+        .upload-text-sub {
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+        }
+
+        .upload-button {
+            position: relative;
+            overflow: hidden;
+        }
+
+        .upload-button button {
+            padding: var(--space-12) var(--space-24);
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg,#1E3A8A,#2563EB);
+            color: white;
+            font-size: var(--font-base);
+            font-weight: 500;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+            box-shadow: 0 8px 20px rgba(37, 99, 235, 0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+        }
+
+        .upload-button button:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 14px 30px rgba(30, 64, 175, 0.45);
+            background: linear-gradient(135deg,#1D4ED8,#22C1C3);
+        }
+
+        .upload-button input[type="file"] {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        /* Progress indicator */
+        .progress-container {
+            width: 100%;
+            margin-top: var(--space-12);
+            display: none;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--color-border);
+            border-radius: 3px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #06B6D4, #3B82F6);
+            border-radius: 3px;
+            transition: width 0.3s ease;
+            width: 0%;
+        }
+
+        .progress-text {
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        /* Grouping + ageing filters */
+        .flex-row {
+            display: flex;
+            gap: var(--space-16);
+            flex-wrap: wrap;
+            margin-bottom: var(--space-16);
+        }
+
+        .card {
+            background: var(--color-surface);
+            border-radius: var(--radius-lg);
+            padding: var(--space-20);
+            border: 1px solid var(--color-border);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-16);
+        }
+
+        .card-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            letter-spacing: 0.02em;
+            color: var(--color-text);
+        }
+
+        .card-sub {
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+        }
+
+        .chip-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: var(--space-8);
+        }
+
+        .chip {
+            display: inline-flex;
+            align-items: center;
+            gap: var(--space-6);
+            padding: 6px 14px;
+            border-radius: 999px;
+            border: 1px solid rgba(148, 163, 184, 0.5);
+            background: #F8FAFC;
+            cursor: pointer;
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+            transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+        }
+
+        .chip input {
+            width: 14px;
+            height: 14px;
+            accent-color: var(--color-primary);
+            cursor: pointer;
+        }
+
+        .chip span.label {
+            user-select: none;
+        }
+
+        .chip.active {
+            background: #EEF2FF;
+            border-color: #4F46E5;
+            color: #1E3A8A;
+            font-weight: 500;
+        }
+
+        .value-select {
+            display: flex;
+            gap: var(--space-12);
+            align-items: center;
+        }
+
+        .value-select select {
+            padding: 6px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--color-border);
+            font-size: var(--font-sm);
+            background: #F9FAFB;
+            color: var(--color-text);
+            min-width: 120px;
+            cursor: pointer;
+        }
+
+        /* Tiles */
+        .summary-tiles {
+            display: grid;
+            grid-template-columns: repeat(auto-fit,minmax(220px,1fr));
+            gap: var(--space-16);
+            margin: var(--space-16) 0 var(--space-24);
+        }
+
+        .tile {
+            position: relative;
+            border-radius: var(--radius-lg);
+            padding: var(--space-16) var(--space-20);
+            overflow: hidden;
+            color: #0F172A;
+        }
+
+        .tile.bg-qty {
+            background: radial-gradient(circle at 0 0,#E0F2FE,#EFF6FF);
+        }
+
+        .tile.bg-cost {
+            background: radial-gradient(circle at 0 0,#DCFCE7,#ECFDF5);
+        }
+
+        .tile.bg-net {
+            background: radial-gradient(circle at 0 0,#FAE8FF,#EEF2FF);
+        }
+
+        .tile-label {
+            font-size: var(--font-sm);
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--color-text-soft);
+            margin-bottom: var(--space-4);
+        }
+
+        .tile-value {
+            font-size: var(--font-xl);
+            font-weight: 600;
+            letter-spacing: 0.04em;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .tile-foot {
+            margin-top: 6px;
+            font-size: 11px;
+            color: var(--color-text-soft);
+        }
+
+        /* Tables */
+        .table-section {
+            margin-bottom: var(--space-24);
+        }
+
+        .table-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--space-12);
+        }
+
+        .ts-title {
+            font-size: var(--font-lg);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--space-8);
+        }
+
+        .ts-title span.icon {
+            font-size: 20px;
+        }
+
+        .ts-sub {
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+            margin-top: 2px;
+        }
+
+        .copy-btn {
+            padding: 8px 16px;
+            border-radius: 999px;
+            border: none;
+            background: linear-gradient(135deg,#4F46E5,#0EA5E9);
+            color: white;
+            font-size: var(--font-sm);
+            font-weight: 500;
+            cursor: pointer;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 6px 18px rgba(79,70,229,0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+
+        .copy-btn:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 10px 24px rgba(37, 99, 235, 0.5);
+        }
+
+        .copy-btn .icon {
+            font-size: 16px;
+        }
+
+        .report-meta {
+            font-size: var(--font-sm);
+            color: var(--color-text-soft);
+            margin-bottom: var(--space-8);
+        }
+
+        .table-wrapper {
+            overflow-x: auto;
+            border-radius: var(--radius-md);
+            border: 1px solid var(--color-border);
+            background: var(--color-surface);
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: var(--font-sm);
+            font-variant-numeric: tabular-nums;
+            min-width: 800px;
+        }
+
+        thead {
+            background: #EEF2FF;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        th, td {
+            padding: 10px 14px;
+            border-bottom: 1px solid #E5E7EB;
+            text-align: left;
+            white-space: nowrap;
+        }
+
+        th {
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 600;
+            color: #4B5563;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #F9FAFB;
+        }
+
+        tbody tr:hover {
+            background: #EEF2FF;
+        }
+
+        .text-right {
+            text-align: right;
+        }
+
+        .text-center {
+            text-align: center;
+        }
+
+        .text-danger {
+            color: var(--color-danger);
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            background: rgba(239,68,68,0.1);
+            color: #B91C1C;
+            font-size: 11px;
+            font-weight: 500;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        .group-summary-row {
+            font-weight: 600;
+            background: #EFF6FF !important;
+            border-top: 2px solid #1E3A8A;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--color-text-soft);
+        }
+
+        .empty-state-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @media (max-width: 900px) {
+            body {
+                padding: var(--space-16);
+            }
+
+            .upload-section {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .table-wrapper {
+                border-radius: var(--radius-md);
+            }
+            
+            .value-select {
+                flex-wrap: wrap;
+            }
+            
+            .card-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: var(--space-12);
+            }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h1><span class="icon">📊</span>Stock Ageing Dashboard</h1>
+
+    <!-- Upload -->
+    <div class="upload-section">
+        <div class="upload-left">
+            <div class="upload-icon">⬆</div>
+            <div>
+                <div class="upload-text-title">Upload Stock Data File</div>
+                <div class="upload-text-sub">Upload CSV, Excel (.xlsx, .xls), or ODS files to analyze stock ageing patterns</div>
+            </div>
+        </div>
+        <div class="upload-button">
+            <button type="button" id="uploadBtn">
+                <span>Choose File</span>
+            </button>
+            <input id="fileUpload" type="file" accept=".csv,.xlsx,.xls,.ods">
+        </div>
+    </div>
+    
+    <!-- Progress indicator -->
+    <div id="progressContainer" class="progress-container">
+        <div class="progress-bar">
+            <div id="progressFill" class="progress-fill"></div>
+        </div>
+        <div id="progressText" class="progress-text">Processing...</div>
+    </div>
+
+    <!-- Grouping & Ageing filters -->
+    <div id="configRow" class="flex-row" style="display:none;">
+        <div class="card" style="flex:1 1 320px;">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Grouping</div>
+                    <div class="card-sub">View ageing by Company, Purchaser, Product, or Type</div>
+                </div>
+            </div>
+            <div id="groupingRadios" class="chip-row"></div>
+            <div id="specificGrouping" style="margin-top: 12px; display: none;">
+                <div class="card-sub" style="margin-bottom: 8px;">Specific Grouping:</div>
+                <div class="chip-row">
+                    <label class="chip">
+                        <input type="checkbox" id="chk-specific-company" value="specific-company">
+                        <span class="label">Specific Company</span>
+                    </label>
+                    <label class="chip">
+                        <input type="checkbox" id="chk-specific-purchaser" value="specific-purchaser">
+                        <span class="label">Specific Purchaser</span>
+                    </label>
+                </div>
+            </div>
+        </div>
+
+        <div class="card" style="flex:1 1 340px;">
+            <div class="card-header">
+                <div>
+                    <div class="card-title">Ageing Filters</div>
+                    <div class="card-sub">Filter report based on stock age from EntryDate</div>
+                </div>
+                <div class="value-select">
+                    <select id="valueType">
+                        <option value="cost">Value by: Cost</option>
+                        <option value="netlanding">Value by: Net Landing</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chip-row">
+                <label class="chip active">
+                    <input type="checkbox" id="chk-overall" value="overall" checked>
+                    <span class="label">Overall</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last30" value="last30">
+                    <span class="label">Last 30 Days</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last60" value="last60">
+                    <span class="label">31-60 Days (31–60)</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last90" value="last90">
+                    <span class="label">61-90 Days (61–90)</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last120" value="last120">
+                    <span class="label">91-120 Days (91–120)</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last180" value="last180">
+                    <span class="label">121-180 Days (121–180)</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-last360" value="last360">
+                    <span class="label">181-360 Days (181–360)</span>
+                </label>
+                <label class="chip">
+                    <input type="checkbox" id="chk-oldstock" value="oldstock">
+                    <span class="label">Old Stock (360+)</span>
+                </label>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tiles -->
+    <div id="summaryTiles" class="summary-tiles" style="display:none;"></div>
+
+    <!-- Ageing Summary -->
+    <div id="summaryTableSection" class="table-section card" style="display:none;">
+        <div class="table-header">
+            <div>
+                <div class="ts-title"><span class="icon">📈</span>Ageing Summary</div>
+                <div class="ts-sub">High-level ageing by bucket for current filter</div>
+            </div>
+            <button id="copySummaryBtn" class="copy-btn">
+                <span class="icon">📋</span><span>Copy as Image</span>
+            </button>
+        </div>
+        <div id="summaryMeta" class="report-meta"></div>
+        <div id="summaryWrapper" class="table-wrapper">
+            <table id="summaryTable">
+                <tbody>
+                    <tr>
+                        <td colspan="4" class="empty-state">
+                            <div class="empty-state-icon">📊</div>
+                            <div>Upload a file to see ageing summary</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Detailed -->
+    <div id="detailedTableSection" class="table-section card" style="display:none;">
+        <div class="table-header">
+            <div>
+                <div class="ts-title"><span class="icon">📊</span>Stock Ageing Analysis</div>
+                <div class="ts-sub">Grouped ageing split by selected buckets</div>
+            </div>
+            <button id="copyTableBtn" class="copy-btn">
+                <span class="icon">📋</span><span>Copy as Image</span>
+            </button>
+        </div>
+        <div id="detailMeta" class="report-meta"></div>
+        <div id="detailWrapper" class="table-wrapper">
+            <table id="ageingTable">
+                <tbody>
+                    <tr>
+                        <td colspan="10" class="empty-state">
+                            <div class="empty-state-icon">📋</div>
+                            <div>Upload a file to see detailed analysis</div>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- libs -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<!-- SheetJS LIGHTWEIGHT version (FASTER) -->
+<script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.mini.min.js"></script>
+
+<script>
+let parsedData = [];
+let columnMap = {};
+let availableGroupings = [];
+let currentGrouping = null;
+let hasMCMData = false;
+let selectedBuckets = ['overall'];
+let selectedValueType = 'cost';
+let specificCompany = null;
+let specificPurchaser = null;
+let isProcessing = false;
+
+// Performance optimization: Batch processing
+const BATCH_SIZE = 1000;
+
+document.addEventListener('DOMContentLoaded', () => {
+    const upload = document.getElementById('fileUpload');
+    const uploadBtn = document.getElementById('uploadBtn');
+    
+    upload.addEventListener('change', handleFileUpload);
+    uploadBtn.addEventListener('click', () => upload.click());
+
+    // Value type filter
+    document.getElementById('valueType').addEventListener('change', e => {
+        selectedValueType = e.target.value;
+        updateDisplay();
+    });
+
+    // Ageing bucket checkboxes
+    ['chk-overall','chk-last30','chk-last60','chk-last90','chk-last120','chk-last180','chk-last360','chk-oldstock'].forEach(id => {
+        const cb = document.getElementById(id);
+        const chip = cb.closest('.chip');
+        cb.addEventListener('change', () => {
+            if (cb.checked) chip.classList.add('active'); else chip.classList.remove('active');
+            updateBucketsFromUI();
+        });
+    });
+
+    // Specific grouping checkboxes
+    document.getElementById('chk-specific-company').addEventListener('change', e => {
+        if (e.target.checked) {
+            document.getElementById('chk-specific-purchaser').checked = false;
+            document.getElementById('chk-specific-purchaser').closest('.chip').classList.remove('active');
+            specificCompany = prompt("Enter specific company name:", specificCompany || "");
+            if (specificCompany === null) {
+                e.target.checked = false;
+                specificCompany = null;
+            } else {
+                specificPurchaser = null;
+            }
+        } else {
+            specificCompany = null;
+        }
+        updateDisplay();
+    });
+
+    document.getElementById('chk-specific-purchaser').addEventListener('change', e => {
+        if (e.target.checked) {
+            document.getElementById('chk-specific-company').checked = false;
+            document.getElementById('chk-specific-company').closest('.chip').classList.remove('active');
+            specificPurchaser = prompt("Enter specific purchaser name:", specificPurchaser || "");
+            if (specificPurchaser === null) {
+                e.target.checked = false;
+                specificPurchaser = null;
+            } else {
+                specificCompany = null;
+            }
+        } else {
+            specificPurchaser = null;
+        }
+        updateDisplay();
+    });
+
+    document.getElementById('copyTableBtn').addEventListener('click', () => copySectionImage('detailedTableSection'));
+    document.getElementById('copySummaryBtn').addEventListener('click', () => copySectionImage('summaryTableSection'));
+});
+
+async function handleFileUpload(e) {
+    if (isProcessing) {
+        alert('Please wait for current file to finish processing.');
+        return;
+    }
+    
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const fileExt = file.name.split('.').pop().toLowerCase();
+    const uploadBtn = document.getElementById('uploadBtn');
+    const progressContainer = document.getElementById('progressContainer');
+    const progressFill = document.getElementById('progressFill');
+    const progressText = document.getElementById('progressText');
+    
+    try {
+        isProcessing = true;
+        
+        // Show loading state and progress
+        uploadBtn.innerHTML = '<div class="loading"></div> Processing...';
+        uploadBtn.disabled = true;
+        progressContainer.style.display = 'block';
+        progressFill.style.width = '5%';
+        progressText.textContent = 'Starting...';
+        
+        let data;
+        
+        if (fileExt === 'csv') {
+            // Use PapaParse for CSV with streaming for large files
+            progressText.textContent = 'Reading CSV file...';
+            data = await parseCSV(file, (progress) => {
+                progressFill.style.width = `${progress * 100}%`;
+                progressText.textContent = `Reading CSV: ${Math.round(progress * 100)}%`;
+            });
+        } else if (['xlsx', 'xls', 'ods'].includes(fileExt)) {
+            // Use optimized Excel parsing
+            progressText.textContent = 'Reading Excel file...';
+            progressFill.style.width = '20%';
+            data = await parseExcelOptimized(file, fileExt, (progress, stage) => {
+                progressFill.style.width = `${progress}%`;
+                progressText.textContent = stage;
+            });
+        } else {
+            throw new Error('Unsupported file format. Please upload CSV, Excel (.xlsx, .xls), or ODS files.');
+        }
+        
+        progressText.textContent = 'Processing data...';
+        progressFill.style.width = '90%';
+        
+        // Process data with progress updates
+        await processDataWithProgress(data, (progress, stage) => {
+            progressFill.style.width = `${90 + (progress * 10)}%`;
+            progressText.textContent = stage;
+        });
+        
+        // Complete
+        progressFill.style.width = '100%';
+        progressText.textContent = 'Complete!';
+        
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+        }, 1000);
+        
+    } catch (error) {
+        alert('Error processing file: ' + error.message);
+        console.error('Upload error:', error);
+        progressContainer.style.display = 'none';
+    } finally {
+        // Reset button state
+        uploadBtn.innerHTML = 'Choose File';
+        uploadBtn.disabled = false;
+        isProcessing = false;
+        e.target.value = ''; // Reset file input
+    }
+}
+
+function parseCSV(file, progressCallback) {
+    return new Promise((resolve, reject) => {
+        let allData = [];
+        
+        Papa.parse(file, {
+            header: true,
+            skipEmptyLines: true,
+            chunk: (results, parser) => {
+                // Process in chunks to prevent UI freeze
+                allData.push(...results.data);
+                
+                // Update progress based on file size estimation
+                if (progressCallback && file.size) {
+                    const bytesProcessed = parser?._stream?.byteCount || 0;
+                    const progress = Math.min(1, bytesProcessed / file.size);
+                    progressCallback(progress);
+                }
+            },
+            complete: () => {
+                if (allData.length === 0) {
+                    reject(new Error('CSV file is empty or contains no data rows'));
+                    return;
+                }
+                resolve(allData);
+            },
+            error: (error) => reject(new Error('CSV error: ' + error.message))
+        });
+    });
+}
+
+async function parseExcelOptimized(file, fileExt, progressCallback) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        
+        reader.onload = function(e) {
+            try {
+                progressCallback(40, 'Parsing workbook...');
+                
+                const data = new Uint8Array(e.target.result);
+                
+                // Optimized read options - disable unnecessary features
+                const workbook = XLSX.read(data, { 
+                    type: 'array',
+                    cellDates: true,
+                    cellStyles: false,
+                    cellNF: false,
+                    cellFormula: false,
+                    sheetStubs: false,
+                    bookVBA: false,
+                    password: '',
+                    WTF: false
+                });
+                
+                progressCallback(60, 'Converting to JSON...');
+                
+                // Get first worksheet
+                const firstSheetName = workbook.SheetNames[0];
+                const worksheet = workbook.Sheets[firstSheetName];
+                
+                // Optimized conversion - raw mode for speed
+                const jsonData = XLSX.utils.sheet_to_json(worksheet, {
+                    raw: true,
+                    dateNF: "yyyy-mm-dd",
+                    defval: ""
+                });
+                
+                if (jsonData.length === 0) {
+                    reject(new Error('Excel file is empty or contains no data rows'));
+                    return;
+                }
+                
+                progressCallback(80, 'Processing complete');
+                resolve(jsonData);
+            } catch (error) {
+                reject(new Error('Excel parsing error: ' + error.message));
+            }
+        };
+        
+        reader.onerror = function() {
+            reject(new Error('Failed to read file'));
+        };
+        
+        reader.readAsArrayBuffer(file);
+    });
+}
+
+async function processDataWithProgress(data, progressCallback) {
+    return new Promise((resolve) => {
+        if(!data || !data.length){ 
+            alert('No rows in file'); 
+            resolve();
+            return; 
+        }
+
+        progressCallback(0, 'Analyzing headers...');
+        
+        const headers = Object.keys(data[0]);
+        columnMap = {};
+        headers.forEach(h => {
+            const trimmed = h.trim();
+            columnMap[trimmed.toLowerCase()] = trimmed;
+        });
+
+        // Check required columns
+        const requiredColumns = ['entrydate', 'stockqty', 'product unit'];
+        const missingColumns = requiredColumns.filter(col => !columnMap[col]);
+        if (missingColumns.length > 0) {
+            alert(`Missing required columns: ${missingColumns.join(', ')}`);
+            resolve();
+            return;
+        }
+
+        // Pre-process in batches to avoid UI freeze
+        const totalRows = data.length;
+        const batches = Math.ceil(totalRows / BATCH_SIZE);
+        parsedData = [];
+        
+        let processedBatches = 0;
+        
+        const processBatch = (batchIndex) => {
+            const start = batchIndex * BATCH_SIZE;
+            const end = Math.min(start + BATCH_SIZE, totalRows);
+            const batch = data.slice(start, end);
+            
+            // Process batch
+            const processedBatch = batch.map(row => {
+                const cleaned = {};
+                Object.keys(row).forEach(k => cleaned[k.trim()] = row[k]);
+                
+                // Format date if it's a Date object (from Excel)
+                let entryDate = cleaned[columnMap['entrydate']];
+                if (entryDate instanceof Date) {
+                    entryDate = entryDate.toISOString().split('T')[0];
+                    cleaned[columnMap['entrydate']] = entryDate;
+                } else if (typeof entryDate === 'number') {
+                    // Excel serial date to string
+                    const date = new Date(Math.round((entryDate - 25569) * 86400 * 1000));
+                    entryDate = date.toISOString().split('T')[0];
+                    cleaned[columnMap['entrydate']] = entryDate;
+                }
+                
+                // Calculate age in days from today
+                cleaned._ageInDays = calcAgeDays(entryDate);
+                cleaned._ageBucket = bucketFromDays(cleaned._ageInDays);
+                return cleaned;
+            });
+            
+            parsedData.push(...processedBatch);
+            processedBatches++;
+            
+            // Update progress
+            const progress = processedBatches / batches;
+            progressCallback(progress * 100, `Processing rows: ${end}/${totalRows}`);
+            
+            // Process next batch with timeout to prevent UI freeze
+            if (processedBatches < batches) {
+                setTimeout(() => processBatch(batchIndex + 1), 0);
+            } else {
+                // All batches processed
+                progressCallback(100, 'Finalizing...');
+                completeDataProcessing();
+                resolve();
+            }
+        };
+        
+        // Start processing first batch
+        setTimeout(() => processBatch(0), 0);
+    });
+}
+
+function completeDataProcessing() {
+    hasMCMData = parsedData.some(r => {
+        const u = r[columnMap['product unit']];
+        return u && u.toString().toUpperCase().trim() === 'MCM';
+    });
+
+    const possibleGroupings = [
+        {key: 'company name', label: 'Company Name'},
+        {key: 'purchaser name', label: 'Purchaser Name'},
+        {key: 'product name', label: 'Product Name'},
+        {key: 'type name', label: 'Type Name'},
+        {key: 'brand name', label: 'Brand Name'},
+        {key: 'style name', label: 'Style Name'}
+    ];
+    
+    availableGroupings = possibleGroupings.filter(g => columnMap[g.key]);
+    
+    if(!availableGroupings.length){
+        alert('No grouping columns (Company/Purchaser/Product/Type) found');
+        return;
+    }
+    
+    // Check if we have multiple companies or purchasers
+    const companies = [...new Set(parsedData.map(r => r[columnMap['company name']]).filter(Boolean))];
+    const purchasers = [...new Set(parsedData.map(r => r[columnMap['purchaser name']]).filter(Boolean))];
+    
+    // Show specific grouping options if multiple companies or purchasers exist
+    if (companies.length > 1 || purchasers.length > 1) {
+        document.getElementById('specificGrouping').style.display = 'block';
+    }
+    
+    currentGrouping = availableGroupings[0].key;
+    renderGroupingChips();
+    document.getElementById('configRow').style.display = 'flex';
+    
+    updateDisplay();
+}
+
+function calcAgeDays(entry){
+    if(!entry || entry==='0000-00-00' || entry === '1899-12-30' || entry === '') return 9999; // Return large number for invalid dates
+    
+    let date;
+    
+    if (typeof entry === 'string') {
+        // Try ISO format first (YYYY-MM-DD)
+        if (entry.match(/^\d{4}-\d{2}-\d{2}$/)) {
+            date = new Date(entry + 'T00:00:00');
+        } 
+        // Try DD/MM/YYYY or DD-MM-YYYY
+        else if (entry.match(/^\d{2}[\/-]\d{2}[\/-]\d{4}$/)) {
+            const parts = entry.split(/[/-]/);
+            date = new Date(parts[2], parts[1] - 1, parts[0]);
+        }
+        // Try MM/DD/YYYY or MM-DD-YYYY
+        else if (entry.match(/^\d{1,2}[\/-]\d{1,2}[\/-]\d{4}$/)) {
+            const parts = entry.split(/[/-]/);
+            date = new Date(parts[2], parts[0] - 1, parts[1]);
+        }
+        // Fallback to Date constructor
+        else {
+            date = new Date(entry);
+        }
+    } else if (entry instanceof Date) {
+        date = entry;
+    } else if (typeof entry === 'number') {
+        // Excel serial date
+        date = new Date(Math.round((entry - 25569) * 86400 * 1000));
+    } else {
+        return 9999;
+    }
+    
+    if(isNaN(date.getTime())) return 9999;
+    
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    date.setHours(0, 0, 0, 0);
+    
+    const diffTime = today - date;
+    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+    
+    // Return positive number for past dates, negative for future dates
+    return diffDays;
+}
+
+function bucketFromDays(d){
+    if(d < 0) return 'future'; // Future dates
+    if(d <= 30) return 'last30';
+    if(d <= 60) return 'last60';
+    if(d <= 90) return 'last90';
+    if(d <= 120) return 'last120';
+    if(d <= 180) return 'last180';
+    if(d <= 360) return 'last360';
+    return 'oldstock';
+}
+
+function renderGroupingChips(){
+    const el = document.getElementById('groupingRadios');
+    el.innerHTML='';
+    availableGroupings.forEach(g=>{
+        const label = document.createElement('label');
+        label.className='chip'+(g.key===currentGrouping?' active':'');
+        const input = document.createElement('input');
+        input.type='radio'; input.name='grouping'; input.value=g.key;
+        input.checked = g.key===currentGrouping;
+        input.addEventListener('change',e=>{
+            currentGrouping = e.target.value;
+            document.querySelectorAll('#groupingRadios .chip').forEach(c=>c.classList.remove('active'));
+            label.classList.add('active');
+            updateDisplay();
+        });
+        const span = document.createElement('span');
+        span.className='label'; span.textContent=g.label;
+        label.appendChild(input); label.appendChild(span);
+        el.appendChild(label);
+    });
+}
+
+function updateBucketsFromUI(){
+    const ids=['chk-overall','chk-last30','chk-last60','chk-last90','chk-last120','chk-last180','chk-last360','chk-oldstock'];
+    selectedBuckets = ids.map(id=>document.getElementById(id))
+                         .filter(cb=>cb.checked)
+                         .map(cb=>cb.value);
+    if(!selectedBuckets.length){
+        selectedBuckets=['overall'];
+        const cb = document.getElementById('chk-overall');
+        cb.checked=true; cb.closest('.chip').classList.add('active');
+    }
+    updateDisplay();
+}
+
+function filterByBuckets(data){
+    if(selectedBuckets.includes('overall')) return data;
+    return data.filter(r=>selectedBuckets.includes(r._ageBucket));
+}
+
+function filterBySpecificGrouping(data) {
+    if (specificCompany) {
+        const companyLower = specificCompany.toLowerCase();
+        return data.filter(r => {
+            const company = r[columnMap['company name']];
+            return company && typeof company === 'string' && company.toLowerCase().includes(companyLower);
+        });
+    }
+    if (specificPurchaser) {
+        const purchaserLower = specificPurchaser.toLowerCase();
+        return data.filter(r => {
+            const purchaser = r[columnMap['purchaser name']];
+            return purchaser && typeof purchaser === 'string' && purchaser.toLowerCase().includes(purchaserLower);
+        });
+    }
+    return data;
+}
+
+function updateDisplay(){
+    if(!parsedData.length) return;
+
+    document.getElementById('summaryTiles').style.display='grid';
+    document.getElementById('summaryTableSection').style.display='block';
+    document.getElementById('detailedTableSection').style.display='block';
+
+    updateTiles();
+    updateSummaryTable();
+    updateDetailTable();
+
+    const now = new Date();
+    const ts = now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour12:true,day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
+    document.getElementById('summaryMeta').textContent = 'Report Generated: '+ts;
+    document.getElementById('detailMeta').textContent = 'Report Generated: '+ts;
+}
+
+function updateTiles(){
+    let data = parsedData;
+    data = filterByBuckets(data);
+    data = filterBySpecificGrouping(data);
+    
+    const colQty = columnMap['stockqty'];
+    const unitCol = columnMap['product unit'];
+    const costCol = columnMap['cost'];
+    const netCol = columnMap['net landing'];
+
+    let totalPCS = 0, totalMCM = 0, totalCost = 0, totalNet = 0;
+    
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const qty = Number(row[colQty] || 0);
+        const unit = row[unitCol]?.toString().toUpperCase().trim();
+        
+        if (unit === 'PCS') totalPCS += qty;
+        else if (unit === 'MCM') totalMCM += qty;
+        
+        totalCost += Number(row[costCol] || 0);
+        totalNet += Number(row[netCol] || 0);
+    }
+
+    const el = document.getElementById('summaryTiles');
+    el.innerHTML = `
+      <div class="tile bg-qty">
+        <div class="tile-label">Total Qty (PCS)</div>
+        <div class="tile-value">${totalPCS.toLocaleString()}</div>
+        <div class="tile-foot">Within selected ageing filters</div>
+      </div>
+      ${hasMCMData ? `
+      <div class="tile bg-qty">
+        <div class="tile-label">Total Qty (MCM)</div>
+        <div class="tile-value">${totalMCM.toLocaleString()}</div>
+        <div class="tile-foot">Within selected ageing filters</div>
+      </div>` : ''}
+      <div class="tile bg-cost">
+        <div class="tile-label">Total Value (Cost)</div>
+        <div class="tile-value">₹${totalCost.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="tile-foot">Sum of Cost for filtered rows</div>
+      </div>
+      <div class="tile bg-net">
+        <div class="tile-label">Total Value (Net Landing)</div>
+        <div class="tile-value">₹${totalNet.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</div>
+        <div class="tile-foot">Sum of Net Landing for filtered rows</div>
+      </div>`;
+}
+
+function updateSummaryTable(){
+    const bucketNames = {
+        overall:'Overall',
+        last30:'Last 30 Days (0-30 days)',
+        last60:'31-60 Days',
+        last90:'61-90 Days',
+        last120:'91-120 Days',
+        last180:'121-180 Days',
+        last360:'181-360 Days',
+        oldstock:'Old Stock (360+ days)',
+        future:'Future Stock'
+    };
+
+    const valCol = selectedValueType==='cost'?columnMap['cost']:columnMap['net landing'];
+    const valLabel = selectedValueType==='cost'?'Cost':'Net Landing';
+    const unitCol = columnMap['product unit'];
+    const qtyCol = columnMap['stockqty'];
+
+    const bucketsToShow = selectedBuckets.includes('overall') ? ['overall'] : selectedBuckets.slice();
+
+    let html = '<thead><tr><th>Ageing Bucket</th><th class="text-right">Qty (PCS)</th>';
+    if(hasMCMData) html+='<th class="text-right">Qty (MCM)</th>';
+    html+=`<th class="text-right">Total Value (${valLabel})</th></tr></thead><tbody>`;
+
+    // Calculate totals for each bucket
+    let grandTotalPCS = 0, grandTotalMCM = 0, grandTotalValue = 0;
+    
+    bucketsToShow.forEach(b=>{
+        let rows = parsedData;
+        if (b !== 'overall') {
+            rows = rows.filter(r => r._ageBucket === b);
+        }
+        rows = filterBySpecificGrouping(rows);
+        
+        let qtyPCS = 0, qtyMCM = 0, totalV = 0;
+        
+        for (let i = 0; i < rows.length; i++) {
+            const row = rows[i];
+            const unit = row[unitCol]?.toString().toUpperCase().trim();
+            const qty = Number(row[qtyCol] || 0);
+            
+            if (unit === 'PCS') qtyPCS += qty;
+            else if (unit === 'MCM') qtyMCM += qty;
+            
+            totalV += Number(row[valCol] || 0);
+        }
+        
+        grandTotalPCS += qtyPCS;
+        grandTotalMCM += qtyMCM;
+        grandTotalValue += totalV;
+
+        html+=`<tr>
+            <td>${bucketNames[b] || b}</td>
+            <td class="text-right">${qtyPCS.toLocaleString()}</td>
+            ${hasMCMData?`<td class="text-right">${qtyMCM.toLocaleString()}</td>`:''}
+            <td class="text-right">₹${totalV.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>
+        </tr>`;
+    });
+
+    // Add grand total row
+    html += `<tr class="group-summary-row">
+        <td><strong>Grand Total</strong></td>
+        <td class="text-right"><strong>${grandTotalPCS.toLocaleString()}</strong></td>
+        ${hasMCMData?`<td class="text-right"><strong>${grandTotalMCM.toLocaleString()}</strong></td>`:''}
+        <td class="text-right"><strong>₹${grandTotalValue.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+    </tr>`;
+
+    // Add selected group summary if specific grouping is selected
+    if (specificCompany || specificPurchaser) {
+        const groupType = specificCompany ? 'Company' : 'Purchaser';
+        const groupValue = specificCompany || specificPurchaser;
+        
+        let groupRows = parsedData;
+        groupRows = filterByBuckets(groupRows);
+        groupRows = filterBySpecificGrouping(groupRows);
+        
+        let groupPCS = 0, groupMCM = 0, groupValueTotal = 0;
+        
+        for (let i = 0; i < groupRows.length; i++) {
+            const row = groupRows[i];
+            const unit = row[unitCol]?.toString().toUpperCase().trim();
+            const qty = Number(row[qtyCol] || 0);
+            
+            if (unit === 'PCS') groupPCS += qty;
+            else if (unit === 'MCM') groupMCM += qty;
+            
+            groupValueTotal += Number(row[valCol] || 0);
+        }
+        
+        html += `<tr class="group-summary-row">
+            <td><strong>Selected ${groupType}: ${groupValue}</strong></td>
+            <td class="text-right"><strong>${groupPCS.toLocaleString()}</strong></td>
+            ${hasMCMData?`<td class="text-right"><strong>${groupMCM.toLocaleString()}</strong></td>`:''}
+            <td class="text-right"><strong>₹${groupValueTotal.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</strong></td>
+        </tr>`;
+    }
+
+    html+='</tbody>';
+    document.getElementById('summaryTable').innerHTML=html;
+}
+
+function updateDetailTable(){
+    let data = parsedData;
+    data = filterByBuckets(data);
+    data = filterBySpecificGrouping(data);
+    
+    const groupCol = columnMap[currentGrouping];
+    const qtyCol = columnMap['stockqty'];
+    const unitCol = columnMap['product unit'];
+    const costCol = columnMap['cost'];
+    const netCol = columnMap['net landing'];
+
+    const grouped = {};
+    
+    // Optimized grouping
+    for (let i = 0; i < data.length; i++) {
+        const row = data[i];
+        const key = String(row[groupCol]||'Unknown').trim();
+        
+        if(!grouped[key]){
+            grouped[key] = {
+                last30:{pcs:0,mcm:0,cost:0,net:0},
+                last60:{pcs:0,mcm:0,cost:0,net:0},
+                last90:{pcs:0,mcm:0,cost:0,net:0},
+                last120:{pcs:0,mcm:0,cost:0,net:0},
+                last180:{pcs:0,mcm:0,cost:0,net:0},
+                last360:{pcs:0,mcm:0,cost:0,net:0},
+                oldstock:{pcs:0,mcm:0,cost:0,net:0},
+                future:{pcs:0,mcm:0,cost:0,net:0},
+                issues:false
+            };
+        }
+        
+        const b = row._ageBucket;
+        const qty = Number(row[qtyCol]||0);
+        const cost = Number(row[costCol]||0);
+        const net  = Number(row[netCol]||0);
+        const u = row[unitCol]?.toString().toUpperCase().trim();
+
+        if(u==='PCS') grouped[key][b].pcs += qty;
+        else if(u==='MCM') grouped[key][b].mcm += qty;
+
+        grouped[key][b].cost += cost;
+        grouped[key][b].net  += net;
+
+        if(!grouped[key].issues && (qty<0 || cost<0 || net<0)) {
+            grouped[key].issues = true;
+        }
+    }
+
+    const bucketLabels = {
+        last30:'LAST 30',
+        last60:'31–60',
+        last90:'61–90',
+        last120:'91–120',
+        last180:'121–180',
+        last360:'181–360',
+        oldstock:'OLD STOCK',
+        future:'FUTURE'
+    };
+
+    const bucketsToShow = selectedBuckets.includes('overall')
+        ? ['last30','last60','last90','last120','last180','last360','oldstock','future'].filter(b => {
+            // Only show buckets that have data
+            return Object.keys(grouped).some(key => 
+                grouped[key][b].pcs > 0 || grouped[key][b].mcm > 0 || 
+                grouped[key][b].cost > 0 || grouped[key][b].net > 0
+            );
+        })
+        : selectedBuckets.filter(b=>b!=='overall');
+
+    let html = '<thead><tr><th>Group Name</th><th class="text-right">Qty (PCS)</th>';
+    if(hasMCMData) html+='<th class="text-right">Qty (MCM)</th>';
+    bucketsToShow.forEach(b=>{
+        html+=`<th class="text-right">${bucketLabels[b] || b} (${selectedValueType==='cost'?'Cost':'Net'})</th>`;
+    });
+    html+='<th class="text-center">Issues</th></tr></thead><tbody>';
+
+    const keys = Object.keys(grouped).sort();
+    for (let i = 0; i < keys.length; i++) {
+        const name = keys[i];
+        const g = grouped[name];
+        
+        // Calculate totals
+        let totalPCS = 0, totalMCM = 0;
+        for (let j = 0; j < bucketsToShow.length; j++) {
+            const b = bucketsToShow[j];
+            totalPCS += g[b].pcs;
+            totalMCM += g[b].mcm;
+        }
+
+        html+=`<tr><td>${name}</td><td class="text-right">${totalPCS.toLocaleString()}</td>`;
+        if(hasMCMData) html+=`<td class="text-right">${totalMCM.toLocaleString()}</td>`;
+
+        for (let j = 0; j < bucketsToShow.length; j++) {
+            const b = bucketsToShow[j];
+            const val = selectedValueType==='cost'?g[b].cost:g[b].net;
+            const cls = 'text-right'+(val<0?' text-danger':'');
+            html+=`<td class="${cls}">₹${val.toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2})}</td>`;
+        }
+
+        html+=`<td class="text-center">${g.issues?'<span class="badge">⚠</span>':''}</td></tr>`;
+    }
+
+    html+='</tbody>';
+    document.getElementById('ageingTable').innerHTML=html;
+}
+
+/* Copy as image – hide button in capture */
+function copySectionImage(sectionId){
+    const section = document.getElementById(sectionId);
+    const btns = section.querySelectorAll('.copy-btn');
+    btns.forEach(b=>b.classList.add('hidden'));   // hide buttons
+
+    html2canvas(section,{
+        scale:2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: null
+    }).then(canvas=>{
+        btns.forEach(b=>b.classList.remove('hidden')); // show again
+
+        canvas.toBlob(blob=>{
+            if(!blob){ 
+                alert('Unable to copy image'); 
+                return; 
+            }
+            const item = new ClipboardItem({'image/png':blob});
+            navigator.clipboard.write([item]).then(()=>{
+                alert('Image copied to clipboard');
+            }).catch(err=>{
+                alert('Copy failed: '+err.message);
+            });
+        }, 'image/png');
+    }).catch(err=>{
+        btns.forEach(b=>b.classList.remove('hidden'));
+        alert('Failed to capture image: ' + err.message);
+    });
+}
+</script>
+</body>
+</html>

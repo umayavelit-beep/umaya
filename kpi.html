@@ -1,0 +1,924 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Stock Position Report</title>
+
+<style>
+ body { font-family: Arial, sans-serif; margin: 20px; }
+ h2 { margin-top: 32px; }
+ table { border-collapse: collapse; width: 100%; margin-top: 12px; }
+ th, td { border: 1px solid #ccc; padding: 6px; text-align: right; }
+ th { background:#f3f3f3; text-align:center; }
+ .totals { font-weight:bold; background:#eef; }
+ .section { border:1px solid #ddd; padding:16px; border-radius:10px; margin-top:18px;}
+ label { display:block; margin:6px 0 3px; }
+ input, select { padding:6px; width:100%; box-sizing:border-box; }
+ .grid { display:grid; grid-template-columns:repeat(2,1fr); gap:14px;}
+ button { padding:10px 18px; margin-top:18px; cursor:pointer;}
+ .report-block { background:#fafafa; padding:14px; border-radius:10px; margin-top:12px;}
+ .highlight { color:#b30000; font-weight:bold;}
+ 
+ /* Additional styles for report table */
+ .report-block table {
+   width: 100%;
+   margin-top: 15px;
+   background: white;
+ }
+ 
+ .report-block th {
+   background: #4a6fa5;
+   color: white;
+   text-align: center !important;
+   padding: 10px;
+ }
+ 
+ .report-block td {
+   padding: 8px 10px;
+   border-bottom: 1px solid #eee;
+   text-align: center !important;
+ }
+ 
+ .report-block tr:hover {
+   background: #f9f9f9;
+ }
+ 
+ .copy-btn {
+   background: #28a745;
+   color: white;
+   border: none;
+   padding: 10px 20px;
+   border-radius: 5px;
+   cursor: pointer;
+   margin-top: 15px;
+   font-size: 14px;
+   margin-right: 10px;
+ }
+ 
+ .copy-btn:hover {
+   background: #218838;
+ }
+ 
+ .header-info {
+   background: #f0f7ff;
+   padding: 15px;
+   border-radius: 8px;
+   margin-bottom: 20px;
+   border-left: 4px solid #4a6fa5;
+ }
+ 
+ .header-info-grid {
+   display: grid;
+   grid-template-columns: repeat(4, 1fr);
+   gap: 20px;
+ }
+ 
+ .header-info-item {
+   margin-bottom: 10px;
+ }
+ 
+ .header-info-label {
+   font-weight: bold;
+   color: #555;
+   font-size: 14px;
+ }
+ 
+ .header-info-value {
+   font-size: 16px;
+   color: #333;
+   margin-top: 5px;
+ }
+ 
+ .button-container {
+   display: flex;
+   flex-wrap: wrap;
+   gap: 10px;
+   margin-top: 20px;
+ }
+ 
+ .report-type-badge {
+   display: inline-block;
+   padding: 4px 12px;
+   background: #4a6fa5;
+   color: white;
+   border-radius: 20px;
+   font-size: 12px;
+   margin-left: 10px;
+   font-weight: normal;
+ }
+ 
+ /* Styles for percentage values */
+ .percentage {
+   font-size: 12px;
+   color: #666;
+   font-weight: normal;
+   display: block;
+   margin-top: 2px;
+ }
+ 
+ .positive {
+   color: #28a745;
+   font-weight: bold;
+ }
+ 
+ .negative {
+   color: #dc3545;
+   font-weight: bold;
+ }
+ 
+ .clearance-status {
+   font-size: 11px;
+   display: block;
+   margin-top: 2px;
+   font-weight: bold;
+ }
+</style>
+</head>
+
+<body>
+<h1>STOCK POSITION REPORT</h1>
+
+<div class="section">
+  <h3>Report Filters & Parameters</h3>
+  <div class="grid">
+    <div>
+      <label>From Date *</label>
+      <input type="date" id="fromDate" required>
+    </div>
+    <div>
+      <label>To Date *</label>
+      <input type="date" id="toDate" required>
+    </div>
+    <div>
+      <label>Purchaser Name</label>
+      <input type="text" id="purchaser" placeholder="Enter purchaser name">
+    </div>
+    <div>
+      <label>Location</label>
+      <input type="text" id="location" placeholder="Enter location">
+    </div>
+  </div>
+  <div style="margin-top: 20px;">
+    <label>Report Type</label>
+    <select id="reportType">
+      <option value="detailed">Detailed Report</option>
+      <option value="summary">Summary Report</option>
+      <option value="aging">Aging Analysis</option>
+      <option value="liquidation">Liquidation Report</option>
+    </select>
+  </div>
+</div>
+
+<!-- Opening Stock -->
+<div class="section">
+  <h3>Opening Stock (As of From Date)</h3>
+  <table id="openingTable">
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>PCS Qty</th><th>PCS Value</th>
+        <th>MCM Qty</th><th>MCM Value</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr class="totals">
+        <td>Total</td>
+        <td id="opPcsQtyTot">0</td><td id="opPcsValTot">0</td>
+        <td id="opMcmQtyTot">0</td><td id="opMcmValTot">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<!-- Closing Stock -->
+<div class="section">
+  <h3>Closing Stock (As of To Date)</h3>
+  <table id="closingTable">
+    <thead>
+      <tr>
+        <th>Year</th>
+        <th>PCS Qty</th><th>PCS Value</th>
+        <th>MCM Qty</th><th>MCM Value</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+    <tfoot>
+      <tr class="totals">
+        <td>Total</td>
+        <td id="clPcsQtyTot">0</td><td id="clPcsValTot">0</td>
+        <td id="clMcmQtyTot">0</td><td id="clMcmValTot">0</td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<button onclick="generateReport()">Generate Report</button>
+
+<h2>Auto-Generated Management Report</h2>
+<div id="report"></div>
+
+<script>
+// Set default dates (today and tomorrow)
+const today = new Date();
+const tomorrow = new Date(today);
+tomorrow.setDate(tomorrow.getDate() + 1);
+
+document.getElementById('fromDate').value = today.toISOString().split('T')[0];
+document.getElementById('toDate').value = tomorrow.toISOString().split('T')[0];
+
+// ---------- helpers ----------
+const years = [2021, 2022, 2023, 2024, 2025, 2026]; // Added 2026
+createRows("closingTable");
+createRows("openingTable");
+
+function createRows(tableId){
+  const tbody = document.querySelector(`#${tableId} tbody`);
+  years.forEach(y=>{
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td style="text-align:center">${y}</td>
+      <td><input type="number" value="0" data-type="qty" data-group="pcs"></td>
+      <td><input type="number" value="0" data-type="value" data-group="pcs"></td>
+      <td><input type="number" value="0" data-type="qty" data-group="mcm"></td>
+      <td><input type="number" value="0" data-type="value" data-group="mcm"></td>`;
+    tbody.appendChild(tr);
+  });
+
+  tbody.addEventListener("input", ()=>updateTotals(tableId));
+  updateTotals(tableId);
+}
+
+function updateTotals(tableId){
+  const rows = document.querySelectorAll(`#${tableId} tbody tr`);
+  let pcsQty=0, pcsVal=0, mcmQty=0, mcmVal=0;
+  rows.forEach(r=>{
+    const tds = r.querySelectorAll("input");
+    pcsQty += +tds[0].value; pcsVal += +tds[1].value;
+    mcmQty += +tds[2].value; mcmVal += +tds[3].value;
+  });
+  const prefix = tableId==="closingTable" ? "cl" : "op";
+  document.getElementById(prefix+"PcsQtyTot").innerText = pcsQty.toLocaleString();
+  document.getElementById(prefix+"PcsValTot").innerText = pcsVal.toLocaleString();
+  document.getElementById(prefix+"McmQtyTot").innerText = mcmQty.toLocaleString();
+  document.getElementById(prefix+"McmValTot").innerText = mcmVal.toLocaleString();
+}
+
+// ---------- report generator ----------
+function generateReport(){
+  // Get filter values
+  const fromDate = document.getElementById("fromDate").value;
+  const toDate = document.getElementById("toDate").value;
+  const purchaser = document.getElementById("purchaser").value || "Not Specified";
+  const location = document.getElementById("location").value || "All Locations";
+  const reportType = document.getElementById("reportType").value;
+  
+  // Validate dates
+  if (!fromDate || !toDate) {
+    alert("Please select both From Date and To Date");
+    return;
+  }
+  
+  const opening = readTable("openingTable");
+  const closing = readTable("closingTable");
+  
+  // Calculate totals
+  const totalOpeningPcsQty = total(opening, 'pcsQty');
+  const totalOpeningMcmQty = total(opening, 'mcmQty');
+  const totalOpeningPcsVal = total(opening, 'pcsVal');
+  const totalOpeningMcmVal = total(opening, 'mcmVal');
+  
+  const totalClosingPcsQty = total(closing, 'pcsQty');
+  const totalClosingMcmQty = total(closing, 'mcmQty');
+  const totalClosingPcsVal = total(closing, 'pcsVal');
+  const totalClosingMcmVal = total(closing, 'mcmVal');
+  
+  // Stock Liquidation for years 2021-2024 only
+  let stockSoldPcs2021to2024 = 0;
+  let stockSoldMcm2021to2024 = 0;
+  let totalOpeningStock2021to2024 = 0;
+
+  // Calculate only for years 2021-2024
+  years.forEach(year => {
+    if (year >= 2021 && year <= 2024) {
+      stockSoldPcs2021to2024 += (opening[year]?.pcsQty || 0) - (closing[year]?.pcsQty || 0);
+      stockSoldMcm2021to2024 += (opening[year]?.mcmQty || 0) - (closing[year]?.mcmQty || 0);
+      totalOpeningStock2021to2024 += (opening[year]?.pcsQty || 0) + (opening[year]?.mcmQty || 0);
+    }
+  });
+
+  const totalStockSold2021to2024 = stockSoldPcs2021to2024 + stockSoldMcm2021to2024;
+
+  // Stock Liquidation Percentage for 2021-2024 only
+  const stockLiquidationPercent2021to2024 = totalOpeningStock2021to2024 > 0 ? 
+    ((totalStockSold2021to2024 / totalOpeningStock2021to2024) * 100).toFixed(2) : 0;
+
+  // Use the 2021-2024 values for stock liquidation
+  const stockSoldPcs = stockSoldPcs2021to2024;
+  const stockSoldMcm = stockSoldMcm2021to2024;
+  const totalStockAvailable = totalOpeningStock2021to2024;
+  const totalStockSold = totalStockSold2021to2024;
+  const stockLiquidationPercent = stockLiquidationPercent2021to2024;
+  
+  // Aging analysis
+  const currentYear = Math.max(...years);
+  const lastYear = currentYear - 1;
+  let agingStockQty = 0;
+  let agingStockValue = 0;
+  let agingDetails = [];
+  
+  years.forEach(year => {
+    if (year < lastYear) {
+      const yearQty = opening[year]?.pcsQty + opening[year]?.mcmQty || 0;
+      const yearValue = opening[year]?.pcsVal + opening[year]?.mcmVal || 0;
+      if (yearQty > 0) {
+        agingStockQty += yearQty;
+        agingStockValue += yearValue;
+        agingDetails.push({
+          year: year,
+          qty: yearQty,
+          value: yearValue,
+          age: currentYear - year
+        });
+      }
+    }
+  });
+  
+  // Format dates for display
+  const fromDateFormatted = formatDate(fromDate);
+  const toDateFormatted = formatDate(toDate);
+  const reportDate = new Date().toLocaleDateString('en-US', {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  
+  // Report type display name
+  const reportTypeNames = {
+    'detailed': 'Detailed Report',
+    'summary': 'Summary Report',
+    'aging': 'Aging Analysis',
+    'liquidation': 'Liquidation Report'
+  };
+  
+  // Generate report based on selected type
+  let reportHTML = '';
+  
+  // Common header
+  reportHTML += `
+    <div class="report-block" id="reportContent">
+      <div class="header-info">
+        <h3>Stock Position Report <span class="report-type-badge">${reportTypeNames[reportType]}</span></h3>
+        <div class="header-info-grid">
+          <div class="header-info-item">
+            <div class="header-info-label">Report Period</div>
+            <div class="header-info-value">${fromDateFormatted} to ${toDateFormatted}</div>
+          </div>
+          <div class="header-info-item">
+            <div class="header-info-label">Purchaser</div>
+            <div class="header-info-value">${purchaser}</div>
+          </div>
+          <div class="header-info-item">
+            <div class="header-info-label">Location</div>
+            <div class="header-info-value">${location}</div>
+          </div>
+          <div class="header-info-item">
+            <div class="header-info-label">Generated On</div>
+            <div class="header-info-value">${reportDate}</div>
+          </div>
+        </div>
+      </div>`;
+  
+  // Generate content based on report type
+  switch(reportType) {
+    case 'summary':
+      reportHTML += generateSummaryReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty, 
+        totalOpeningPcsVal, totalOpeningMcmVal, totalClosingPcsQty, totalClosingMcmQty, 
+        totalClosingPcsVal, totalClosingMcmVal, stockSoldPcs, stockSoldMcm, 
+        totalStockAvailable, totalStockSold, stockLiquidationPercent, 
+        agingStockQty, agingStockValue, agingDetails, fromDateFormatted, toDateFormatted);
+      break;
+      
+    case 'aging':
+      reportHTML += generateAgingReport(opening, closing, agingDetails, 
+        agingStockQty, agingStockValue, fromDateFormatted, toDateFormatted);
+      break;
+      
+    case 'liquidation':
+      reportHTML += generateLiquidationReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty,
+        totalClosingPcsQty, totalClosingMcmQty, stockSoldPcs, stockSoldMcm,
+        totalStockSold, stockLiquidationPercent, fromDateFormatted, toDateFormatted);
+      break;
+      
+    case 'detailed':
+    default:
+      reportHTML += generateDetailedReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty, 
+        totalOpeningPcsVal, totalOpeningMcmVal, totalClosingPcsQty, totalClosingMcmQty, 
+        totalClosingPcsVal, totalClosingMcmVal, stockSoldPcs, stockSoldMcm, 
+        totalStockAvailable, totalStockSold, stockLiquidationPercent, 
+        agingStockQty, agingStockValue, agingDetails, fromDateFormatted, toDateFormatted);
+      break;
+  }
+  
+  // Single button for image copy
+  reportHTML += `
+      <div class="button-container">
+        <button class="copy-btn" onclick="copyReportAsImage()">
+          📋 Copy Report as Image
+        </button>
+      </div>
+    </div>`;
+  
+  document.getElementById("report").innerHTML = reportHTML;
+}
+
+// Generate Summary Report
+function generateSummaryReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty, 
+  totalOpeningPcsVal, totalOpeningMcmVal, totalClosingPcsQty, totalClosingMcmQty, 
+  totalClosingPcsVal, totalClosingMcmVal, stockSoldPcs, stockSoldMcm, 
+  totalStockAvailable, totalStockSold, stockLiquidationPercent, 
+  agingStockQty, agingStockValue, agingDetails, fromDateFormatted, toDateFormatted) {
+  
+  const totalOpeningValue = totalOpeningPcsVal + totalOpeningMcmVal;
+  const totalClosingValue = totalClosingPcsVal + totalClosingMcmVal;
+  
+  return `
+    <h3>Executive Summary </h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Key Metric</th>
+          <th>Quantity</th>
+          <th>Value</th>
+          <th>Analysis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Opening Stock</strong></td>
+          <td>${(totalOpeningPcsQty + totalOpeningMcmQty).toLocaleString()}</td>
+          <td>${totalOpeningValue.toLocaleString()}</td>
+          <td>As of ${fromDateFormatted}</td>
+        </tr>
+        <tr>
+          <td><strong>Closing Stock</strong></td>
+          <td>${(totalClosingPcsQty + totalClosingMcmQty).toLocaleString()}</td>
+          <td>${totalClosingValue.toLocaleString()}</td>
+          <td>As of ${toDateFormatted}</td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>Stock Liquidation (2021-2024)</strong></td>
+          <td>${totalStockSold.toLocaleString()}</td>
+          <td>${(totalOpeningValue - totalClosingValue).toLocaleString()}</td>
+          <td>${stockLiquidationPercent}% sold (2021-2024 only)</td>
+        </tr>
+        <tr>
+          <td><strong>Aging Stock (>1 year)</strong></td>
+          <td>${agingStockQty.toLocaleString()}</td>
+          <td>${agingStockValue.toLocaleString()}</td>
+          <td>${agingDetails.length > 0 ? 'Requires attention' : 'No aging stock'}</td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// Generate Aging Report
+function generateAgingReport(opening, closing, agingDetails, 
+  agingStockQty, agingStockValue, fromDateFormatted, toDateFormatted) {
+  
+  const totalOpeningValue = total(opening, 'pcsVal') + total(opening, 'mcmVal');
+  
+  return `
+    <h3>Aging Stock Analysis (${fromDateFormatted} to ${toDateFormatted})</h3>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Summary</th>
+          <th>Quantity</th>
+          <th>Value</th>
+          <th>% of Total</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Total Aging Stock (>1 year)</strong></td>
+          <td>${agingStockQty.toLocaleString()}</td>
+          <td>${agingStockValue.toLocaleString()}</td>
+          <td>${totalOpeningValue > 0 ? ((agingStockValue / totalOpeningValue) * 100).toFixed(2) : 0}%</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    ${agingDetails.length > 0 ? `
+    <h3>Aging Stock Details</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Age (Years)</th>
+          <th>Quantity</th>
+          <th>Value</th>
+          <th>% of Total</th>
+          <th>Action Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${agingDetails.map(item => `
+          <tr>
+            <td>${item.year}</td>
+            <td>${item.age}</td>
+            <td>${item.qty.toLocaleString()}</td>
+            <td>${item.value.toLocaleString()}</td>
+            <td>${totalOpeningValue > 0 ? ((item.value / totalOpeningValue) * 100).toFixed(2) : 0}%</td>
+            <td>${item.age > 2 ? 'Urgent clearance initiated' : 'Regular monitoring in progress'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    ` : '<p>No aging stock identified.</p>'}
+  `;
+}
+
+// Generate Liquidation Report
+function generateLiquidationReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty,
+  totalClosingPcsQty, totalClosingMcmQty, stockSoldPcs, stockSoldMcm,
+  totalStockSold, stockLiquidationPercent, fromDateFormatted, toDateFormatted) {
+  
+  const totalOpeningQty = totalOpeningPcsQty + totalOpeningMcmQty;
+  const totalClosingQty = totalClosingPcsQty + totalClosingMcmQty;
+  
+  return `
+    <h3>Stock Liquidation Report (2021-2024 only, ${fromDateFormatted} to ${toDateFormatted})</h3>
+    
+    <table>
+      <thead>
+        <tr>
+          <th>Category</th>
+          <th>Opening</th>
+          <th>Closing</th>
+          <th>Sold</th>
+          <th>Liquidation %</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>PCS (2021-2024)</strong></td>
+          <td>${totalOpeningPcsQty.toLocaleString()}</td>
+          <td>${totalClosingPcsQty.toLocaleString()}</td>
+          <td>${stockSoldPcs.toLocaleString()}</td>
+          <td>${totalOpeningPcsQty > 0 ? ((stockSoldPcs / totalOpeningPcsQty) * 100).toFixed(2) : 0}%</td>
+        </tr>
+        <tr>
+          <td><strong>MCM (2021-2024)</strong></td>
+          <td>${totalOpeningMcmQty.toLocaleString()}</td>
+          <td>${totalClosingMcmQty.toLocaleString()}</td>
+          <td>${stockSoldMcm.toLocaleString()}</td>
+          <td>${totalOpeningMcmQty > 0 ? ((stockSoldMcm / totalOpeningMcmQty) * 100).toFixed(2) : 0}%</td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>Total (2021-2024)</strong></td>
+          <td>${totalOpeningQty.toLocaleString()}</td>
+          <td>${totalClosingQty.toLocaleString()}</td>
+          <td>${totalStockSold.toLocaleString()}</td>
+          <td>${stockLiquidationPercent}%</td>
+        </tr>
+      </tbody>
+    </table>`;
+}
+
+// Generate Detailed Report - FIXED VERSION
+function generateDetailedReport(opening, closing, totalOpeningPcsQty, totalOpeningMcmQty, 
+  totalOpeningPcsVal, totalOpeningMcmVal, totalClosingPcsQty, totalClosingMcmQty, 
+  totalClosingPcsVal, totalClosingMcmVal, stockSoldPcs, stockSoldMcm, 
+  totalStockAvailable, totalStockSold, stockLiquidationPercent, 
+  agingStockQty, agingStockValue, agingDetails, fromDateFormatted, toDateFormatted) {
+  
+  const totalOpeningValue = totalOpeningPcsVal + totalOpeningMcmVal;
+  const totalClosingValue = totalClosingPcsVal + totalClosingMcmVal;
+  
+  return `
+    <h3>Executive Summary </h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Key Metric</th>
+          <th>Quantity</th>
+          <th>Value</th>
+          <th>Analysis</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Opening Stock</strong></td>
+          <td>${(totalOpeningPcsQty + totalOpeningMcmQty).toLocaleString()}</td>
+          <td>${totalOpeningValue.toLocaleString()}</td>
+          <td>As of ${fromDateFormatted}</td>
+        </tr>
+        <tr>
+          <td><strong>Closing Stock</strong></td>
+          <td>${(totalClosingPcsQty + totalClosingMcmQty).toLocaleString()}</td>
+          <td>${totalClosingValue.toLocaleString()}</td>
+          <td>As of ${toDateFormatted}</td>
+        </tr>
+        <tr class="highlight">
+          <td><strong>Stock Liquidation (2021-2024)</strong></td>
+          <td>${totalStockSold.toLocaleString()}</td>
+          <td>${(totalOpeningValue - totalClosingValue).toLocaleString()}</td>
+          <td>${stockLiquidationPercent}% of available stock (2021-2024)</td>
+        </tr>
+        <tr>
+          <td><strong>Aging Stock (>1 year)</strong></td>
+          <td>${agingStockQty.toLocaleString()}</td>
+          <td>${agingStockValue.toLocaleString()}</td>
+          <td>${agingDetails.length} year${agingDetails.length !== 1 ? 's' : ''} aged</td>
+        </tr>
+      </tbody>
+    </table>
+    
+    ${agingDetails.length > 0 ? `
+    <h3>Aging Analysis Details</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>Year</th>
+          <th>Age (Years)</th>
+          <th>Quantity</th>
+          <th>Value</th>
+          <th>% of Total</th>
+          <th>Action Taken</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${agingDetails.map(item => `
+          <tr>
+            <td>${item.year}</td>
+            <td>${item.age}</td>
+            <td>${item.qty.toLocaleString()}</td>
+            <td>${item.value.toLocaleString()}</td>
+            <td>${totalOpeningValue > 0 ? ((item.value / totalOpeningValue) * 100).toFixed(2) : 0}%</td>
+            <td>${item.age > 2 ? 'Urgent clearance initiated' : 'Regular monitoring in progress'}</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
+    ` : ''}
+    
+    <h3>Year-wise Stock Position</h3>
+    <table>
+      <thead>
+        <tr>
+          <th rowspan="2">Year</th>
+          <th colspan="2">Opening Stock</th>
+          <th colspan="2">Closing Stock</th>
+          <th colspan="2">Stock Clearance %</th>
+        </tr>
+        <tr>
+          <th>Qty</th>
+          <th>Value</th>
+          <th>Qty</th>
+          <th>Value</th>
+          <th>Qty</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${(() => {
+          let totalOpQty = 0;
+          let totalOpVal = 0;
+          let totalClQty = 0;
+          let totalClVal = 0;
+          let clearanceQtySum = 0;
+          let clearanceValSum = 0;
+          let clearanceQtyCount = 0;
+          let clearanceValCount = 0;
+          
+          // Helper function to determine clearance status
+          const getClearanceStatus = (value) => {
+            const numValue = parseFloat(value);
+            if (numValue > 20) return '<span style="color:#28a745;"></span>';
+            else if (numValue > 10) return '<span style="color:#ffc107;"></span>';
+            else if (numValue > 0) return '<span style="color:#fd7e14;"></span>';
+            else if (numValue < 0) return '<span style="color:#dc3545;"></span>';
+            else return '<span style="color:#6c757d;"></span>';
+          };
+          
+          const yearRows = years.map(year => {
+            const opQty = (opening[year]?.pcsQty || 0) + (opening[year]?.mcmQty || 0);
+            const opVal = (opening[year]?.pcsVal || 0) + (opening[year]?.mcmVal || 0);
+            const clQty = (closing[year]?.pcsQty || 0) + (closing[year]?.mcmQty || 0);
+            const clVal = (closing[year]?.pcsVal || 0) + (closing[year]?.mcmVal || 0);
+            
+            // CORRECTED FORMULA: Stock Clearance % = ((Closing - Opening) / Opening) * 100
+            const clearanceQty = opQty > 0 ? (((clQty - opQty) / opQty) * 100).toFixed(2) : '0.00';
+            const clearanceVal = opVal > 0 ? (((clVal - opVal) / opVal) * 100).toFixed(2) : '0.00';
+            
+            // Accumulate totals
+            totalOpQty += opQty;
+            totalOpVal += opVal;
+            totalClQty += clQty;
+            totalClVal += clVal;
+            
+            // Only add to clearance totals if we have valid percentages
+            if (opQty > 0) {
+              clearanceQtySum += Math.abs(parseFloat(clearanceQty));
+              clearanceQtyCount++;
+            }
+            
+            if (opVal > 0) {
+              clearanceValSum += Math.abs(parseFloat(clearanceVal));
+              clearanceValCount++;
+            }
+            
+            return `
+              <tr>
+                <td>${year}</td>
+                <td>${opQty.toLocaleString()}</td>
+                <td>${opVal.toLocaleString()}</td>
+                <td>${clQty.toLocaleString()}</td>
+                <td>${clVal.toLocaleString()}</td>
+                <td>
+                  ${clearanceQty}%
+                  <span class="clearance-status">${getClearanceStatus(clearanceQty)}</span>
+                </td>
+                <td>
+                  ${clearanceVal}%
+                  <span class="clearance-status">${getClearanceStatus(clearanceVal)}</span>
+                </td>
+              </tr>
+            `;
+          }).join('');
+          
+          // Calculate average clearance percentages
+          const avgClearanceQty = clearanceQtyCount > 0 ? (clearanceQtySum / clearanceQtyCount).toFixed(2) : '0.00';
+          const avgClearanceVal = clearanceValCount > 0 ? (clearanceValSum / clearanceValCount).toFixed(2) : '0.00';
+          
+          // Add totals row
+          return yearRows + `
+            <tr class="totals" style="background:#f3f3f3; font-weight:bold;">
+              <td>Total/Avg</td>
+              <td>${totalOpQty.toLocaleString()}</td>
+              <td>${totalOpVal.toLocaleString()}</td>
+              <td>${totalClQty.toLocaleString()}</td>
+              <td>${totalClVal.toLocaleString()}</td>
+              <td>
+                ${avgClearanceQty}%
+                <span class="clearance-status">${getClearanceStatus(avgClearanceQty)}</span>
+              </td>
+              <td>
+                ${avgClearanceVal}%
+                <span class="clearance-status">${getClearanceStatus(avgClearanceVal)}</span>
+              </td>
+            </tr>
+          `;
+        })()}
+      </tbody>
+    </table>
+    
+    
+  `;
+}
+
+function formatDate(dateString) {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'short',
+    day: 'numeric'
+  });
+}
+
+// Simple image copy function that WORKS
+async function copyReportAsImage() {
+  const reportContent = document.getElementById('reportContent');
+  if (!reportContent) {
+    alert('Please generate a report first!');
+    return;
+  }
+  
+  try {
+    // Save button state
+    const button = event.target;
+    const originalText = button.innerHTML;
+    button.innerHTML = '⏳ Generating...';
+    button.disabled = true;
+    
+    // Check if html2canvas is available
+    if (typeof html2canvas === 'undefined') {
+      // Load html2canvas
+      await new Promise((resolve, reject) => {
+        const script = document.createElement('script');
+        script.src = 'https://html2canvas.hertzen.com/dist/html2canvas.min.js';
+        script.onload = resolve;
+        script.onerror = reject;
+        document.head.appendChild(script);
+      });
+    }
+    
+    // Create a copy of the report without the copy button
+    const tempDiv = document.createElement('div');
+    tempDiv.style.cssText = `
+      position: fixed;
+      left: -9999px;
+      top: -9999px;
+      width: 800px;
+      background: white;
+      padding: 20px;
+      font-family: Arial, sans-serif;
+    `;
+    
+    // Clone the report content
+    const clonedContent = reportContent.cloneNode(true);
+    
+    // Remove the copy button from cloned content
+    const copyButton = clonedContent.querySelector('.button-container');
+    if (copyButton) {
+      copyButton.remove();
+    }
+    
+    tempDiv.appendChild(clonedContent);
+    document.body.appendChild(tempDiv);
+    
+    // Generate the canvas
+    const canvas = await html2canvas(tempDiv, {
+      scale: 2,
+      backgroundColor: '#ffffff',
+      useCORS: true,
+      logging: false
+    });
+    
+    // Remove temp div
+    document.body.removeChild(tempDiv);
+    
+    // Convert canvas to blob
+    canvas.toBlob(async (blob) => {
+      try {
+        // Try to copy to clipboard
+        await navigator.clipboard.write([
+          new ClipboardItem({
+            'image/png': blob
+          })
+        ]);
+        
+        button.innerHTML = '✅ Copied!';
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }, 2000);
+        
+        alert('✅ Report image copied to clipboard! You can now paste it anywhere.');
+        
+      } catch (clipboardError) {
+        console.error('Clipboard API failed:', clipboardError);
+        
+        // Fallback: Download the image
+        const link = document.createElement('a');
+        link.download = 'stock-report.png';
+        link.href = canvas.toDataURL('image/png');
+        link.click();
+        
+        button.innerHTML = '💾 Downloaded';
+        setTimeout(() => {
+          button.innerHTML = originalText;
+          button.disabled = false;
+        }, 2000);
+        
+        alert('⚠️ Could not copy to clipboard directly. Image has been downloaded instead. You can open it and copy manually.');
+      }
+    });
+    
+  } catch (error) {
+    console.error('Error:', error);
+    
+    // Restore button
+    if (event && event.target) {
+      event.target.innerHTML = '📋 Copy Report as Image';
+      event.target.disabled = false;
+    }
+    
+    alert('Error generating image. Please make sure you have internet connection and try again.');
+  }
+}
+
+function readTable(id){
+  const data={}
+  const rows = document.querySelectorAll(`#${id} tbody tr`);
+  rows.forEach((r,i)=>{
+    const inputs = r.querySelectorAll("input");
+    data[years[i]] = {
+      pcsQty:+inputs[0].value, pcsVal:+inputs[1].value,
+      mcmQty:+inputs[2].value, mcmVal:+inputs[3].value
+    };
+  });
+  return data;
+}
+
+function total(obj,...keys){
+  return years.reduce((s,y)=> s + keys.reduce((a,k)=>a+(obj[y][k]||0),0), 0);
+}
+</script>
+
+</body>
+</html>
