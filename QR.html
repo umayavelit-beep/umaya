@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <!-- Tesseract.js for OCR text recognition -->
-    <script src="https://unpkg.com/tesseract.js@v2.1.0/dist/tesseract.min.js"></script>
+    <script src="https://unpkg.com/tesseract.js@v4.0.2/dist/tesseract.min.js"></script>
     <style>
         * {
             margin: 0;
@@ -199,7 +199,7 @@
             left: 50%;
             transform: translate(-50%, -50%);
             width: 80%;
-            height: 30%;
+            height: 40%;
             border: 2px dashed rgba(253, 187, 45, 0.9);
             background-color: rgba(253, 187, 45, 0.1);
             border-radius: 4px;
@@ -255,6 +255,13 @@
         .ocr-text {
             line-height: 1.5;
             font-size: 0.95rem;
+        }
+        
+        .temp-text-notice {
+            color: #fdbb2d;
+            font-size: 0.85rem;
+            margin-top: 8px;
+            font-style: italic;
         }
         
         .qr-container {
@@ -446,6 +453,45 @@
             opacity: 0.8;
         }
         
+        .toast {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            z-index: 1000;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+            max-width: 90%;
+            text-align: center;
+            animation: fadeIn 0.3s ease;
+        }
+        
+        .toast-success {
+            background-color: #4CAF50;
+        }
+        
+        .toast-warning {
+            background-color: #ff9800;
+        }
+        
+        .toast-error {
+            background-color: #f44336;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; bottom: 0; }
+            to { opacity: 1; bottom: 20px; }
+        }
+        
+        @keyframes fadeOut {
+            from { opacity: 1; bottom: 20px; }
+            to { opacity: 0; bottom: 0; }
+        }
+        
         /* Desktop/Tablet optimizations */
         @media (min-width: 768px) {
             .container {
@@ -525,8 +571,8 @@
 <body>
     <div class="container">
         <header>
-            <h1>Text Capture To QR Code </h1>
-            
+            <h1>Text Capture To QR Code</h1>
+            <p class="subtitle">Capture text like Google Lens and convert to QR codes</p>
         </header>
         
         <!-- Camera Section at the Top -->
@@ -553,6 +599,9 @@
                 <button id="useCapturedTextBtn" class="add-btn" disabled>
                     <i class="fas fa-check-circle"></i> Use Text
                 </button>
+                <button id="clearTempTextBtn" class="clear-btn" disabled>
+                    <i class="fas fa-times-circle"></i> Clear Temp
+                </button>
             </div>
             
             <div class="camera-status">
@@ -561,13 +610,24 @@
             </div>
             
             <div class="ocr-result">
-                <h3 class="section-title">📝 Captured Text</h3>
+                <h3 class="section-title">📝 Captured Text (Temporary)</h3>
                 <div id="ocrResultContainer">
                     <div class="empty-message">No text captured yet. Start camera and capture text.</div>
                 </div>
+                <div id="tempTextNotice" class="temp-text-notice" style="display: none;">
+                    This text is temporary. Click "Use Text" to add it permanently or "Clear Temp" to remove.
+                </div>
             </div>
             
-          
+            <div class="permission-help">
+                <h4>💡 Tips for Better Text Capture:</h4>
+                <ul>
+                    <li>Ensure good lighting on the text</li>
+                    <li>Hold camera steady</li>
+                    <li>Position text within the dashed area</li>
+                    <li>Clear text works best (printed text, not handwriting)</li>
+                </ul>
+            </div>
         </div>
         
         <!-- Main Content Below Camera -->
@@ -630,6 +690,7 @@
         let capturedText = "";
         let isProcessingOCR = false;
         let cameraPermissionRequested = false;
+        let tesseractWorker = null;
         
         // DOM elements
         const textInput = document.getElementById('textInput');
@@ -649,9 +710,11 @@
         const captureBtn = document.getElementById('captureBtn');
         const stopCameraBtn = document.getElementById('stopCameraBtn');
         const useCapturedTextBtn = document.getElementById('useCapturedTextBtn');
+        const clearTempTextBtn = document.getElementById('clearTempTextBtn');
         const cameraStatusIndicator = document.getElementById('cameraStatusIndicator');
         const cameraStatusText = document.getElementById('cameraStatusText');
         const ocrResultContainer = document.getElementById('ocrResultContainer');
+        const tempTextNotice = document.getElementById('tempTextNotice');
         
         // Initialize with sample data
         function initializeSampleData() {
@@ -731,8 +794,24 @@
             // Also populate the text input with the captured text
             textInput.value = capturedText;
             
+            // Clear temporary text display
+            clearTempText();
+            
             // Show success message
             showToast('Captured text added to slide show!', 'success');
+        }
+        
+        // Clear temporary text
+        function clearTempText() {
+            capturedText = "";
+            ocrResultContainer.innerHTML = `
+                <div class="empty-message">
+                    No text captured yet. Start camera and capture text.
+                </div>
+            `;
+            tempTextNotice.style.display = 'none';
+            useCapturedTextBtn.disabled = true;
+            clearTempTextBtn.disabled = true;
         }
         
         // Clear all text entries
@@ -998,6 +1077,7 @@
                 captureBtn.disabled = true;
                 stopCameraBtn.disabled = true;
                 useCapturedTextBtn.disabled = true;
+                clearTempTextBtn.disabled = true;
                 
                 cameraStatusIndicator.classList.remove('active');
                 cameraStatusText.textContent = 'Camera stopped. Click "Start Camera" to begin.';
@@ -1005,8 +1085,68 @@
                 // Reset permission flag
                 cameraPermissionRequested = false;
                 
+                // Clear temporary text
+                clearTempText();
+                
                 showToast('Camera stopped.', 'info');
             }
+        }
+        
+        // Initialize Tesseract worker
+        async function initializeTesseract() {
+            if (!tesseractWorker) {
+                try {
+                    tesseractWorker = await Tesseract.createWorker('eng');
+                    console.log('Tesseract worker initialized');
+                } catch (error) {
+                    console.error('Failed to initialize Tesseract:', error);
+                    throw error;
+                }
+            }
+            return tesseractWorker;
+        }
+        
+        // Enhanced image processing for better OCR
+        function preprocessImage(imageData) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = imageData.width;
+            canvas.height = imageData.height;
+            
+            // Draw the original image
+            ctx.putImageData(imageData, 0, 0);
+            
+            // Apply image processing for better OCR
+            const processedCanvas = document.createElement('canvas');
+            const processedCtx = processedCanvas.getContext('2d');
+            processedCanvas.width = imageData.width;
+            processedCanvas.height = imageData.height;
+            
+            // Apply image processing
+            processedCtx.drawImage(canvas, 0, 0);
+            
+            // Get the processed image data
+            const processedImageData = processedCtx.getImageData(0, 0, processedCanvas.width, processedCanvas.height);
+            const data = processedImageData.data;
+            
+            // Apply contrast enhancement and binarization
+            for (let i = 0; i < data.length; i += 4) {
+                // Calculate grayscale value
+                const avg = (data[i] + data[i + 1] + data[i + 2]) / 3;
+                
+                // Simple thresholding (binarization)
+                const threshold = 128;
+                const binaryValue = avg > threshold ? 255 : 0;
+                
+                data[i] = binaryValue;     // Red
+                data[i + 1] = binaryValue; // Green
+                data[i + 2] = binaryValue; // Blue
+                // Alpha channel remains unchanged
+            }
+            
+            processedCtx.putImageData(processedImageData, 0, 0);
+            
+            return processedCanvas;
         }
         
         async function captureAndExtractText() {
@@ -1037,11 +1177,11 @@
                 // Draw the current video frame to canvas
                 context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
                 
-                // Define capture area (center 80% width, 30% height - adjusted for mobile)
+                // Define capture area (center 80% width, 40% height)
                 const captureX = canvas.width * 0.10; // 10% from left
-                const captureY = canvas.height * 0.35; // 35% from top
+                const captureY = canvas.height * 0.30; // 30% from top
                 const captureWidth = canvas.width * 0.80; // 80% width
-                const captureHeight = canvas.height * 0.30; // 30% height
+                const captureHeight = canvas.height * 0.40; // 40% height
                 
                 // Create a new canvas for the captured area
                 const capturedCanvas = document.createElement('canvas');
@@ -1057,17 +1197,29 @@
                     0, 0, captureWidth, captureHeight
                 );
                 
-                // Convert canvas to image data URL
-                const imageDataUrl = capturedCanvas.toDataURL('image/jpeg', 0.8);
+                // Get image data for processing
+                const imageData = capturedContext.getImageData(0, 0, captureWidth, captureHeight);
                 
-                // Use Tesseract.js for OCR
-                const worker = await Tesseract.createWorker('eng');
+                // Preprocess the image for better OCR
+                const processedCanvas = preprocessImage(imageData);
+                
+                // Convert processed canvas to blob
+                const blob = await new Promise(resolve => {
+                    processedCanvas.toBlob(resolve, 'image/jpeg', 0.8);
+                });
+                
+                // Initialize Tesseract
+                const worker = await initializeTesseract();
+                
+                // Set Tesseract parameters for better text recognition
+                await worker.setParameters({
+                    tessedit_pageseg_mode: Tesseract.PSM.AUTO,
+                    tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789 .,!?@#$%&*()-_=+[]{}|;:\'"<>/\\',
+                    preserve_interword_spaces: '1',
+                });
                 
                 // Recognize text from the image
-                const { data: { text } } = await worker.recognize(imageDataUrl);
-                
-                // Terminate the worker
-                await worker.terminate();
+                const { data: { text } } = await worker.recognize(blob);
                 
                 // Store the captured text
                 capturedText = text.trim();
@@ -1081,17 +1233,23 @@
                         </div>
                     `;
                     
+                    // Show temporary text notice
+                    tempTextNotice.style.display = 'block';
+                    
                     // Enable the "Use Captured Text" button
                     useCapturedTextBtn.disabled = false;
+                    clearTempTextBtn.disabled = false;
                     
-                    showToast('Text captured successfully!', 'success');
+                    showToast('Text captured successfully! Click "Use Text" to add to slides.', 'success');
                 } else {
                     ocrResultContainer.innerHTML = `
                         <div class="empty-message">
                             No text could be extracted. Try capturing clearer text with better lighting.
                         </div>
                     `;
+                    tempTextNotice.style.display = 'none';
                     useCapturedTextBtn.disabled = true;
+                    clearTempTextBtn.disabled = true;
                     showToast('No text found in image. Try again.', 'warning');
                 }
                 
@@ -1102,6 +1260,9 @@
                         Error extracting text. Please try again.
                     </div>
                 `;
+                tempTextNotice.style.display = 'none';
+                useCapturedTextBtn.disabled = true;
+                clearTempTextBtn.disabled = true;
                 showToast('Error extracting text. Please try again.', 'error');
             } finally {
                 isProcessingOCR = false;
@@ -1121,34 +1282,6 @@
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.textContent = message;
-            
-            // Add styles
-            toast.style.cssText = `
-                position: fixed;
-                bottom: 20px;
-                left: 50%;
-                transform: translateX(-50%);
-                background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
-                color: white;
-                padding: 12px 20px;
-                border-radius: 8px;
-                z-index: 1000;
-                font-weight: 600;
-                box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                max-width: 90%;
-                text-align: center;
-                animation: fadeIn 0.3s ease;
-            `;
-            
-            // Add animation
-            const style = document.createElement('style');
-            style.textContent = `
-                @keyframes fadeIn {
-                    from { opacity: 0; bottom: 0; }
-                    to { opacity: 1; bottom: 20px; }
-                }
-            `;
-            document.head.appendChild(style);
             
             // Add to page
             document.body.appendChild(toast);
@@ -1214,6 +1347,12 @@
             addCapturedText();
         });
         
+        clearTempTextBtn.addEventListener('click', clearTempText);
+        clearTempTextBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            clearTempText();
+        });
+        
         // Allow Enter key to add text (with Shift+Enter for new line)
         textInput.addEventListener('keydown', (e) => {
             if (e.key === 'Enter' && !e.shiftKey) {
@@ -1247,6 +1386,9 @@
         window.addEventListener('beforeunload', () => {
             if (cameraStream) {
                 cameraStream.getTracks().forEach(track => track.stop());
+            }
+            if (tesseractWorker) {
+                tesseractWorker.terminate();
             }
         });
         
