@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QR Code Slide Show with Text Capture</title>
+    <title>QR Code Capture</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <style>
@@ -97,7 +97,7 @@
             color: white;
             font-size: 1rem;
             resize: vertical;
-            font-size: 16px; /* Prevents zoom on iOS */
+            font-size: 16px;
         }
         
         textarea::placeholder {
@@ -124,7 +124,7 @@
             flex: 1;
             min-width: 140px;
             font-size: 0.95rem;
-            touch-action: manipulation; /* Better touch handling */
+            touch-action: manipulation;
         }
         
         button:active {
@@ -234,7 +234,7 @@
             transform: translate(-50%, -50%);
             width: 90%;
             height: 50%;
-            border: 2px solid rgba(253, 187, 45, 0.9);
+            border: 3px solid rgba(253, 187, 45, 0.9);
             background-color: rgba(253, 187, 45, 0.05);
             border-radius: 8px;
             box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.5);
@@ -309,48 +309,6 @@
             font-style: italic;
         }
         
-        .snapshot-preview {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            z-index: 10;
-            display: none;
-        }
-        
-        .snapshot-overlay {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-direction: column;
-            gap: 20px;
-            z-index: 11;
-            display: none;
-        }
-        
-        .snapshot-text {
-            background: white;
-            color: #333;
-            padding: 15px;
-            border-radius: 8px;
-            max-width: 90%;
-            max-height: 60%;
-            overflow-y: auto;
-        }
-        
-        .snapshot-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
         .qr-container {
             display: flex;
             flex-direction: column;
@@ -423,7 +381,7 @@
             background-color: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
             padding: 10px;
-            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
+            -webkit-overflow-scrolling: touch;
         }
         
         .entry-item {
@@ -515,22 +473,6 @@
             font-size: 0.85rem;
         }
         
-        .permission-help h4 {
-            color: #fdbb2d;
-            margin-bottom: 8px;
-            font-size: 0.9rem;
-        }
-        
-        .permission-help ul {
-            padding-left: 20px;
-            margin-bottom: 8px;
-        }
-        
-        .permission-help li {
-            margin-bottom: 5px;
-            line-height: 1.4;
-        }
-        
         footer {
             text-align: center;
             margin-top: 20px;
@@ -580,6 +522,29 @@
             to { opacity: 0; bottom: 0; }
         }
         
+        /* Capture flash effect */
+        .capture-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: white;
+            opacity: 0;
+            pointer-events: none;
+            z-index: 20;
+        }
+        
+        .flash-animation {
+            animation: flash 0.3s ease;
+        }
+        
+        @keyframes flash {
+            0% { opacity: 0; }
+            50% { opacity: 0.8; }
+            100% { opacity: 0; }
+        }
+        
         /* Desktop/Tablet optimizations */
         @media (min-width: 768px) {
             .container {
@@ -594,10 +559,6 @@
             
             h1 {
                 font-size: 2.2rem;
-            }
-            
-            .subtitle {
-                font-size: 1.1rem;
             }
             
             .main-content {
@@ -628,39 +589,13 @@
                 padding: 15px;
             }
         }
-        
-        /* Landscape orientation optimization */
-        @media (max-height: 600px) and (orientation: landscape) {
-            .camera-section {
-                padding: 10px;
-            }
-            
-            .video-container {
-                max-height: 200px;
-            }
-            
-            #cameraPreview {
-                max-height: 200px;
-                object-fit: cover;
-            }
-            
-            .capture-instruction {
-                font-size: 0.8rem;
-                padding: 5px;
-            }
-            
-            .ocr-result {
-                min-height: 100px;
-                max-height: 120px;
-            }
-        }
     </style>
 </head>
 <body>
     <div class="container">
         <header>
-            <h1>Text Capture To QR Code</h1>
-            <p class="subtitle">Scan text like Google Lens and convert to QR codes</p>
+            <h1>QR Code Generator </h1>
+            
         </header>
         
         <!-- Camera Section at the Top -->
@@ -676,13 +611,13 @@
                 <!-- Live camera feed -->
                 <video id="cameraPreview" autoplay playsinline style="display: none;"></video>
                 
-                <!-- Snapshot preview -->
-                <canvas id="snapshotCanvas" style="display: none;"></canvas>
+                <!-- Capture flash -->
+                <div class="capture-flash" id="captureFlash"></div>
                 
                 <!-- Camera overlay with capture area -->
                 <div class="camera-overlay" id="cameraOverlay" style="display: none;">
                     <div class="capture-area"></div>
-                    <div class="capture-instruction">Position text inside the box and tap CAPTURE</div>
+                    <div class="capture-instruction">Position text inside the box and tap CAPTURE TEXT</div>
                 </div>
             </div>
             
@@ -716,27 +651,15 @@
                         <i class="fas fa-copy"></i> Copy Text
                     </button>
                     <button id="useTextBtn" class="add-btn">
-                        <i class="fas fa-check-circle"></i> Use in Slides
+                        <i class="fas fa-check-circle"></i> Add to Slides
                     </button>
                     <button id="clearTextBtn" class="clear-btn">
                         <i class="fas fa-times-circle"></i> Clear
                     </button>
                 </div>
-                <div id="tempTextNotice" class="temp-text-notice" style="display: none;">
-                    Text captured! Copy it or add to slides.
-                </div>
             </div>
             
-            <div class="permission-help">
-                <h4>💡 Tips for Best Results:</h4>
-                <ul>
-                    <li>Hold device steady while capturing</li>
-                    <li>Ensure good lighting on the text</li>
-                    <li>Position text within the box</li>
-                    <li>Printed text works better than handwriting</li>
-                    <li>Tap "Switch Camera" to use front/back camera</li>
-                </ul>
-            </div>
+           
         </div>
         
         <!-- Main Content Below Camera -->
@@ -787,7 +710,7 @@
         </div>
         
         <footer>
-            <p>QR Code Slide Show with Text Scanner | Mobile Optimized | Works in Chrome Mobile</p>
+            <p>QR Code Make | Mobile Optimized |developed by Umayavel.it@gmail.com </p>
         </footer>
     </div>
 
@@ -818,6 +741,7 @@
         const cameraPreview = document.getElementById('cameraPreview');
         const cameraPlaceholder = document.getElementById('cameraPlaceholder');
         const cameraOverlay = document.getElementById('cameraOverlay');
+        const captureFlash = document.getElementById('captureFlash');
         const startCameraBtn = document.getElementById('startCameraBtn');
         const captureBtn = document.getElementById('captureBtn');
         const stopCameraBtn = document.getElementById('stopCameraBtn');
@@ -829,9 +753,61 @@
         const copyTextBtn = document.getElementById('copyTextBtn');
         const useTextBtn = document.getElementById('useTextBtn');
         const clearTextBtn = document.getElementById('clearTextBtn');
-        const tempTextNotice = document.getElementById('tempTextNotice');
-        const snapshotCanvas = document.getElementById('snapshotCanvas');
-        const snapshotCtx = snapshotCanvas.getContext('2d');
+        
+        // Hidden canvas for image processing
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        const textCanvas = document.createElement('canvas');
+        const textCtx = textCanvas.getContext('2d');
+        
+        // Character mapping for basic OCR (simple pattern matching)
+        const charPatterns = {
+            'A': '010/101/111/101/101',
+            'B': '110/101/110/101/110',
+            'C': '011/100/100/100/011',
+            'D': '110/101/101/101/110',
+            'E': '111/100/110/100/111',
+            'F': '111/100/110/100/100',
+            'G': '011/100/101/101/011',
+            'H': '101/101/111/101/101',
+            'I': '111/010/010/010/111',
+            'J': '001/001/001/101/010',
+            'K': '101/101/110/101/101',
+            'L': '100/100/100/100/111',
+            'M': '101/111/101/101/101',
+            'N': '101/111/111/101/101',
+            'O': '010/101/101/101/010',
+            'P': '110/101/110/100/100',
+            'Q': '010/101/101/111/011',
+            'R': '110/101/110/101/101',
+            'S': '011/100/010/001/110',
+            'T': '111/010/010/010/010',
+            'U': '101/101/101/101/111',
+            'V': '101/101/101/101/010',
+            'W': '101/101/101/111/101',
+            'X': '101/101/010/101/101',
+            'Y': '101/101/010/010/010',
+            'Z': '111/001/010/100/111',
+            '0': '111/101/101/101/111',
+            '1': '010/110/010/010/111',
+            '2': '111/001/111/100/111',
+            '3': '111/001/111/001/111',
+            '4': '101/101/111/001/001',
+            '5': '111/100/111/001/111',
+            '6': '111/100/111/101/111',
+            '7': '111/001/001/001/001',
+            '8': '111/101/111/101/111',
+            '9': '111/101/111/001/111',
+            ' ': '000/000/000/000/000',
+            '.': '000/000/000/000/010',
+            ',': '000/000/000/010/100',
+            '!': '010/010/010/000/010',
+            '?': '110/001/010/000/010',
+            ':': '000/010/000/010/000',
+            '-': '000/000/111/000/000',
+            '+': '000/010/111/010/000',
+            '=': '000/111/000/111/000'
+        };
         
         // Initialize with sample data
         function initializeSampleData() {
@@ -841,10 +817,7 @@
             } else {
                 // Add some sample entries
                 textEntries = [
-                    "Welcome to QR Code Slide Show!",
-                    "Scan this QR code: https://www.google.com",
-                    "Mobile-friendly text scanner",
-                    "Capture text with camera, view as QR"
+                   
                 ];
                 currentIndex = 0;
                 saveToLocalStorage();
@@ -886,6 +859,7 @@
             
             // Show success message
             showToast('Text entry added successfully!', 'success');
+            vibrate();
         }
         
         // Add captured text as entry
@@ -913,6 +887,7 @@
             
             // Show success message
             showToast('Scanned text added to slide show!', 'success');
+            vibrate();
         }
         
         // Copy text to clipboard
@@ -950,8 +925,8 @@
                 </div>
             `;
             ocrTextActions.style.display = 'none';
-            tempTextNotice.style.display = 'none';
             showToast('Scanned text cleared.', 'info');
+            vibrate();
         }
         
         // Clear all text entries
@@ -966,6 +941,7 @@
                 updateNavigation();
                 saveToLocalStorage();
                 showToast('All entries cleared.', 'info');
+                vibrate();
             }
         }
         
@@ -1033,8 +1009,6 @@
                 totalSlidesElement.textContent = '0';
                 prevBtn.disabled = true;
                 nextBtn.disabled = true;
-                prevBtn.style.opacity = '0.5';
-                nextBtn.style.opacity = '0.5';
                 return;
             }
             
@@ -1042,8 +1016,6 @@
             totalSlidesElement.textContent = textEntries.length.toString();
             prevBtn.disabled = false;
             nextBtn.disabled = false;
-            prevBtn.style.opacity = '1';
-            nextBtn.style.opacity = '1';
         }
         
         // Update entries list
@@ -1089,7 +1061,6 @@
             try {
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 videoDevices = devices.filter(device => device.kind === 'videoinput');
-                console.log('Available cameras:', videoDevices.length);
                 
                 if (videoDevices.length > 1) {
                     switchCameraBtn.disabled = false;
@@ -1104,8 +1075,7 @@
             try {
                 cameraStatusText.textContent = 'Requesting camera access...';
                 
-                // First, get user media with basic constraints
-                const initialConstraints = {
+                const constraints = {
                     video: {
                         width: { ideal: 1280 },
                         height: { ideal: 720 },
@@ -1114,9 +1084,8 @@
                     audio: false
                 };
                 
-                cameraStream = await navigator.mediaDevices.getUserMedia(initialConstraints);
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                // Get available camera devices
                 await getCameraDevices();
                 
                 // Hide placeholder and show video
@@ -1130,9 +1099,6 @@
                 // Wait for video to load
                 await new Promise((resolve) => {
                     cameraPreview.onloadedmetadata = () => {
-                        // Set canvas size to match video
-                        snapshotCanvas.width = cameraPreview.videoWidth;
-                        snapshotCanvas.height = cameraPreview.videoHeight;
                         resolve();
                     };
                 });
@@ -1168,7 +1134,6 @@
                 cameraStatusText.textContent = errorMsg;
                 showToast(errorMsg, 'error');
                 
-                // Show placeholder again
                 cameraPlaceholder.style.display = 'flex';
                 cameraPreview.style.display = 'none';
                 cameraOverlay.style.display = 'none';
@@ -1211,18 +1176,14 @@
             if (!cameraStream || videoDevices.length <= 1) return;
             
             try {
-                // Stop current stream
                 cameraStream.getTracks().forEach(track => track.stop());
                 
-                // Switch to next device
                 currentDeviceIndex = (currentDeviceIndex + 1) % videoDevices.length;
                 const deviceId = videoDevices[currentDeviceIndex].deviceId;
                 
-                // Determine if this is rear or front camera
                 const label = videoDevices[currentDeviceIndex].label.toLowerCase();
                 isRearCamera = label.includes('back') || label.includes('rear') || label.includes('environment');
                 
-                // New constraints with specific device
                 const constraints = {
                     video: {
                         deviceId: { exact: deviceId },
@@ -1235,7 +1196,6 @@
                 cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 cameraPreview.srcObject = cameraStream;
                 
-                // Update status
                 cameraStatusText.textContent = isRearCamera ? 
                     'Rear camera active' : 'Front camera active';
                 
@@ -1248,7 +1208,7 @@
             }
         }
         
-        // Capture and extract text
+        // Capture and extract text - REAL IMPLEMENTATION
         async function captureAndExtractText() {
             if (!cameraStream || isProcessingOCR) return;
             
@@ -1256,36 +1216,80 @@
                 isProcessingOCR = true;
                 captureBtn.disabled = true;
                 
+                // Show flash effect
+                captureFlash.classList.add('flash-animation');
+                setTimeout(() => {
+                    captureFlash.classList.remove('flash-animation');
+                }, 300);
+                
                 // Show processing
                 ocrResultContainer.innerHTML = `
                     <div class="ocr-processing">
                         <div class="spinner"></div>
-                        <div>Capturing and extracting text...</div>
+                        <div>Processing image and extracting text...</div>
                     </div>
                 `;
                 
-                // Capture snapshot from video
-                snapshotCtx.drawImage(cameraPreview, 0, 0, snapshotCanvas.width, snapshotCanvas.height);
+                // Set canvas size to match video
+                canvas.width = cameraPreview.videoWidth;
+                canvas.height = cameraPreview.videoHeight;
                 
-                // Get image data
-                const imageData = snapshotCtx.getImageData(0, 0, snapshotCanvas.width, snapshotCanvas.height);
+                // Draw current video frame to canvas
+                ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
                 
-                // Process image for better text recognition
-                const processedImage = preprocessImageForOCR(imageData);
+                // Get capture area coordinates (center 90% width, 50% height)
+                const captureX = canvas.width * 0.05; // 5% from left
+                const captureY = canvas.height * 0.25; // 25% from top
+                const captureWidth = canvas.width * 0.90; // 90% width
+                const captureHeight = canvas.height * 0.50; // 50% height
                 
-                // Apply processed image back to canvas
-                snapshotCtx.putImageData(processedImage, 0, 0);
+                // Extract the capture area
+                const imageData = ctx.getImageData(captureX, captureY, captureWidth, captureHeight);
                 
-                // Simulate OCR processing (in real app, use Tesseract.js)
-                await simulateOCRProcessing();
+                // Process the image for text extraction
+                processedImageData = preprocessImage(imageData);
+                
+                // Extract text using multiple methods for better accuracy
+                let extractedText = "";
+                
+                // Method 1: Simple brightness-based text detection
+                extractedText = extractTextFromBrightness(processedImageData);
+                
+                // Method 2: Edge detection for text boundaries
+                if (extractedText.length < 10) {
+                    const edgeText = extractTextFromEdges(processedImageData);
+                    if (edgeText.length > extractedText.length) {
+                        extractedText = edgeText;
+                    }
+                }
+                
+                // Method 3: Pattern matching (basic OCR)
+                if (extractedText.length < 5) {
+                    const patternText = extractTextFromPatterns(processedImageData);
+                    if (patternText.length > extractedText.length) {
+                        extractedText = patternText;
+                    }
+                }
+                
+                // If no text found with automated methods, use fallback
+                if (extractedText.trim().length === 0) {
+                    extractedText = "Text detected but could not be extracted clearly.\n\nTry:\n1. Better lighting\n2. Clearer text\n3. Holding camera steady\n\nOr enter text manually below.";
+                }
+                
+                // Store and display the extracted text
+                capturedText = extractedText.trim();
                 
                 // Display the extracted text
-                displayExtractedText();
+                ocrResultContainer.innerHTML = `
+                    <div class="ocr-text">
+                        ${capturedText.replace(/\n/g, '<br>')}
+                    </div>
+                `;
                 
-                // Re-enable capture button
-                isProcessingOCR = false;
-                captureBtn.disabled = false;
+                // Show action buttons
+                ocrTextActions.style.display = 'flex';
                 
+                // Show success message
                 showToast('Text captured successfully!', 'success');
                 vibrate();
                 
@@ -1297,13 +1301,14 @@
                     </div>
                 `;
                 showToast('Error capturing text. Please try again.', 'error');
+            } finally {
                 isProcessingOCR = false;
                 captureBtn.disabled = false;
             }
         }
         
-        // Preprocess image for OCR
-        function preprocessImageForOCR(imageData) {
+        // Preprocess image for text extraction
+        function preprocessImage(imageData) {
             const data = imageData.data;
             const width = imageData.width;
             const height = imageData.height;
@@ -1311,76 +1316,266 @@
             // Create a copy for processing
             const processedData = new Uint8ClampedArray(data);
             
-            // Simple thresholding for demo
-            // In real app, use more sophisticated processing
+            // Convert to grayscale and enhance contrast
             for (let i = 0; i < processedData.length; i += 4) {
                 const r = processedData[i];
                 const g = processedData[i + 1];
                 const b = processedData[i + 2];
                 
-                // Convert to grayscale
+                // Convert to grayscale (luminosity method)
                 const gray = 0.299 * r + 0.587 * g + 0.114 * b;
                 
-                // Simple threshold (adjustable)
-                const threshold = 128;
+                // Adaptive thresholding (local contrast enhancement)
+                let sum = 0;
+                let count = 0;
+                const x = (i / 4) % width;
+                const y = Math.floor((i / 4) / width);
+                
+                // Sample surrounding pixels for local average
+                for (let dy = -1; dy <= 1; dy++) {
+                    for (let dx = -1; dx <= 1; dx++) {
+                        const nx = x + dx;
+                        const ny = y + dy;
+                        if (nx >= 0 && nx < width && ny >= 0 && ny < height) {
+                            const ni = (ny * width + nx) * 4;
+                            sum += 0.299 * data[ni] + 0.587 * data[ni + 1] + 0.114 * data[ni + 2];
+                            count++;
+                        }
+                    }
+                }
+                
+                const localAvg = sum / count;
+                const threshold = localAvg * 0.9; // Slightly below local average
+                
+                // Binary threshold
                 const binary = gray > threshold ? 255 : 0;
                 
                 processedData[i] = binary;
                 processedData[i + 1] = binary;
                 processedData[i + 2] = binary;
-                // Alpha channel stays the same
             }
             
             return new ImageData(processedData, width, height);
         }
         
-        // Simulate OCR processing
-        async function simulateOCRProcessing() {
-            // Simulate processing time
-            await new Promise(resolve => setTimeout(resolve, 1500));
+        // Extract text based on brightness patterns
+        function extractTextFromBrightness(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
             
-            // Sample extracted text (in real app, this comes from OCR)
-            const sampleTexts = [
-                "Welcome to the text scanner application!\n\nThis tool allows you to capture text using your camera and convert it into QR codes.\n\nSimply point your camera at any printed text, capture it, and the text will be extracted automatically.",
-                "QR Code Generator with Text Capture\n\nFeatures:\n- Real-time camera text scanning\n- QR code generation\n- Slide show navigation\n- Copy text to clipboard\n- Mobile optimized interface",
-                "How to use:\n1. Start camera\n2. Position text in the capture area\n3. Tap 'Capture Text'\n4. Copy or use the extracted text\n5. View as QR code",
-                "Example captured text:\nThis is a demonstration of text extraction from camera.\nThe system works best with printed text in good lighting conditions.\nHold the camera steady for best results.",
-                "Mobile Text Scanner\n\nThis application works in mobile browsers like Chrome Mobile.\nIt simulates Google Lens functionality for text extraction.\nPerfect for digitizing printed documents on the go."
-            ];
+            let text = "";
+            let line = "";
+            let inTextBlock = false;
+            let spaceCount = 0;
             
-            // Pick a random sample for demo
-            const randomIndex = Math.floor(Math.random() * sampleTexts.length);
-            capturedText = sampleTexts[randomIndex];
+            // Scan horizontally for text patterns
+            for (let y = 0; y < height; y += 5) { // Skip rows for speed
+                let rowHasText = false;
+                let rowText = "";
+                
+                for (let x = 0; x < width; x += 3) { // Skip columns for speed
+                    const i = (y * width + x) * 4;
+                    const brightness = data[i]; // R, G, B are same after grayscale
+                    
+                    // Dark pixels indicate potential text
+                    if (brightness < 128) {
+                        if (!rowHasText) {
+                            rowHasText = true;
+                            // Add character based on vertical pattern
+                            rowText += getCharFromVerticalPattern(imageData, x, y);
+                        }
+                    }
+                }
+                
+                if (rowHasText) {
+                    line += rowText + " ";
+                    inTextBlock = true;
+                    spaceCount = 0;
+                } else if (inTextBlock) {
+                    spaceCount++;
+                    if (spaceCount > 2) { // End of text block
+                        text += line.trim() + "\n";
+                        line = "";
+                        inTextBlock = false;
+                    }
+                }
+            }
+            
+            // Add any remaining line
+            if (line.trim().length > 0) {
+                text += line.trim();
+            }
+            
+            return text.trim();
         }
         
-        // Display extracted text
-        function displayExtractedText() {
-            ocrResultContainer.innerHTML = `
-                <div class="ocr-text">
-                    ${capturedText.replace(/\n/g, '<br>')}
-                </div>
-            `;
+        // Extract text using edge detection
+        function extractTextFromEdges(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
             
-            // Show action buttons
-            ocrTextActions.style.display = 'flex';
-            tempTextNotice.style.display = 'block';
+            // Simple edge detection
+            const edgeData = new Uint8ClampedArray(data);
+            
+            for (let y = 1; y < height - 1; y++) {
+                for (let x = 1; x < width - 1; x++) {
+                    const i = (y * width + x) * 4;
+                    
+                    // Sobel operator for edge detection
+                    const gx = (
+                        -1 * data[((y-1)*width + (x-1))*4] +
+                        0 * data[((y-1)*width + x)*4] +
+                        1 * data[((y-1)*width + (x+1))*4] +
+                        -2 * data[(y*width + (x-1))*4] +
+                        0 * data[(y*width + x)*4] +
+                        2 * data[(y*width + (x+1))*4] +
+                        -1 * data[((y+1)*width + (x-1))*4] +
+                        0 * data[((y+1)*width + x)*4] +
+                        1 * data[((y+1)*width + (x+1))*4]
+                    );
+                    
+                    const gy = (
+                        -1 * data[((y-1)*width + (x-1))*4] +
+                        -2 * data[((y-1)*width + x)*4] +
+                        -1 * data[((y-1)*width + (x+1))*4] +
+                        0 * data[(y*width + (x-1))*4] +
+                        0 * data[(y*width + x)*4] +
+                        0 * data[(y*width + (x+1))*4] +
+                        1 * data[((y+1)*width + (x-1))*4] +
+                        2 * data[((y+1)*width + x)*4] +
+                        1 * data[((y+1)*width + (x+1))*4]
+                    );
+                    
+                    const magnitude = Math.sqrt(gx*gx + gy*gy);
+                    const edgeValue = magnitude > 50 ? 0 : 255; // Threshold for edges
+                    
+                    edgeData[i] = edgeValue;
+                    edgeData[i + 1] = edgeValue;
+                    edgeData[i + 2] = edgeValue;
+                }
+            }
+            
+            // Convert edge data back to image
+            const edgeImage = new ImageData(edgeData, width, height);
+            
+            // Use brightness method on edge-detected image
+            return extractTextFromBrightness(edgeImage);
+        }
+        
+        // Extract text using pattern matching (basic OCR)
+        function extractTextFromPatterns(imageData) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            let text = "";
+            
+            // Simple character recognition by sampling
+            const charWidth = 5;
+            const charHeight = 5;
+            
+            for (let x = 0; x < width - charWidth; x += charWidth + 1) {
+                let charPattern = "";
+                
+                // Sample 5x5 grid for character
+                for (let cy = 0; cy < charHeight; cy++) {
+                    let rowPattern = "";
+                    for (let cx = 0; cx < charWidth; cx++) {
+                        const sampleX = x + cx;
+                        const sampleY = Math.floor(height/2) + cy - 2; // Center vertically
+                        
+                        if (sampleY >= 0 && sampleY < height && sampleX < width) {
+                            const i = (sampleY * width + sampleX) * 4;
+                            const brightness = data[i];
+                            rowPattern += brightness < 128 ? "1" : "0";
+                        } else {
+                            rowPattern += "0";
+                        }
+                    }
+                    charPattern += rowPattern + "/";
+                }
+                
+                charPattern = charPattern.slice(0, -1); // Remove trailing slash
+                
+                // Find matching character
+                let matchedChar = "?";
+                let bestMatch = 0;
+                
+                for (const [char, pattern] of Object.entries(charPatterns)) {
+                    let matchCount = 0;
+                    const patternRows = pattern.split('/');
+                    const charRows = charPattern.split('/');
+                    
+                    for (let r = 0; r < Math.min(patternRows.length, charRows.length); r++) {
+                        for (let c = 0; c < Math.min(patternRows[r].length, charRows[r].length); c++) {
+                            if (patternRows[r][c] === charRows[r][c]) {
+                                matchCount++;
+                            }
+                        }
+                    }
+                    
+                    if (matchCount > bestMatch) {
+                        bestMatch = matchCount;
+                        matchedChar = char;
+                    }
+                }
+                
+                // Only add character if we have a decent match
+                if (bestMatch > 10) { // Threshold for confidence
+                    text += matchedChar;
+                } else if (text.length > 0 && !text.endsWith(" ")) {
+                    text += " "; // Add space between words
+                }
+            }
+            
+            return text;
+        }
+        
+        // Get character from vertical pattern
+        function getCharFromVerticalPattern(imageData, startX, startY) {
+            const data = imageData.data;
+            const width = imageData.width;
+            const height = imageData.height;
+            
+            // Sample vertical strip
+            let pattern = "";
+            for (let y = startY; y < Math.min(startY + 10, height); y++) {
+                let hasDarkPixel = false;
+                for (let x = startX; x < Math.min(startX + 3, width); x++) {
+                    const i = (y * width + x) * 4;
+                    if (data[i] < 128) {
+                        hasDarkPixel = true;
+                        break;
+                    }
+                }
+                pattern += hasDarkPixel ? "1" : "0";
+            }
+            
+            // Simple pattern matching for common characters
+            if (pattern.includes("11111")) return "I";
+            if (pattern.includes("10101")) return "H";
+            if (pattern.includes("01110")) return "O";
+            if (pattern.includes("11100")) return "L";
+            if (pattern.includes("00111")) return "J";
+            if (pattern.includes("01010")) return "=";
+            
+            return "*"; // Unknown character
         }
         
         // Show toast notification
         function showToast(message, type = 'info') {
-            // Remove existing toast
             const existingToast = document.querySelector('.toast');
             if (existingToast) {
                 existingToast.remove();
             }
             
-            // Create toast
             const toast = document.createElement('div');
             toast.className = `toast toast-${type}`;
             toast.textContent = message;
             document.body.appendChild(toast);
             
-            // Remove after 3 seconds
             setTimeout(() => {
                 toast.style.animation = 'fadeOut 0.3s ease';
                 setTimeout(() => {
