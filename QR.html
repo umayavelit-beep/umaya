@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>QR Code Slide Show - Camera Permission Fix</title>
+    <title>QR Code Slide Show with Text Capture</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
     <!-- Tesseract.js for OCR text recognition -->
@@ -13,7 +13,7 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         }
         
         body {
@@ -53,192 +53,12 @@
             line-height: 1.4;
         }
         
-        .permission-fix-section {
-            background-color: rgba(0, 0, 0, 0.4);
+        .camera-section {
+            background-color: rgba(0, 0, 0, 0.3);
             border-radius: 12px;
-            padding: 20px;
-            margin-bottom: 20px;
-            border: 2px solid #f44336;
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { border-color: #f44336; }
-            50% { border-color: #ff9800; }
-            100% { border-color: #f44336; }
-        }
-        
-        .permission-fix-section h2 {
-            color: #ff9800;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        
-        .permission-status {
-            background: rgba(0, 0, 0, 0.5);
             padding: 15px;
-            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
             margin-bottom: 20px;
-        }
-        
-        .status-item {
-            display: flex;
-            justify-content: space-between;
-            margin: 8px 0;
-            padding: 8px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 5px;
-        }
-        
-        .status-label {
-            font-weight: bold;
-        }
-        
-        .status-value {
-            color: #fdbb2d;
-        }
-        
-        .status-value.denied {
-            color: #f44336;
-            font-weight: bold;
-        }
-        
-        .status-value.granted {
-            color: #4CAF50;
-            font-weight: bold;
-        }
-        
-        .android-fix-steps {
-            background: rgba(0, 0, 0, 0.3);
-            border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-        }
-        
-        .step {
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-            margin: 12px 0;
-            padding: 12px;
-            background: rgba(255, 255, 255, 0.05);
-            border-radius: 6px;
-        }
-        
-        .step-number {
-            background: #2196F3;
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: bold;
-            flex-shrink: 0;
-        }
-        
-        .step-content {
-            flex: 1;
-            line-height: 1.5;
-        }
-        
-        .step-content strong {
-            color: #fdbb2d;
-            display: block;
-            margin-bottom: 5px;
-        }
-        
-        .fix-buttons {
-            display: flex;
-            gap: 10px;
-            margin-top: 20px;
-            flex-wrap: wrap;
-        }
-        
-        button {
-            padding: 14px 20px;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 160px;
-            font-size: 1rem;
-            touch-action: manipulation;
-        }
-        
-        button:active {
-            transform: scale(0.98);
-        }
-        
-        .primary-btn {
-            background-color: #2196F3;
-            color: white;
-        }
-        
-        .secondary-btn {
-            background-color: #9C27B0;
-            color: white;
-        }
-        
-        .success-btn {
-            background-color: #4CAF50;
-            color: white;
-        }
-        
-        .danger-btn {
-            background-color: #f44336;
-            color: white;
-        }
-        
-        .video-container {
-            position: relative;
-            width: 100%;
-            margin: 20px auto;
-            border-radius: 8px;
-            overflow: hidden;
-            background-color: #000;
-            min-height: 250px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        #cameraPreview {
-            width: 100%;
-            height: auto;
-            display: none;
-            background-color: #000;
-        }
-        
-        .camera-placeholder {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 40px;
-            text-align: center;
-        }
-        
-        .camera-icon {
-            font-size: 4rem;
-            margin-bottom: 20px;
-            color: #fdbb2d;
-        }
-        
-        .camera-controls {
-            display: flex;
-            gap: 10px;
-            margin-top: 15px;
-            flex-wrap: wrap;
         }
         
         .main-content {
@@ -279,7 +99,124 @@
             color: white;
             font-size: 1rem;
             resize: vertical;
-            font-size: 16px;
+            font-size: 16px; /* Prevents zoom on iOS */
+        }
+        
+        textarea::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        button {
+            padding: 12px 15px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex: 1;
+            min-width: 140px;
+            font-size: 0.95rem;
+            touch-action: manipulation; /* Better touch handling */
+        }
+        
+        button:active {
+            transform: scale(0.98);
+        }
+        
+        .add-btn {
+            background-color: #4CAF50;
+            color: white;
+        }
+        
+        .add-btn:hover, .add-btn:active {
+            background-color: #3d8b40;
+        }
+        
+        .clear-btn {
+            background-color: #f44336;
+            color: white;
+        }
+        
+        .clear-btn:hover, .clear-btn:active {
+            background-color: #d32f2f;
+        }
+        
+        .capture-btn {
+            background-color: #2196F3;
+            color: white;
+        }
+        
+        .capture-btn:hover, .capture-btn:active {
+            background-color: #0b7dda;
+        }
+        
+        .camera-btn-group {
+            display: flex;
+            gap: 8px;
+            margin-top: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .video-container {
+            position: relative;
+            width: 100%;
+            margin: 0 auto;
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #000;
+        }
+        
+        #cameraPreview {
+            width: 100%;
+            height: auto;
+            display: block;
+            background-color: #000;
+            transform: scaleX(-1); /* Mirror effect for selfie camera */
+        }
+        
+        .camera-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .capture-area {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 80%;
+            height: 30%;
+            border: 2px dashed rgba(253, 187, 45, 0.9);
+            background-color: rgba(253, 187, 45, 0.1);
+            border-radius: 4px;
+        }
+        
+        .capture-instruction {
+            position: absolute;
+            bottom: 10px;
+            left: 0;
+            width: 100%;
+            text-align: center;
+            color: white;
+            font-weight: bold;
+            font-size: 0.9rem;
+            text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+            padding: 8px 5px;
+            background-color: rgba(0, 0, 0, 0.7);
         }
         
         .ocr-result {
@@ -290,6 +227,34 @@
             min-height: 120px;
             max-height: 180px;
             overflow-y: auto;
+        }
+        
+        .ocr-processing {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 120px;
+            gap: 12px;
+        }
+        
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top: 4px solid #fdbb2d;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .ocr-text {
+            line-height: 1.5;
+            font-size: 0.95rem;
         }
         
         .qr-container {
@@ -308,6 +273,11 @@
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
         }
         
+        #qrcode canvas, #qrcode img {
+            max-width: 100%;
+            height: auto;
+        }
+        
         .text-display {
             background-color: rgba(255, 255, 255, 0.1);
             padding: 12px;
@@ -317,6 +287,7 @@
             margin-top: 12px;
             min-height: 60px;
             word-break: break-word;
+            font-size: 0.95rem;
         }
         
         .slide-controls {
@@ -334,30 +305,219 @@
             height: 50px;
             border-radius: 50%;
             font-size: 1.1rem;
+            flex: 0 0 auto;
         }
         
-        .hidden {
-            display: none !important;
+        .nav-btn:hover, .nav-btn:active {
+            background-color: rgba(253, 187, 45, 0.8);
         }
         
-        .permission-reset-info {
-            background: rgba(255, 152, 0, 0.1);
-            border: 1px solid #ff9800;
+        .slide-counter {
+            font-size: 1.1rem;
+            font-weight: 600;
+            background-color: rgba(0, 0, 0, 0.4);
+            padding: 8px 15px;
+            border-radius: 20px;
+            min-width: 80px;
+            text-align: center;
+        }
+        
+        .entries-list {
+            margin-top: 20px;
+            max-height: 180px;
+            overflow-y: auto;
+            background-color: rgba(0, 0, 0, 0.2);
             border-radius: 8px;
-            padding: 15px;
-            margin: 15px 0;
-            font-size: 0.9rem;
-            line-height: 1.5;
+            padding: 10px;
+            -webkit-overflow-scrolling: touch; /* Smooth scrolling on iOS */
         }
         
+        .entry-item {
+            padding: 10px 12px;
+            margin-bottom: 6px;
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            word-break: break-word;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .entry-item:active {
+            transform: scale(0.98);
+            background-color: rgba(253, 187, 45, 0.3);
+        }
+        
+        .entry-item.active {
+            background-color: rgba(253, 187, 45, 0.3);
+            border-left: 4px solid #fdbb2d;
+        }
+        
+        .entry-text {
+            flex: 1;
+            font-size: 0.9rem;
+        }
+        
+        .entry-number {
+            background-color: rgba(253, 187, 45, 0.8);
+            color: black;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            font-weight: bold;
+            margin-right: 10px;
+            flex-shrink: 0;
+        }
+        
+        .camera-status {
+            margin-top: 12px;
+            padding: 10px;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background-color: #f44336;
+            flex-shrink: 0;
+        }
+        
+        .status-indicator.active {
+            background-color: #4CAF50;
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.7; }
+            100% { opacity: 1; }
+        }
+        
+        .empty-message {
+            text-align: center;
+            font-style: italic;
+            opacity: 0.7;
+            padding: 20px;
+            font-size: 0.9rem;
+        }
+        
+        .permission-help {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 8px;
+            padding: 12px;
+            margin-top: 10px;
+            font-size: 0.85rem;
+        }
+        
+        .permission-help h4 {
+            color: #fdbb2d;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+        }
+        
+        .permission-help ul {
+            padding-left: 20px;
+            margin-bottom: 8px;
+        }
+        
+        .permission-help li {
+            margin-bottom: 5px;
+            line-height: 1.4;
+        }
+        
+        footer {
+            text-align: center;
+            margin-top: 20px;
+            padding-top: 15px;
+            border-top: 1px solid rgba(255, 255, 255, 0.2);
+            font-size: 0.8rem;
+            opacity: 0.8;
+        }
+        
+        /* Desktop/Tablet optimizations */
         @media (min-width: 768px) {
             .container {
                 max-width: 900px;
                 padding: 20px;
             }
             
+            header {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+            
+            h1 {
+                font-size: 2.2rem;
+            }
+            
+            .subtitle {
+                font-size: 1.1rem;
+            }
+            
             .main-content {
                 flex-direction: row;
+                gap: 30px;
+            }
+            
+            .text-input-section, .qr-display-section {
+                flex: 1;
+                padding: 20px;
+            }
+            
+            .camera-section {
+                padding: 20px;
+                margin-bottom: 30px;
+            }
+            
+            textarea {
+                height: 150px;
+            }
+            
+            button {
+                min-width: 160px;
+                font-size: 1rem;
+            }
+            
+            #qrcode {
+                padding: 15px;
+            }
+        }
+        
+        /* Landscape orientation optimization */
+        @media (max-height: 600px) and (orientation: landscape) {
+            .camera-section {
+                padding: 10px;
+            }
+            
+            .video-container {
+                max-height: 200px;
+            }
+            
+            #cameraPreview {
+                max-height: 200px;
+                object-fit: cover;
+            }
+            
+            .capture-instruction {
+                font-size: 0.8rem;
+                padding: 5px;
+            }
+            
+            .ocr-result {
+                min-height: 100px;
+                max-height: 120px;
             }
         }
     </style>
@@ -365,126 +525,62 @@
 <body>
     <div class="container">
         <header>
-            <h1>QR Code Slide Show</h1>
-            <p class="subtitle">Camera permission fix for Android Chrome</p>
+            <h1>Text Capture To QR Code </h1>
+            
         </header>
         
-        <!-- Permission Fix Section -->
-        <div class="permission-fix-section" id="permissionFixSection">
-            <h2><i class="fas fa-exclamation-triangle"></i> Camera Permission Needed</h2>
-            
-            <div class="permission-status">
-                <div class="status-item">
-                    <span class="status-label">Current Status:</span>
-                    <span class="status-value denied" id="currentStatus">Permission Denied</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">getUserMedia Support:</span>
-                    <span class="status-value" id="mediaSupport">Checking...</span>
-                </div>
-                <div class="status-item">
-                    <span class="status-label">Available Cameras:</span>
-                    <span class="status-value" id="cameraCount">Checking...</span>
-                </div>
-            </div>
-            
-            <div class="permission-reset-info">
-                <strong><i class="fas fa-info-circle"></i> Why this happens:</strong>
-                <p>You previously denied camera access to this website. On Android Chrome, once denied, you need to manually reset the permission.</p>
-            </div>
-            
-            <div class="android-fix-steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <strong>Open Chrome Settings</strong>
-                        Tap the 3-dot menu (⋮) → Settings → Site Settings → Camera
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <strong>Find this website</strong>
-                        Look for this site in the list (may be under "Blocked" or "Recently Accessed")
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <strong>Change permission</strong>
-                        Tap on this site and change Camera permission from "Block" to "Allow"
-                    </div>
-                </div>
-                <div class="step">
-                    <div class="step-number">4</div>
-                    <div class="step-content">
-                        <strong>Refresh and try</strong>
-                        Return here, refresh the page, and click "Try Camera Again"
-                    </div>
-                </div>
-            </div>
-            
-            <div class="fix-buttons">
-                <button id="checkPermissionBtn" class="primary-btn">
-                    <i class="fas fa-sync-alt"></i> Check Permission Again
-                </button>
-                <button id="openSettingsHint" class="secondary-btn">
-                    <i class="fas fa-cog"></i> Show Settings Screenshot
-                </button>
-                <button id="tryIncognitoBtn" class="success-btn">
-                    <i class="fas fa-user-secret"></i> Try Incognito Mode
-                </button>
-            </div>
-        </div>
-        
-        <!-- Camera Section (Initially Hidden) -->
-        <div class="camera-section hidden" id="cameraSection">
+        <!-- Camera Section at the Top -->
+        <div class="camera-section">
             <h2 class="section-title">📸 Text Capture Camera</h2>
-            
-            <div class="video-container" id="videoContainer">
-                <div class="camera-placeholder" id="cameraPlaceholder">
-                    <div class="camera-icon">
-                        <i class="fas fa-camera"></i>
-                    </div>
-                    <p>Camera will start when ready</p>
+            <div class="video-container">
+                <video id="cameraPreview" autoplay playsinline></video>
+                <div class="camera-overlay">
+                    <div class="capture-area"></div>
+                    <div class="capture-instruction">Position text within the dashed area</div>
                 </div>
-                <video id="cameraPreview" autoplay playsinline muted></video>
             </div>
             
-            <div class="camera-controls">
-                <button id="startCameraBtn" class="primary-btn">
-                    <i class="fas fa-play"></i> Start Camera
+            <div class="camera-btn-group">
+                <button id="startCameraBtn" class="capture-btn">
+                    <i class="fas fa-camera"></i> Start Camera
                 </button>
-                <button id="captureBtn" class="success-btn" disabled>
-                    <i class="fas fa-camera"></i> Capture Text
+                <button id="captureBtn" class="capture-btn" disabled>
+                    <i class="fas fa-camera-retro"></i> Capture Text
                 </button>
-                <button id="stopCameraBtn" class="danger-btn" disabled>
-                    <i class="fas fa-stop"></i> Stop Camera
+                <button id="stopCameraBtn" class="capture-btn" disabled>
+                    <i class="fas fa-stop-circle"></i> Stop
                 </button>
+                <button id="useCapturedTextBtn" class="add-btn" disabled>
+                    <i class="fas fa-check-circle"></i> Use Text
+                </button>
+            </div>
+            
+            <div class="camera-status">
+                <div class="status-indicator" id="cameraStatusIndicator"></div>
+                <span id="cameraStatusText">Camera is off. Click "Start Camera" to begin.</span>
             </div>
             
             <div class="ocr-result">
                 <h3 class="section-title">📝 Captured Text</h3>
                 <div id="ocrResultContainer">
-                    <div class="empty-message">No text captured yet</div>
+                    <div class="empty-message">No text captured yet. Start camera and capture text.</div>
                 </div>
-                <button id="useCapturedTextBtn" class="success-btn hidden" style="margin-top: 10px; width: 100%;">
-                    <i class="fas fa-plus"></i> Add to Slide Show
-                </button>
             </div>
+            
+          
         </div>
         
-        <!-- Main Content -->
+        <!-- Main Content Below Camera -->
         <div class="main-content">
             <div class="text-input-section">
-                <h2 class="section-title">✏️ Enter Text</h2>
+                <h2 class="section-title">✏️ Enter/Edit Text</h2>
                 <div class="text-input-container">
-                    <textarea id="textInput" placeholder="Type text here or use captured text..."></textarea>
+                    <textarea id="textInput" placeholder="Type text here or use captured text from camera above..."></textarea>
                     <div class="button-group">
-                        <button id="addBtn" class="success-btn">
-                            <i class="fas fa-plus"></i> Add Entry
+                        <button id="addBtn" class="add-btn">
+                            <i class="fas fa-plus-circle"></i> Add Entry
                         </button>
-                        <button id="clearBtn" class="danger-btn">
+                        <button id="clearBtn" class="clear-btn">
                             <i class="fas fa-trash"></i> Clear All
                         </button>
                     </div>
@@ -493,7 +589,7 @@
                 <div class="entries-list">
                     <h3 class="section-title">📋 Text Entries</h3>
                     <div id="entriesContainer">
-                        <div class="empty-message">No entries yet</div>
+                        <div class="empty-message">No entries yet. Add text or capture from camera.</div>
                     </div>
                 </div>
             </div>
@@ -503,7 +599,7 @@
                 <div class="qr-container">
                     <div id="qrcode"></div>
                     <div class="text-display" id="currentTextDisplay">
-                        No text entries available
+                        No text entries available. Add some text to generate QR codes.
                     </div>
                     
                     <div class="slide-controls">
@@ -520,627 +616,667 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Settings Screenshot Modal -->
-    <div id="settingsModal" class="hidden" style="
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.9);
-        z-index: 1000;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        padding: 20px;
-    ">
-        <div style="
-            background: white;
-            border-radius: 12px;
-            padding: 20px;
-            max-width: 500px;
-            width: 100%;
-            color: black;
-            position: relative;
-        ">
-            <button id="closeModal" style="
-                position: absolute;
-                top: 10px;
-                right: 10px;
-                background: #f44336;
-                color: white;
-                border: none;
-                width: 30px;
-                height: 30px;
-                border-radius: 50%;
-                cursor: pointer;
-            ">×</button>
-            
-            <h3 style="color: #1a2a6c; margin-bottom: 15px;">Android Chrome Camera Settings</h3>
-            
-            <div style="margin: 15px 0;">
-                <strong>Path to Camera Settings:</strong>
-                <ol style="margin: 10px 0; padding-left: 20px;">
-                    <li>Tap Chrome's 3-dot menu (⋮)</li>
-                    <li>Select "Settings"</li>
-                    <li>Tap "Site settings"</li>
-                    <li>Select "Camera"</li>
-                    <li>Find this website in the list</li>
-                    <li>Change from "Block" to "Allow"</li>
-                </ol>
-            </div>
-            
-            <div style="background: #f5f5f5; padding: 15px; border-radius: 8px; margin: 15px 0;">
-                <strong>Alternative method:</strong>
-                <p style="margin: 5px 0;">Tap the lock icon (🔒) in Chrome's address bar, then tap "Site settings" → "Camera" → Change to "Allow"</p>
-            </div>
-            
-            <button onclick="location.reload()" style="
-                background: #2196F3;
-                color: white;
-                border: none;
-                padding: 12px 20px;
-                border-radius: 8px;
-                width: 100%;
-                font-weight: bold;
-                margin-top: 10px;
-                cursor: pointer;
-            ">
-                <i class="fas fa-redo"></i> Refresh Page After Changing Settings
-            </button>
-        </div>
+        
+        <footer>
+            <p>QR Code Slide Show with Text Capture | Mobile Optimized | Swipe-friendly navigation</p>
+        </footer>
     </div>
 
     <script>
-        // Application State
-        const appState = {
-            textEntries: [],
-            currentIndex: -1,
-            cameraStream: null,
-            capturedText: "",
-            isProcessing: false,
-            permissionState: 'unknown',
-            isAndroid: /android/i.test(navigator.userAgent),
-            isChrome: /chrome/i.test(navigator.userAgent),
-            isIOS: /iphone|ipad|ipod/i.test(navigator.userAgent)
-        };
+        // Initialize variables
+        let textEntries = [];
+        let currentIndex = -1;
+        let cameraStream = null;
+        let capturedText = "";
+        let isProcessingOCR = false;
+        let cameraPermissionRequested = false;
         
-        // DOM Elements
-        const el = {
-            // Permission fix section
-            permissionFixSection: document.getElementById('permissionFixSection'),
-            currentStatus: document.getElementById('currentStatus'),
-            mediaSupport: document.getElementById('mediaSupport'),
-            cameraCount: document.getElementById('cameraCount'),
-            checkPermissionBtn: document.getElementById('checkPermissionBtn'),
-            openSettingsHint: document.getElementById('openSettingsHint'),
-            tryIncognitoBtn: document.getElementById('tryIncognitoBtn'),
-            
-            // Camera section
-            cameraSection: document.getElementById('cameraSection'),
-            cameraPreview: document.getElementById('cameraPreview'),
-            cameraPlaceholder: document.getElementById('cameraPlaceholder'),
-            startCameraBtn: document.getElementById('startCameraBtn'),
-            captureBtn: document.getElementById('captureBtn'),
-            stopCameraBtn: document.getElementById('stopCameraBtn'),
-            useCapturedTextBtn: document.getElementById('useCapturedTextBtn'),
-            ocrResultContainer: document.getElementById('ocrResultContainer'),
-            
-            // Main content
-            textInput: document.getElementById('textInput'),
-            addBtn: document.getElementById('addBtn'),
-            clearBtn: document.getElementById('clearBtn'),
-            prevBtn: document.getElementById('prevBtn'),
-            nextBtn: document.getElementById('nextBtn'),
-            qrcode: document.getElementById('qrcode'),
-            currentTextDisplay: document.getElementById('currentTextDisplay'),
-            entriesContainer: document.getElementById('entriesContainer'),
-            currentSlide: document.getElementById('currentSlide'),
-            totalSlides: document.getElementById('totalSlides'),
-            
-            // Modal
-            settingsModal: document.getElementById('settingsModal'),
-            closeModal: document.getElementById('closeModal')
-        };
+        // DOM elements
+        const textInput = document.getElementById('textInput');
+        const addBtn = document.getElementById('addBtn');
+        const clearBtn = document.getElementById('clearBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const qrcodeElement = document.getElementById('qrcode');
+        const currentTextDisplay = document.getElementById('currentTextDisplay');
+        const entriesContainer = document.getElementById('entriesContainer');
+        const currentSlideElement = document.getElementById('currentSlide');
+        const totalSlidesElement = document.getElementById('totalSlides');
         
-        // Initialize Application
-        async function init() {
-            console.log('Initializing app...');
-            console.log('Platform:', appState.isAndroid ? 'Android' : appState.isIOS ? 'iOS' : 'Desktop');
-            console.log('Browser:', appState.isChrome ? 'Chrome' : 'Other');
-            
-            // Load saved data
-            loadEntries();
-            
-            // Setup event listeners
-            setupEventListeners();
-            
-            // Check initial permission state
-            await checkInitialPermissions();
-        }
+        // Camera elements
+        const cameraPreview = document.getElementById('cameraPreview');
+        const startCameraBtn = document.getElementById('startCameraBtn');
+        const captureBtn = document.getElementById('captureBtn');
+        const stopCameraBtn = document.getElementById('stopCameraBtn');
+        const useCapturedTextBtn = document.getElementById('useCapturedTextBtn');
+        const cameraStatusIndicator = document.getElementById('cameraStatusIndicator');
+        const cameraStatusText = document.getElementById('cameraStatusText');
+        const ocrResultContainer = document.getElementById('ocrResultContainer');
         
-        // Check initial permissions
-        async function checkInitialPermissions() {
-            try {
-                // Check getUserMedia support
-                const hasGetUserMedia = 'mediaDevices' in navigator && 'getUserMedia' in navigator.mediaDevices;
-                el.mediaSupport.textContent = hasGetUserMedia ? 'Supported ✓' : 'Not Supported ✗';
-                
-                // Check camera count
-                if (hasGetUserMedia) {
-                    try {
-                        const devices = await navigator.mediaDevices.enumerateDevices();
-                        const cameras = devices.filter(d => d.kind === 'videoinput');
-                        el.cameraCount.textContent = `${cameras.length} camera(s) found`;
-                    } catch (e) {
-                        el.cameraCount.textContent = 'Could not enumerate';
-                    }
-                }
-                
-                // Check permission state
-                if (navigator.permissions && navigator.permissions.query) {
-                    try {
-                        const permission = await navigator.permissions.query({ name: 'camera' });
-                        appState.permissionState = permission.state;
-                        
-                        el.currentStatus.textContent = permission.state === 'granted' ? 
-                            'Granted ✓' : permission.state === 'denied' ? 
-                            'Denied ✗' : 'Ask First';
-                            
-                        el.currentStatus.className = permission.state === 'granted' ? 
-                            'status-value granted' : permission.state === 'denied' ? 
-                            'status-value denied' : 'status-value';
-                        
-                        // Show/hide sections based on permission
-                        if (permission.state === 'granted') {
-                            // Permission granted, show camera section
-                            el.permissionFixSection.classList.add('hidden');
-                            el.cameraSection.classList.remove('hidden');
-                        } else if (permission.state === 'denied') {
-                            // Permission denied, show fix section
-                            el.permissionFixSection.classList.remove('hidden');
-                            el.cameraSection.classList.add('hidden');
-                            showToast('Camera permission was previously denied. Follow the steps above to fix.', 'error');
-                        } else {
-                            // Not decided yet
-                            el.permissionFixSection.classList.remove('hidden');
-                            el.cameraSection.classList.add('hidden');
-                        }
-                        
-                        // Listen for permission changes
-                        permission.onchange = () => {
-                            console.log('Permission changed to:', permission.state);
-                            checkInitialPermissions();
-                        };
-                        
-                    } catch (e) {
-                        console.log('Permission query failed:', e);
-                        el.currentStatus.textContent = 'Could not check';
-                    }
-                } else {
-                    el.currentStatus.textContent = 'Permission API not available';
-                }
-                
-            } catch (error) {
-                console.error('Permission check error:', error);
-                showToast('Error checking permissions', 'error');
+        // Initialize with sample data
+        function initializeSampleData() {
+            if (localStorage.getItem('textEntries')) {
+                textEntries = JSON.parse(localStorage.getItem('textEntries'));
+                currentIndex = textEntries.length > 0 ? 0 : -1;
+            } else {
+                // Add some sample entries
+                textEntries = [
+                    "Welcome to QR Code Slide Show!",
+                    "Scan this QR code: https://www.google.com",
+                    "Mobile-friendly text capture",
+                    "Capture text with camera, view as QR"
+                ];
+                currentIndex = 0;
+                saveToLocalStorage();
             }
-        }
-        
-        // Load saved entries
-        function loadEntries() {
-            try {
-                const saved = localStorage.getItem('qrSlideEntries');
-                if (saved) {
-                    appState.textEntries = JSON.parse(saved);
-                    appState.currentIndex = appState.textEntries.length > 0 ? 0 : -1;
-                } else {
-                    // Sample entries
-                    appState.textEntries = [
-                        "Welcome to QR Code Slide Show!",
-                        "Use camera to capture text from documents",
-                        "Android Chrome camera permission fix applied",
-                        "Navigate with buttons or swipe"
-                    ];
-                    appState.currentIndex = 0;
-                    saveEntries();
-                }
-                updateDisplay();
-            } catch (e) {
-                console.error('Error loading entries:', e);
-                appState.textEntries = ["Sample QR Code"];
-                appState.currentIndex = 0;
-                updateDisplay();
-            }
-        }
-        
-        function saveEntries() {
-            localStorage.setItem('qrSlideEntries', JSON.stringify(appState.textEntries));
-        }
-        
-        function updateDisplay() {
             updateEntriesList();
             updateQRCode();
             updateNavigation();
         }
         
-        function updateEntriesList() {
-            el.entriesContainer.innerHTML = '';
-            
-            if (appState.textEntries.length === 0) {
-                el.entriesContainer.innerHTML = '<div class="empty-message">No entries yet</div>';
-                return;
-            }
-            
-            appState.textEntries.forEach((entry, index) => {
-                const div = document.createElement('div');
-                div.className = `entry-item ${index === appState.currentIndex ? 'active' : ''}`;
-                div.innerHTML = `
-                    <div class="entry-number">${index + 1}</div>
-                    <div class="entry-text">${entry.substring(0, 50)}${entry.length > 50 ? '...' : ''}</div>
-                `;
-                div.addEventListener('click', () => {
-                    appState.currentIndex = index;
-                    updateDisplay();
-                });
-                el.entriesContainer.appendChild(div);
-            });
+        // Save entries to localStorage
+        function saveToLocalStorage() {
+            localStorage.setItem('textEntries', JSON.stringify(textEntries));
         }
         
-        function updateQRCode() {
-            el.qrcode.innerHTML = '';
+        // Add new text entry
+        function addTextEntry() {
+            const text = textInput.value.trim();
             
-            if (appState.textEntries.length === 0 || appState.currentIndex < 0) {
-                el.currentTextDisplay.textContent = 'No text entries available';
+            if (text === '') {
+                showToast('Please enter some text before adding.', 'warning');
                 return;
             }
             
-            const text = appState.textEntries[appState.currentIndex];
-            el.currentTextDisplay.textContent = text;
+            textEntries.push(text);
+            
+            // If this is the first entry, set it as current
+            if (textEntries.length === 1) {
+                currentIndex = 0;
+            }
+            
+            // Clear input
+            textInput.value = '';
+            
+            // Update UI
+            updateEntriesList();
+            updateQRCode();
+            updateNavigation();
+            saveToLocalStorage();
+            
+            // Show success message
+            showToast('Text entry added successfully!', 'success');
+        }
+        
+        // Add captured text as entry
+        function addCapturedText() {
+            if (capturedText.trim() === '') {
+                showToast('No captured text to add. Please capture text first.', 'warning');
+                return;
+            }
+            
+            textEntries.push(capturedText);
+            
+            // If this is the first entry, set it as current
+            if (textEntries.length === 1) {
+                currentIndex = 0;
+            }
+            
+            // Update UI
+            updateEntriesList();
+            updateQRCode();
+            updateNavigation();
+            saveToLocalStorage();
+            
+            // Also populate the text input with the captured text
+            textInput.value = capturedText;
+            
+            // Show success message
+            showToast('Captured text added to slide show!', 'success');
+        }
+        
+        // Clear all text entries
+        function clearAllEntries() {
+            if (textEntries.length === 0) return;
+            
+            // Use a custom confirm dialog for better mobile experience
+            if (confirm('Are you sure you want to clear all text entries?')) {
+                textEntries = [];
+                currentIndex = -1;
+                updateEntriesList();
+                updateQRCode();
+                updateNavigation();
+                saveToLocalStorage();
+                
+                showToast('All entries cleared.', 'info');
+            }
+        }
+        
+        // Navigate to previous entry
+        function goToPrevious() {
+            if (textEntries.length === 0) return;
+            
+            currentIndex--;
+            if (currentIndex < 0) {
+                currentIndex = textEntries.length - 1; // Loop to the end
+            }
+            
+            updateQRCode();
+            updateNavigation();
+        }
+        
+        // Navigate to next entry
+        function goToNext() {
+            if (textEntries.length === 0) return;
+            
+            currentIndex++;
+            if (currentIndex >= textEntries.length) {
+                currentIndex = 0; // Loop to the beginning
+            }
+            
+            updateQRCode();
+            updateNavigation();
+        }
+        
+        // Update QR code display
+        function updateQRCode() {
+            // Clear previous QR code
+            qrcodeElement.innerHTML = '';
+            
+            if (textEntries.length === 0 || currentIndex === -1) {
+                currentTextDisplay.textContent = 'No text entries available. Add some text to generate QR codes.';
+                return;
+            }
+            
+            const currentText = textEntries[currentIndex];
+            
+            // Generate new QR code with appropriate size for mobile
+            const qrSize = window.innerWidth < 768 ? 180 : 200;
             
             try {
-                const qrSize = Math.min(250, window.innerWidth * 0.6);
-                new QRCode(el.qrcode, {
-                    text: text,
+                new QRCode(qrcodeElement, {
+                    text: currentText,
                     width: qrSize,
                     height: qrSize,
                     colorDark: "#000000",
                     colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.Q
+                    correctLevel: QRCode.CorrectLevel.H
                 });
-            } catch (e) {
-                el.qrcode.innerHTML = '<div style="color:white;text-align:center;">QR Error</div>';
+            } catch (error) {
+                console.error('QR Code generation error:', error);
+                qrcodeElement.innerHTML = '<p style="color: white; text-align: center;">QR Code generation failed</p>';
             }
+            
+            // Update text display
+            currentTextDisplay.textContent = currentText;
         }
         
+        // Update navigation controls
         function updateNavigation() {
-            const total = appState.textEntries.length;
-            el.currentSlide.textContent = total > 0 ? (appState.currentIndex + 1) : '0';
-            el.totalSlides.textContent = total.toString();
-            el.prevBtn.disabled = total === 0;
-            el.nextBtn.disabled = total === 0;
+            if (textEntries.length === 0) {
+                currentSlideElement.textContent = '0';
+                totalSlidesElement.textContent = '0';
+                prevBtn.disabled = true;
+                nextBtn.disabled = true;
+                prevBtn.style.opacity = '0.5';
+                nextBtn.style.opacity = '0.5';
+                return;
+            }
+            
+            currentSlideElement.textContent = (currentIndex + 1).toString();
+            totalSlidesElement.textContent = textEntries.length.toString();
+            
+            prevBtn.disabled = false;
+            nextBtn.disabled = false;
+            prevBtn.style.opacity = '1';
+            nextBtn.style.opacity = '1';
         }
         
-        // Camera Functions
+        // Update entries list
+        function updateEntriesList() {
+            entriesContainer.innerHTML = '';
+            
+            if (textEntries.length === 0) {
+                const emptyMessage = document.createElement('div');
+                emptyMessage.className = 'empty-message';
+                emptyMessage.textContent = 'No entries yet. Add text or capture from camera.';
+                entriesContainer.appendChild(emptyMessage);
+                return;
+            }
+            
+            textEntries.forEach((entry, index) => {
+                const entryElement = document.createElement('div');
+                entryElement.className = `entry-item ${index === currentIndex ? 'active' : ''}`;
+                
+                // Create entry number
+                const entryNumber = document.createElement('div');
+                entryNumber.className = 'entry-number';
+                entryNumber.textContent = (index + 1).toString();
+                
+                // Create entry text
+                const entryText = document.createElement('div');
+                entryText.className = 'entry-text';
+                entryText.textContent = entry.length > 60 ? entry.substring(0, 60) + '...' : entry;
+                
+                // Add click event to select this entry
+                entryElement.addEventListener('click', () => {
+                    currentIndex = index;
+                    updateQRCode();
+                    updateNavigation();
+                    updateEntriesList();
+                });
+                
+                // Add touch feedback
+                entryElement.addEventListener('touchstart', () => {
+                    entryElement.style.backgroundColor = 'rgba(253, 187, 45, 0.4)';
+                });
+                
+                entryElement.addEventListener('touchend', () => {
+                    setTimeout(() => {
+                        entryElement.style.backgroundColor = '';
+                    }, 200);
+                });
+                
+                entryElement.appendChild(entryNumber);
+                entryElement.appendChild(entryText);
+                entriesContainer.appendChild(entryElement);
+            });
+        }
+        
+        // Camera functions with better mobile support
         async function startCamera() {
-            console.log('Starting camera...');
+            // Prevent multiple requests
+            if (cameraPermissionRequested) return;
             
-            // Reset any existing stream
-            stopCamera();
-            
-            // Update UI
-            el.startCameraBtn.disabled = true;
-            el.captureBtn.disabled = true;
-            el.stopCameraBtn.disabled = true;
+            cameraPermissionRequested = true;
             
             try {
-                // Try multiple approaches for Android Chrome
-                let stream = null;
+                // Update status
+                cameraStatusText.textContent = 'Requesting camera access...';
                 
-                // Approach 1: Standard with fallbacks
-                try {
-                    stream = await navigator.mediaDevices.getUserMedia({
-                        video: {
-                            facingMode: 'environment',
-                            width: { ideal: 1280 },
-                            height: { ideal: 720 }
-                        },
-                        audio: false
-                    });
-                } catch (e1) {
-                    console.log('Standard approach failed:', e1);
-                    
-                    // Approach 2: Minimal constraints
-                    try {
-                        stream = await navigator.mediaDevices.getUserMedia({
-                            video: true,
-                            audio: false
-                        });
-                    } catch (e2) {
-                        console.log('Minimal approach failed:', e2);
-                        throw e2;
-                    }
-                }
+                // Try different camera constraints for better mobile compatibility
+                const constraints = {
+                    video: {
+                        facingMode: { ideal: 'environment' }, // Prefer rear camera
+                        width: { min: 640, ideal: 1280, max: 1920 },
+                        height: { min: 480, ideal: 720, max: 1080 },
+                        frameRate: { ideal: 30 }
+                    },
+                    audio: false
+                };
                 
-                // SUCCESS
-                appState.cameraStream = stream;
-                el.cameraPreview.srcObject = stream;
+                // Request camera access
+                cameraStream = await navigator.mediaDevices.getUserMedia(constraints);
                 
-                // Show camera
-                el.cameraPreview.style.display = 'block';
-                el.cameraPlaceholder.style.display = 'none';
+                // Display camera stream in video element
+                cameraPreview.srcObject = cameraStream;
+                
+                // Wait for video to be ready
+                await new Promise(resolve => {
+                    cameraPreview.onloadedmetadata = () => {
+                        resolve();
+                    };
+                });
+                
+                // Play the video
+                await cameraPreview.play();
                 
                 // Update UI
-                el.startCameraBtn.disabled = true;
-                el.captureBtn.disabled = false;
-                el.stopCameraBtn.disabled = false;
+                startCameraBtn.disabled = true;
+                captureBtn.disabled = false;
+                stopCameraBtn.disabled = false;
+                
+                cameraStatusIndicator.classList.add('active');
+                cameraStatusText.textContent = 'Camera active - Position text in dashed area';
                 
                 showToast('Camera started successfully!', 'success');
                 
             } catch (error) {
-                console.error('Camera start error:', error);
+                console.error('Error accessing camera:', error);
                 
-                let errorMsg = 'Could not start camera: ';
-                if (error.name === 'NotAllowedError') {
-                    errorMsg = 'Camera permission denied. Please follow the steps above to fix.';
-                    // Show permission fix section again
-                    el.permissionFixSection.classList.remove('hidden');
-                    el.cameraSection.classList.add('hidden');
-                } else if (error.name === 'NotFoundError') {
-                    errorMsg = 'No camera found on this device.';
-                } else {
-                    errorMsg += error.message;
+                // Try again with less restrictive constraints
+                try {
+                    cameraStatusText.textContent = 'Trying alternative camera settings...';
+                    
+                    const fallbackConstraints = {
+                        video: true, // Most permissive
+                        audio: false
+                    };
+                    
+                    cameraStream = await navigator.mediaDevices.getUserMedia(fallbackConstraints);
+                    cameraPreview.srcObject = cameraStream;
+                    
+                    await cameraPreview.play();
+                    
+                    startCameraBtn.disabled = true;
+                    captureBtn.disabled = false;
+                    stopCameraBtn.disabled = false;
+                    
+                    cameraStatusIndicator.classList.add('active');
+                    cameraStatusText.textContent = 'Camera active - Position text in dashed area';
+                    
+                    showToast('Camera started with basic settings.', 'success');
+                    
+                } catch (fallbackError) {
+                    console.error('Fallback camera error:', fallbackError);
+                    
+                    // Show detailed error message
+                    let errorMessage = 'Could not access camera. ';
+                    
+                    if (error.name === 'NotAllowedError') {
+                        errorMessage += 'Please allow camera access in your browser settings.';
+                    } else if (error.name === 'NotFoundError') {
+                        errorMessage += 'No camera found on this device.';
+                    } else if (error.name === 'NotReadableError') {
+                        errorMessage += 'Camera is already in use by another application.';
+                    } else {
+                        errorMessage += 'Please check your camera permissions.';
+                    }
+                    
+                    cameraStatusText.textContent = errorMessage;
+                    showToast(errorMessage, 'error');
+                    
+                    // Reset permission flag
+                    cameraPermissionRequested = false;
                 }
-                
-                showToast(errorMsg, 'error');
-                el.startCameraBtn.disabled = false;
             }
         }
         
         function stopCamera() {
-            if (appState.cameraStream) {
-                appState.cameraStream.getTracks().forEach(track => track.stop());
-                appState.cameraStream = null;
+            if (cameraStream) {
+                // Stop all camera tracks
+                cameraStream.getTracks().forEach(track => {
+                    track.stop();
+                });
+                cameraStream = null;
+                
+                // Clear video element
+                cameraPreview.srcObject = null;
+                
+                // Update UI
+                startCameraBtn.disabled = false;
+                captureBtn.disabled = true;
+                stopCameraBtn.disabled = true;
+                useCapturedTextBtn.disabled = true;
+                
+                cameraStatusIndicator.classList.remove('active');
+                cameraStatusText.textContent = 'Camera stopped. Click "Start Camera" to begin.';
+                
+                // Reset permission flag
+                cameraPermissionRequested = false;
+                
+                showToast('Camera stopped.', 'info');
             }
-            
-            el.cameraPreview.style.display = 'none';
-            el.cameraPlaceholder.style.display = 'flex';
-            el.cameraPreview.srcObject = null;
-            
-            el.startCameraBtn.disabled = false;
-            el.captureBtn.disabled = true;
-            el.stopCameraBtn.disabled = true;
-            
-            showToast('Camera stopped', 'info');
         }
         
         async function captureAndExtractText() {
-            if (!appState.cameraStream || appState.isProcessing) return;
-            
-            appState.isProcessing = true;
-            el.captureBtn.disabled = true;
+            if (!cameraStream || isProcessingOCR) return;
             
             try {
-                el.ocrResultContainer.innerHTML = `
+                isProcessingOCR = true;
+                
+                // Show processing indicator
+                ocrResultContainer.innerHTML = `
                     <div class="ocr-processing">
                         <div class="spinner"></div>
-                        <div>Extracting text from image...</div>
+                        <div>Processing image and extracting text...</div>
                     </div>
                 `;
                 
-                // Capture frame
-                const canvas = document.createElement('canvas');
-                const ctx = canvas.getContext('2d');
-                canvas.width = el.cameraPreview.videoWidth;
-                canvas.height = el.cameraPreview.videoHeight;
-                ctx.drawImage(el.cameraPreview, 0, 0);
+                // Disable capture button while processing
+                captureBtn.disabled = true;
                 
-                // OCR with Tesseract
+                // Create a canvas to capture the video frame
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                
+                // Set canvas dimensions to match video
+                canvas.width = cameraPreview.videoWidth;
+                canvas.height = cameraPreview.videoHeight;
+                
+                // Draw the current video frame to canvas
+                context.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+                
+                // Define capture area (center 80% width, 30% height - adjusted for mobile)
+                const captureX = canvas.width * 0.10; // 10% from left
+                const captureY = canvas.height * 0.35; // 35% from top
+                const captureWidth = canvas.width * 0.80; // 80% width
+                const captureHeight = canvas.height * 0.30; // 30% height
+                
+                // Create a new canvas for the captured area
+                const capturedCanvas = document.createElement('canvas');
+                const capturedContext = capturedCanvas.getContext('2d');
+                
+                capturedCanvas.width = captureWidth;
+                capturedCanvas.height = captureHeight;
+                
+                // Extract the capture area
+                capturedContext.drawImage(
+                    canvas, 
+                    captureX, captureY, captureWidth, captureHeight,
+                    0, 0, captureWidth, captureHeight
+                );
+                
+                // Convert canvas to image data URL
+                const imageDataUrl = capturedCanvas.toDataURL('image/jpeg', 0.8);
+                
+                // Use Tesseract.js for OCR
                 const worker = await Tesseract.createWorker('eng');
-                const result = await worker.recognize(canvas);
+                
+                // Recognize text from the image
+                const { data: { text } } = await worker.recognize(imageDataUrl);
+                
+                // Terminate the worker
                 await worker.terminate();
                 
-                appState.capturedText = result.data.text.trim();
+                // Store the captured text
+                capturedText = text.trim();
                 
-                if (appState.capturedText) {
-                    el.ocrResultContainer.innerHTML = `
+                // Display the captured text
+                if (capturedText) {
+                    ocrResultContainer.innerHTML = `
                         <div class="ocr-text">
-                            <strong>Extracted Text:</strong><br>
-                            <div style="margin-top: 8px;">${appState.capturedText.replace(/\n/g, '<br>')}</div>
+                            <strong>Extracted Text:</strong><br><br>
+                            ${capturedText.replace(/\n/g, '<br>')}
                         </div>
                     `;
-                    el.useCapturedTextBtn.classList.remove('hidden');
+                    
+                    // Enable the "Use Captured Text" button
+                    useCapturedTextBtn.disabled = false;
+                    
                     showToast('Text captured successfully!', 'success');
                 } else {
-                    el.ocrResultContainer.innerHTML = `
+                    ocrResultContainer.innerHTML = `
                         <div class="empty-message">
-                            No text found. Try with clearer text.
+                            No text could be extracted. Try capturing clearer text with better lighting.
                         </div>
                     `;
-                    showToast('No text found in image', 'warning');
+                    useCapturedTextBtn.disabled = true;
+                    showToast('No text found in image. Try again.', 'warning');
                 }
                 
             } catch (error) {
-                console.error('OCR Error:', error);
-                el.ocrResultContainer.innerHTML = `
+                console.error('Error during OCR:', error);
+                ocrResultContainer.innerHTML = `
                     <div class="empty-message">
-                        Error extracting text
+                        Error extracting text. Please try again.
                     </div>
                 `;
-                showToast('Error extracting text', 'error');
+                showToast('Error extracting text. Please try again.', 'error');
             } finally {
-                appState.isProcessing = false;
-                el.captureBtn.disabled = false;
+                isProcessingOCR = false;
+                captureBtn.disabled = false;
             }
         }
         
-        function addCapturedText() {
-            if (!appState.capturedText.trim()) {
-                showToast('No text to add', 'warning');
-                return;
-            }
-            
-            appState.textEntries.push(appState.capturedText);
-            appState.currentIndex = appState.textEntries.length - 1;
-            el.textInput.value = appState.capturedText;
-            saveEntries();
-            updateDisplay();
-            showToast('Text added to slide show!', 'success');
-        }
-        
-        function addTextEntry() {
-            const text = el.textInput.value.trim();
-            if (!text) {
-                showToast('Please enter text', 'warning');
-                return;
-            }
-            
-            appState.textEntries.push(text);
-            appState.currentIndex = appState.textEntries.length - 1;
-            el.textInput.value = '';
-            saveEntries();
-            updateDisplay();
-            showToast('Text added!', 'success');
-        }
-        
-        function clearAllEntries() {
-            if (!appState.textEntries.length) return;
-            
-            if (confirm('Clear all text entries?')) {
-                appState.textEntries = [];
-                appState.currentIndex = -1;
-                saveEntries();
-                updateDisplay();
-                showToast('All entries cleared', 'info');
-            }
-        }
-        
-        // Setup Event Listeners
-        function setupEventListeners() {
-            // Permission fix buttons
-            el.checkPermissionBtn.addEventListener('click', checkInitialPermissions);
-            el.openSettingsHint.addEventListener('click', () => {
-                el.settingsModal.classList.remove('hidden');
-            });
-            el.tryIncognitoBtn.addEventListener('click', () => {
-                showToast('Open this page in Chrome Incognito mode', 'info');
-            });
-            
-            // Camera controls
-            el.startCameraBtn.addEventListener('click', startCamera);
-            el.captureBtn.addEventListener('click', captureAndExtractText);
-            el.stopCameraBtn.addEventListener('click', stopCamera);
-            el.useCapturedTextBtn.addEventListener('click', addCapturedText);
-            
-            // Text management
-            el.addBtn.addEventListener('click', addTextEntry);
-            el.clearBtn.addEventListener('click', clearAllEntries);
-            el.prevBtn.addEventListener('click', () => {
-                if (appState.textEntries.length === 0) return;
-                appState.currentIndex = (appState.currentIndex - 1 + appState.textEntries.length) % appState.textEntries.length;
-                updateDisplay();
-            });
-            el.nextBtn.addEventListener('click', () => {
-                if (appState.textEntries.length === 0) return;
-                appState.currentIndex = (appState.currentIndex + 1) % appState.textEntries.length;
-                updateDisplay();
-            });
-            
-            // Modal
-            el.closeModal.addEventListener('click', () => {
-                el.settingsModal.classList.add('hidden');
-            });
-            
-            // Enter key for text input
-            el.textInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                    e.preventDefault();
-                    addTextEntry();
-                }
-            });
-            
-            // Swipe navigation for mobile
-            let touchStartX = 0;
-            document.addEventListener('touchstart', (e) => {
-                touchStartX = e.touches[0].clientX;
-            });
-            
-            document.addEventListener('touchend', (e) => {
-                if (!touchStartX) return;
-                
-                const touchEndX = e.changedTouches[0].clientX;
-                const diff = touchStartX - touchEndX;
-                
-                if (Math.abs(diff) > 50) {
-                    if (diff > 0) {
-                        el.nextBtn.click();
-                    } else {
-                        el.prevBtn.click();
-                    }
-                }
-                
-                touchStartX = 0;
-            });
-        }
-        
-        // Toast Notification
+        // Show toast notification
         function showToast(message, type = 'info') {
-            const colors = {
-                success: '#4CAF50',
-                error: '#f44336',
-                warning: '#FF9800',
-                info: '#2196F3'
-            };
+            // Remove existing toast if any
+            const existingToast = document.querySelector('.toast');
+            if (existingToast) {
+                existingToast.remove();
+            }
             
+            // Create toast element
             const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
             toast.textContent = message;
+            
+            // Add styles
             toast.style.cssText = `
                 position: fixed;
                 bottom: 20px;
                 left: 50%;
                 transform: translateX(-50%);
-                background: ${colors[type]};
+                background-color: ${type === 'error' ? '#f44336' : type === 'success' ? '#4CAF50' : '#2196F3'};
                 color: white;
-                padding: 12px 24px;
+                padding: 12px 20px;
                 border-radius: 8px;
                 z-index: 1000;
                 font-weight: 600;
                 box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-                animation: toastIn 0.3s ease;
                 max-width: 90%;
                 text-align: center;
-                white-space: pre-wrap;
+                animation: fadeIn 0.3s ease;
             `;
             
+            // Add animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeIn {
+                    from { opacity: 0; bottom: 0; }
+                    to { opacity: 1; bottom: 20px; }
+                }
+            `;
+            document.head.appendChild(style);
+            
+            // Add to page
             document.body.appendChild(toast);
             
+            // Remove after 3 seconds
             setTimeout(() => {
-                toast.style.animation = 'toastOut 0.3s ease';
-                setTimeout(() => toast.remove(), 300);
-            }, 4000);
-            
-            // Add animation styles if not present
-            if (!document.querySelector('#toast-animations')) {
-                const style = document.createElement('style');
-                style.id = 'toast-animations';
-                style.textContent = `
-                    @keyframes toastIn {
-                        from { opacity: 0; transform: translateX(-50%) translateY(20px); }
-                        to { opacity: 1; transform: translateX(-50%) translateY(0); }
+                toast.style.animation = 'fadeOut 0.3s ease';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
                     }
-                    @keyframes toastOut {
-                        from { opacity: 1; transform: translateX(-50%) translateY(0); }
-                        to { opacity: 0; transform: translateX(-50%) translateY(20px); }
-                    }
-                `;
-                document.head.appendChild(style);
-            }
+                }, 300);
+            }, 3000);
         }
         
-        // Start the application
-        document.addEventListener('DOMContentLoaded', init);
+        // Event listeners with touch support
+        addBtn.addEventListener('click', addTextEntry);
+        addBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            addTextEntry();
+        });
+        
+        clearBtn.addEventListener('click', clearAllEntries);
+        clearBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            clearAllEntries();
+        });
+        
+        prevBtn.addEventListener('click', goToPrevious);
+        prevBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            goToPrevious();
+        });
+        
+        nextBtn.addEventListener('click', goToNext);
+        nextBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            goToNext();
+        });
+        
+        // Camera event listeners with touch support
+        startCameraBtn.addEventListener('click', startCamera);
+        startCameraBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            startCamera();
+        });
+        
+        captureBtn.addEventListener('click', captureAndExtractText);
+        captureBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            captureAndExtractText();
+        });
+        
+        stopCameraBtn.addEventListener('click', stopCamera);
+        stopCameraBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            stopCamera();
+        });
+        
+        useCapturedTextBtn.addEventListener('click', addCapturedText);
+        useCapturedTextBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault();
+            addCapturedText();
+        });
+        
+        // Allow Enter key to add text (with Shift+Enter for new line)
+        textInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                addTextEntry();
+            }
+        });
+        
+        // Handle orientation changes
+        window.addEventListener('orientationchange', () => {
+            // Small delay to allow orientation to complete
+            setTimeout(() => {
+                if (cameraStream) {
+                    // Restart camera on orientation change for better mobile experience
+                    stopCamera();
+                    setTimeout(startCamera, 500);
+                }
+                updateQRCode();
+            }, 300);
+        });
+        
+        // Handle resize
+        window.addEventListener('resize', () => {
+            updateQRCode();
+        });
+        
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', initializeSampleData);
+        
+        // Clean up camera on page unload
+        window.addEventListener('beforeunload', () => {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop());
+            }
+        });
+        
+        // Swipe support for mobile navigation
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+        
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+        
+        function handleSwipe() {
+            const swipeThreshold = 50; // Minimum swipe distance in pixels
+            const swipeDistance = touchEndX - touchStartX;
+            
+            if (Math.abs(swipeDistance) > swipeThreshold) {
+                if (swipeDistance > 0) {
+                    // Swipe right - previous
+                    goToPrevious();
+                } else {
+                    // Swipe left - next
+                    goToNext();
+                }
+            }
+        }
     </script>
 </body>
 </html>
