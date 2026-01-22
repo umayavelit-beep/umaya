@@ -5,381 +5,684 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Employee On-Boarding System</title>
     <style>
+        /* Reset & Base */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica', Arial, sans-serif;
         }
-
+        
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             min-height: 100vh;
             padding: 20px;
         }
-
-        .container {
+        
+        /* Main Container */
+        .app-container {
             max-width: 1400px;
             margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
         }
-
-        .header {
-            text-align: center;
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Header */
+        .app-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
             color: white;
-            margin-bottom: 30px;
-            padding: 20px;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 15px;
-            backdrop-filter: blur(10px);
+            padding: 35px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
         }
-
-        .header h1 {
-            font-size: 2.5rem;
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        }
+        
+        .app-title {
+            font-size: 2.8rem;
+            font-weight: 700;
             margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
         }
-
-        .header p {
-            font-size: 1.1rem;
+        
+        .app-subtitle {
+            font-size: 1.2rem;
             opacity: 0.9;
+            margin-bottom: 25px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
         }
-
+        
+        /* Status Bar */
+        .status-bar {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e74c3c;
+            position: relative;
+        }
+        
+        .status-indicator.connected {
+            background: #2ecc71;
+            box-shadow: 0 0 0 5px rgba(46, 204, 113, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        /* Progress Section */
+        .progress-section {
+            background: #f8f9fa;
+            padding: 25px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 5px;
+        }
+        
+        /* Tabs Navigation */
         .tabs-container {
             background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
-        }
-
-        .tabs {
+            border-bottom: 2px solid #f1f3f4;
+            padding: 0 20px;
             display: flex;
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
             overflow-x: auto;
-            padding: 0 10px;
+            scrollbar-width: none;
         }
-
+        
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
         .tab {
-            padding: 15px 25px;
+            padding: 20px 25px;
             cursor: pointer;
             font-weight: 600;
-            color: #555;
+            color: #5f6368;
             white-space: nowrap;
             border-bottom: 3px solid transparent;
             transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
         }
-
+        
         .tab:hover {
-            background: rgba(255, 255, 255, 0.3);
-            color: #667eea;
+            background: #f8f9fa;
+            color: #3498db;
         }
-
+        
         .tab.active {
-            background: white;
-            color: #667eea;
-            border-bottom: 3px solid #667eea;
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: linear-gradient(to bottom, #f8f9fa, white);
         }
-
+        
+        .tab-number {
+            width: 28px;
+            height: 28px;
+            background: #e8eaed;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active .tab-number {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .tab-icon {
+            font-size: 1.3rem;
+        }
+        
+        /* Message Container */
+        .message-container {
+            padding: 0 40px;
+            margin-top: 20px;
+        }
+        
+        .message {
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideDown 0.4s ease;
+            font-weight: 500;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 1px solid #b1dfbb;
+            display: block;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+            display: block;
+        }
+        
+        .message.info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+            border: 1px solid #abdde5;
+            display: block;
+        }
+        
+        /* Form Container */
         .form-container {
-            padding: 30px;
-            max-height: 70vh;
+            padding: 40px;
+            min-height: 550px;
+            max-height: 600px;
             overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #3498db #f1f3f4;
         }
-
+        
+        .form-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .form-container::-webkit-scrollbar-track {
+            background: #f1f3f4;
+            border-radius: 4px;
+        }
+        
+        .form-container::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 4px;
+        }
+        
         .form-section {
             display: none;
-            animation: fadeIn 0.5s ease;
+            animation: fadeInUp 0.6s ease;
         }
-
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
         .form-section.active {
             display: block;
         }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(10px); }
-            to { opacity: 1; transform: translateY(0); }
+        
+        .section-header {
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
         }
-
+        
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 1.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-header p {
+            color: #7f8c8d;
+            font-size: 1.05rem;
+        }
+        
+        /* Form Grid */
         .form-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-            gap: 20px;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
         }
-
+        
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 10px;
         }
-
+        
         label {
             display: block;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
             font-weight: 600;
-            color: #444;
+            color: #34495e;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
         }
-
+        
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
         input, select, textarea {
             width: 100%;
-            padding: 12px;
-            border: 2px solid #e1e5e9;
-            border-radius: 8px;
-            font-size: 14px;
-            transition: border-color 0.3s ease;
+            padding: 16px;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            color: #2d3436;
         }
-
+        
+        input:hover, select:hover, textarea:hover {
+            border-color: #b2bec3;
+        }
+        
         input:focus, select:focus, textarea:focus {
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+            transform: translateY(-2px);
         }
-
-        .form-actions {
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 45px;
+        }
+        
+        /* Buttons */
+        .actions-container {
+            padding: 25px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
             display: flex;
             justify-content: space-between;
-            margin-top: 30px;
-            padding-top: 20px;
-            border-top: 1px solid #eee;
+            align-items: center;
         }
-
+        
         .btn {
-            padding: 12px 30px;
+            padding: 16px 35px;
             border: none;
-            border-radius: 8px;
+            border-radius: 12px;
             font-size: 16px;
             font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
         }
-
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
         .btn-prev {
-            background: #f8f9fa;
-            color: #495057;
-            border: 2px solid #e9ecef;
+            background: #6c757d;
+            color: white;
         }
-
-        .btn-prev:hover {
-            background: #e9ecef;
+        
+        .btn-prev:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateX(-5px);
+            box-shadow: 0 10px 25px rgba(108, 117, 125, 0.3);
         }
-
+        
         .btn-next {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
             color: white;
         }
-
-        .btn-next:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        
+        .btn-next:hover:not(:disabled) {
+            transform: translateX(5px);
+            box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
         }
-
+        
         .btn-submit {
-            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
             color: white;
+            padding: 16px 45px;
         }
-
-        .btn-submit:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(76, 175, 80, 0.3);
+        
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(46, 204, 113, 0.4);
         }
-
-        .progress-bar {
-            height: 6px;
-            background: #e9ecef;
-            border-radius: 3px;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.5s ease;
-        }
-
-        .tab-content-header {
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #f0f0f0;
-        }
-
-        .tab-content-header h3 {
-            color: #333;
-            font-size: 1.4rem;
-        }
-
-        .status-message {
-            padding: 15px;
-            border-radius: 8px;
-            margin-top: 20px;
-            display: none;
-        }
-
-        .status-message.success {
-            background: #d4edda;
-            color: #155724;
-            border: 1px solid #c3e6cb;
-            display: block;
-        }
-
-        .status-message.error {
-            background: #f8d7da;
-            color: #721c24;
-            border: 1px solid #f5c6cb;
-            display: block;
-        }
-
-        .status-message.info {
-            background: #d1ecf1;
-            color: #0c5460;
-            border: 1px solid #bee5eb;
-            display: block;
-        }
-
-        .required::after {
-            content: " *";
-            color: #ff4757;
-        }
-
-        .test-btn {
-            background: #ff9800;
+        
+        .btn-test {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
             color: white;
-            padding: 8px 16px;
-            border-radius: 4px;
-            border: none;
-            cursor: pointer;
-            margin-top: 10px;
-            font-size: 14px;
+            padding: 14px 28px;
+            font-size: 15px;
         }
-
-        .connection-status {
-            margin-top: 10px;
-            font-size: 0.9rem;
-            padding: 5px 10px;
-            border-radius: 4px;
+        
+        .btn-test:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.3);
+        }
+        
+        /* Loading Animation */
+        .loader {
             display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
         }
-
-        .connected {
-            background: rgba(76, 175, 80, 0.2);
-            color: #2e7d32;
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
-
-        .disconnected {
-            background: rgba(244, 67, 54, 0.2);
-            color: #c62828;
-        }
-
-        @media (max-width: 768px) {
+        
+        /* Responsive Design */
+        @media (max-width: 1200px) {
             .form-grid {
-                grid-template-columns: 1fr;
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .app-title {
+                font-size: 2.2rem;
             }
             
-            .header h1 {
-                font-size: 2rem;
+            .app-header {
+                padding: 25px 30px;
             }
             
-            .tabs {
-                flex-wrap: wrap;
+            .form-container {
+                padding: 30px;
             }
             
-            .tab {
-                flex: 1;
-                min-width: 120px;
-                text-align: center;
+            .form-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
             }
             
-            .form-actions {
+            .app-container {
+                border-radius: 15px;
+            }
+            
+            .app-title {
+                font-size: 1.9rem;
                 flex-direction: column;
                 gap: 10px;
             }
             
-            .form-actions > div {
-                display: flex;
-                gap: 10px;
+            .app-header, .form-container, .actions-container {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tabs-container {
+                flex-wrap: wrap;
                 justify-content: center;
             }
+            
+            .tab {
+                flex: 1;
+                min-width: 160px;
+                padding: 15px;
+                justify-content: center;
+            }
+            
+            .tab-icon {
+                display: none;
+            }
+            
+            .actions-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .btn-prev, .btn-next, .btn-submit {
+                padding: 18px;
+            }
+        }
+        
+        /* Form Validation */
+        input:invalid, select:invalid, textarea:invalid {
+            border-color: #e74c3c;
+        }
+        
+        input:valid, select:valid, textarea:valid {
+            border-color: #2ecc71;
+        }
+        
+        /* Tooltip */
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .form-group:hover::after {
+            opacity: 1;
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <h1>🏢 Employee On-Boarding System</h1>
-            <p>Complete all sections to submit new employee information</p>
-            <div>
-                <button class="test-btn" onclick="testConnection()">Test Connection</button>
-                <span id="connectionStatus" class="connection-status disconnected">Not Connected</span>
+    <div class="app-container">
+        <!-- Header -->
+        <div class="app-header">
+            <div class="app-title">
+                <span>🏢</span>
+                <span>Employee On-Boarding System</span>
             </div>
-            <p style="font-size: 0.9rem; margin-top: 10px; color: #ffeb3b;">
-                If connection fails, try:<br>
-                1. Run local server: <code>python -m http.server 8000</code><br>
-                2. Open: <code>http://localhost:8000</code>
-            </p>
+            <p class="app-subtitle">Complete all 11 sections to submit new employee information to Google Sheets</p>
+            <div class="status-bar">
+                <span id="statusText">Initializing connection...</span>
+                <div class="status-indicator" id="statusIndicator"></div>
+            </div>
         </div>
-
-        <div class="tabs-container">
-            <div class="tabs" id="tabHeaders">
-                <!-- Tabs will be generated by JavaScript -->
+        
+        <!-- Progress -->
+        <div class="progress-section">
+            <div class="progress-info">
+                <span id="progressText">Step 1 of 11</span>
+                <span id="completionPercent">0% Complete</span>
             </div>
-            
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
             </div>
-
-            <div class="form-container" id="formContainer">
-                <!-- Form sections will be generated by JavaScript -->
-            </div>
-
-            <div class="form-actions">
-                <button class="btn btn-prev" id="prevBtn" style="display: none;">
-                    ← Previous
+        </div>
+        
+        <!-- Tabs -->
+        <div class="tabs-container" id="tabsContainer">
+            <!-- Tabs will be generated here -->
+        </div>
+        
+        <!-- Messages -->
+        <div class="message-container">
+            <div class="message" id="message"></div>
+        </div>
+        
+        <!-- Forms -->
+        <div class="form-container" id="formContainer">
+            <!-- Forms will be generated here -->
+        </div>
+        
+        <!-- Actions -->
+        <div class="actions-container">
+            <button class="btn btn-prev" id="prevBtn" onclick="prevSection()" disabled>
+                ← Previous Section
+            </button>
+            <div style="display: flex; gap: 15px; align-items: center;">
+                <button class="btn btn-test" onclick="testConnection()" id="testBtn">
+                    Test Connection
                 </button>
-                <div>
-                    <button class="btn btn-next" id="nextBtn">Next →</button>
-                    <button class="btn btn-submit" id="submitBtn" style="display: none;">Submit All Data</button>
-                </div>
+                <button class="btn btn-next" id="nextBtn" onclick="nextSection()">
+                    Next Section →
+                </button>
+                <button class="btn btn-submit" id="submitBtn" onclick="submitAllData()" style="display: none;">
+                    ✅ Submit All Data
+                </button>
             </div>
         </div>
-
-        <div id="statusMessage" class="status-message"></div>
     </div>
 
     <script>
-        const FORM_CONFIG = {
-            scriptUrl: 'https://script.google.com/macros/s/AKfycbx6mHOQUHTyDPkckOgSu3ru6QaS7qe813Mhmr9wCn41mKSLPtBtxOcw3OEkD_0sCmpgfg/exec',
+        // ========== CONFIGURATION ==========
+        const CONFIG = {
+            // YOUR ACTUAL WEB APP URL
+            scriptUrl: 'https://script.google.com/macros/s/AKfycbxQWm2FC4w4AAlZaK0hUyoVxKTWGZfUUuXVQhPo-Bp2xB6IC7qRtl3HFYkpSXc6cV-2_w/exec',
             
+            // Your IDs
+            scriptId: '1POJLOU8-_PvzFEJ6J2N9yAGdkgTpvlqjOcZB_-5l938XJLhdX7YUfYw3',
+            deploymentId: 'AKfycbxQWm2FC4w4AAlZaK0hUyoVxKTWGZfUUuXVQhPo-Bp2xB6IC7qRtl3HFYkpSXc6cV-2_w',
+            
+            // All 11 sheets with complete fields from your Excel
             sheets: [
                 {
                     name: "Employee details",
-                    tabName: "Basic Info",
+                    title: "Basic Information",
+                    icon: "👤",
+                    description: "Employee's personal and basic details",
                     fields: [
-                        { id: "Associate Code", label: "Associate Code", type: "text", required: true },
+                        { id: "Associate Code", label: "Associate Code", type: "text", required: true, placeholder: "EMP001" },
                         { id: "Titile", label: "Title", type: "select", options: ["Mr.", "Mrs.", "Ms.", "Dr.", "Prof."], required: true },
                         { id: "Gendar", label: "Gender", type: "select", options: ["Male", "Female", "Other"] },
-                        { id: "First Name", label: "First Name", type: "text", required: true },
-                        { id: "Middle Name", label: "Middle Name", type: "text" },
-                        { id: "Surname", label: "Surname", type: "text", required: true },
-                        { id: "Known As", label: "Known As", type: "text" },
-                        { id: "Official Name", label: "Official Name", type: "text" },
+                        { id: "First Name", label: "First Name", type: "text", required: true, placeholder: "John" },
+                        { id: "Middle Name", label: "Middle Name", type: "text", placeholder: "Middle" },
+                        { id: "Surname", label: "Surname", type: "text", required: true, placeholder: "Doe" },
+                        { id: "Known As", label: "Known As", type: "text", placeholder: "Nickname" },
+                        { id: "Official Name", label: "Official Name", type: "text", placeholder: "Full official name" },
                         { id: "Date of Birth", label: "Date of Birth", type: "date" },
-                        { id: "Country of Birth", label: "Country of Birth", type: "text" },
-                        { id: "State of Birth", label: "State of Birth", type: "text" },
-                        { id: "Place Of Birth", label: "Place of Birth", type: "text" },
-                        { id: "Nationality", label: "Nationality", type: "text" },
+                        { id: "Country of Birth", label: "Country of Birth", type: "text", defaultValue: "India" },
+                        { id: "State of Birth", label: "State of Birth", type: "text", placeholder: "State" },
+                        { id: "Place Of Birth", label: "Place of Birth", type: "text", placeholder: "City/Town" },
+                        { id: "Nationality", label: "Nationality", type: "text", defaultValue: "Indian" },
                         { id: "Marital Status", label: "Marital Status", type: "select", options: ["Single", "Married", "Divorced", "Widowed"] },
                         { id: "Ethnic Code", label: "Ethnic Code", type: "text" },
-                        { id: "Language", label: "Language", type: "text" },
+                        { id: "Language", label: "Language", type: "text", defaultValue: "English" },
                         { id: "Blood Group", label: "Blood Group", type: "select", options: ["A+", "A-", "B+", "B-", "O+", "O-", "AB+", "AB-"] },
                         { id: "RH Factor", label: "RH Factor", type: "text" },
                         { id: "Date for Birthday Celebration", label: "Birthday Celebration Date", type: "date" },
-                        { id: "Aadhar No", label: "Aadhar Number", type: "text" },
-                        { id: "Pan Number", label: "PAN Number", type: "text" },
-                        { id: "UAN Number", label: "UAN Number", type: "text" }
+                        { id: "Aadhar No", label: "Aadhar Number", type: "text", placeholder: "12-digit number" },
+                        { id: "Pan Number", label: "PAN Number", type: "text", placeholder: "ABCDE1234F" },
+                        { id: "UAN Number", label: "UAN Number", type: "text", placeholder: "12-digit number" }
                     ]
                 },
                 {
                     name: "Contact Details",
-                    tabName: "Contact Info",
+                    title: "Contact Information",
+                    icon: "📱",
+                    description: "Employee's contact and address details",
                     fields: [
                         { id: "Employee number", label: "Employee Number", type: "text", required: true },
-                        { id: "Permanent address1", label: "Permanent Address Line 1", type: "text" },
+                        { id: "Permanent address1", label: "Permanent Address Line 1", type: "text", required: true },
                         { id: "Permanent address2", label: "Permanent Address Line 2", type: "text" },
                         { id: "Permanent address3", label: "Permanent Address Line 3", type: "text" },
                         { id: "Permanent Country", label: "Permanent Country", type: "text", defaultValue: "India" },
@@ -387,7 +690,7 @@
                         { id: "Permanent State", label: "Permanent State", type: "text" },
                         { id: "Permanent City", label: "Permanent City", type: "text" },
                         { id: "Permanent Zip code", label: "Permanent Zip Code", type: "text" },
-                        { id: "Permanent Contact Number", label: "Permanent Contact Number", type: "tel" },
+                        { id: "Permanent Contact Number", label: "Permanent Contact Number", type: "tel", required: true, placeholder: "10-digit number" },
                         { id: "Current address 1", label: "Current Address Line 1", type: "text" },
                         { id: "Current address 2", label: "Current Address Line 2", type: "text" },
                         { id: "Current address 3", label: "Current Address Line 3", type: "text" },
@@ -398,19 +701,20 @@
                         { id: "Current Zip code", label: "Current Zip Code", type: "text" },
                         { id: "Current Contact Number", label: "Current Contact Number", type: "tel" },
                         { id: "Work mobile number", label: "Work Mobile Number", type: "tel" },
-                        { id: "Work email", label: "Work Email", type: "email" },
+                        { id: "Work email", label: "Work Email", type: "email", required: true },
                         { id: "Personal email", label: "Personal Email", type: "email" },
                         { id: "Personal mobile number", label: "Personal Mobile Number", type: "tel" }
                     ]
                 },
                 {
                     name: "Emergency contact details",
-                    tabName: "Emergency Contact",
+                    title: "Emergency Contact",
+                    icon: "🚨",
+                    description: "Emergency contact person details",
                     fields: [
                         { id: "Employee ID", label: "Employee ID", type: "text", required: true },
                         { id: "Contact Person Name", label: "Contact Person Name", type: "text", required: true },
-                        { id: "Relationship", label: "Relationship", type: "select", 
-                          options: ["Spouse", "Parent", "Sibling", "Child", "Relative", "Friend"] },
+                        { id: "Relationship", label: "Relationship", type: "select", options: ["Spouse", "Parent", "Sibling", "Child", "Relative", "Friend"] },
                         { id: "Address", label: "Address", type: "text" },
                         { id: "City", label: "City", type: "text" },
                         { id: "State", label: "State", type: "text" },
@@ -421,17 +725,18 @@
                 },
                 {
                     name: "Bank details",
-                    tabName: "Bank Info",
+                    title: "Bank Information",
+                    icon: "🏦",
+                    description: "Employee's bank account details",
                     fields: [
                         { id: "Employee Number", label: "Employee Number", type: "text", required: true },
                         { id: "Account Holder Name", label: "Account Holder Name", type: "text", required: true },
                         { id: "Bank Type", label: "Bank Type", type: "select", options: ["C", "S", "P", "O"] },
                         { id: "Corporate Bank Name", label: "Corporate Bank Name", type: "text" },
-                        { id: "Bank Name", label: "Bank Name", type: "text" },
+                        { id: "Bank Name", label: "Bank Name", type: "text", required: true },
                         { id: "Employee Bank Account No", label: "Bank Account Number", type: "text", required: true },
                         { id: "Sort Code", label: "Sort Code", type: "text" },
-                        { id: "Account Type", label: "Account Type", type: "select", 
-                          options: ["Salary", "Savings", "Current", "Joint", "Fixed Deposit"] },
+                        { id: "Account Type", label: "Account Type", type: "select", options: ["Salary", "Savings", "Current", "Joint"] },
                         { id: "Currency", label: "Currency", type: "text", defaultValue: "Indian Rupee" },
                         { id: "Bank URL", label: "Bank URL", type: "url" },
                         { id: "Bank Phone", label: "Bank Phone", type: "tel" },
@@ -449,10 +754,11 @@
                 },
                 {
                     name: "Family details",
-                    tabName: "Family Info",
+                    title: "Family Information",
+                    icon: "👨‍👩‍👧‍👦",
+                    description: "Family member details",
                     fields: [
-                        { id: "Relation Ship", label: "Relationship", type: "select", 
-                          options: ["Spouse", "Child", "Parent", "Sibling", "Grandparent", "Other"], required: true },
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Grandparent", "Other"], required: true },
                         { id: "Name", label: "Name", type: "text", required: true },
                         { id: "Date of Birth", label: "Date of Birth", type: "date" },
                         { id: "Gender", label: "Gender", type: "select", options: ["Male", "Female", "Other"] },
@@ -468,7 +774,9 @@
                 },
                 {
                     name: "Past employment details",
-                    tabName: "Employment History",
+                    title: "Employment History",
+                    icon: "💼",
+                    description: "Previous employment details",
                     fields: [
                         { id: "Assoicate No", label: "Associate Number", type: "text" },
                         { id: "Company Name", label: "Company Name", type: "text" },
@@ -492,7 +800,9 @@
                 },
                 {
                     name: "Driving license",
-                    tabName: "Driving License",
+                    title: "Driving License",
+                    icon: "🚗",
+                    description: "Driving license details",
                     fields: [
                         { id: "Assoicate No", label: "Associate Number", type: "text" },
                         { id: "License Number", label: "License Number", type: "text" },
@@ -506,7 +816,9 @@
                 },
                 {
                     name: "Education details",
-                    tabName: "Education",
+                    title: "Education Details",
+                    icon: "🎓",
+                    description: "Educational qualifications",
                     fields: [
                         { id: "Type of Establishment", label: "Type of Establishment", type: "text" },
                         { id: "Name of Establishment", label: "Name of Establishment", type: "text" },
@@ -525,10 +837,11 @@
                 },
                 {
                     name: "EPF nominee details (FORM 2)",
-                    tabName: "EPF Nominee",
+                    title: "EPF Nominee",
+                    icon: "📄",
+                    description: "EPF nominee details",
                     fields: [
-                        { id: "Relation Ship", label: "Relationship", type: "select", 
-                          options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
                         { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
                         { id: "Date of Birth", label: "Date of Birth", type: "date" },
                         { id: "% Amount of Nominee", label: "Percentage Amount", type: "number", min: 0, max: 100 },
@@ -537,7 +850,9 @@
                 },
                 {
                     name: "ESI nominee details (FORM 1)Br",
-                    tabName: "ESI Nominee",
+                    title: "ESI Nominee",
+                    icon: "🏥",
+                    description: "ESI nominee details",
                     fields: [
                         { id: "Branch Office", label: "Branch Office", type: "text" },
                         { id: "Dispensery", label: "Dispensary", type: "text" },
@@ -547,8 +862,7 @@
                         { id: "Employer Name", label: "Employer Name", type: "text" },
                         { id: "Email Address", label: "Email Address", type: "email" },
                         { id: "Address of the Employer", label: "Employer Address", type: "text" },
-                        { id: "Relation Ship", label: "Relationship", type: "select", 
-                          options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
                         { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
                         { id: "Date of Birth", label: "Date of Birth", type: "date" },
                         { id: "Address of the Employee", label: "Employee Address", type: "text" }
@@ -556,10 +870,11 @@
                 },
                 {
                     name: "Gratuity nominee details (FORM",
-                    tabName: "Gratuity Nominee",
+                    title: "Gratuity Nominee",
+                    icon: "💰",
+                    description: "Gratuity nominee details",
                     fields: [
-                        { id: "Relation Ship", label: "Relationship", type: "select", 
-                          options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
                         { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
                         { id: "Date of Birth", label: "Date of Birth", type: "date" },
                         { id: "% Amount of Nominee", label: "Percentage Amount", type: "number", min: 0, max: 100 },
@@ -569,426 +884,397 @@
             ]
         };
 
-        class OnBoardingApp {
-            constructor() {
-                this.currentTab = 0;
-                this.formData = {};
-                this.init();
-            }
+        // ========== APPLICATION STATE ==========
+        let currentSection = 0;
+        let formData = {};
+        let isSubmitting = false;
 
-            init() {
-                this.createTabs();
-                this.createForms();
-                this.setupEventListeners();
-                this.showTab(this.currentTab);
-                this.updateProgress();
-                this.testConnectionOnLoad();
-            }
+        // ========== INITIALIZATION ==========
+        function init() {
+            createTabs();
+            createForms();
+            showSection(0);
+            updateProgress();
+            updateButtons();
+            autoTestConnection();
+        }
 
-            createTabs() {
-                const tabHeaders = document.getElementById('tabHeaders');
-                FORM_CONFIG.sheets.forEach((sheet, index) => {
-                    const tab = document.createElement('div');
-                    tab.className = `tab ${index === 0 ? 'active' : ''}`;
-                    tab.textContent = `${index + 1}. ${sheet.tabName}`;
-                    tab.dataset.index = index;
-                    tab.addEventListener('click', () => this.showTab(index));
-                    tabHeaders.appendChild(tab);
-                });
-            }
+        // ========== TAB MANAGEMENT ==========
+        function createTabs() {
+            const tabsContainer = document.getElementById('tabsContainer');
+            CONFIG.sheets.forEach((sheet, index) => {
+                const tab = document.createElement('div');
+                tab.className = `tab ${index === 0 ? 'active' : ''}`;
+                tab.innerHTML = `
+                    <span class="tab-number">${index + 1}</span>
+                    <span class="tab-icon">${sheet.icon}</span>
+                    <span>${sheet.title}</span>
+                `;
+                tab.onclick = () => switchToSection(index);
+                tabsContainer.appendChild(tab);
+            });
+        }
 
-            createForms() {
-                const formContainer = document.getElementById('formContainer');
+        function createForms() {
+            const formContainer = document.getElementById('formContainer');
+            CONFIG.sheets.forEach((sheet, index) => {
+                const section = document.createElement('div');
+                section.className = `form-section ${index === 0 ? 'active' : ''}`;
+                section.id = `section-${index}`;
                 
-                FORM_CONFIG.sheets.forEach((sheet, index) => {
-                    const formSection = document.createElement('div');
-                    formSection.className = `form-section ${index === 0 ? 'active' : ''}`;
-                    formSection.id = `form-${index}`;
+                const header = document.createElement('div');
+                header.className = 'section-header';
+                header.innerHTML = `
+                    <h2>${sheet.icon} ${sheet.title}</h2>
+                    <p>${sheet.description} - Section ${index + 1} of ${CONFIG.sheets.length}</p>
+                `;
+                section.appendChild(header);
+                
+                const grid = document.createElement('div');
+                grid.className = 'form-grid';
+                
+                sheet.fields.forEach(field => {
+                    const group = document.createElement('div');
+                    group.className = 'form-group';
                     
-                    const header = document.createElement('div');
-                    header.className = 'tab-content-header';
-                    header.innerHTML = `<h3>${sheet.tabName}</h3><p>Section ${index + 1} of ${FORM_CONFIG.sheets.length}</p>`;
+                    const label = document.createElement('label');
+                    label.htmlFor = field.id;
+                    label.textContent = field.label;
+                    if (field.required) label.className = 'required';
                     
-                    const formGrid = document.createElement('div');
-                    formGrid.className = 'form-grid';
-                    
-                    sheet.fields.forEach(field => {
-                        const formGroup = document.createElement('div');
-                        formGroup.className = 'form-group';
+                    let input;
+                    if (field.type === 'select') {
+                        input = document.createElement('select');
+                        input.id = field.id;
+                        input.name = field.id;
                         
-                        const label = document.createElement('label');
-                        label.htmlFor = field.id;
-                        label.className = field.required ? 'required' : '';
-                        label.textContent = field.label;
+                        const defaultOption = document.createElement('option');
+                        defaultOption.value = '';
+                        defaultOption.textContent = '-- Select --';
+                        input.appendChild(defaultOption);
                         
-                        let input;
+                        if (field.options) {
+                            field.options.forEach(option => {
+                                const optionEl = document.createElement('option');
+                                optionEl.value = option;
+                                optionEl.textContent = option;
+                                if (field.defaultValue === option) {
+                                    optionEl.selected = true;
+                                }
+                                input.appendChild(optionEl);
+                            });
+                        }
+                    } else if (field.type === 'textarea') {
+                        input = document.createElement('textarea');
+                        input.id = field.id;
+                        input.name = field.id;
+                        input.rows = 4;
+                        input.placeholder = field.placeholder || '';
+                    } else {
+                        input = document.createElement('input');
+                        input.type = field.type;
+                        input.id = field.id;
+                        input.name = field.id;
+                        input.placeholder = field.placeholder || '';
                         
-                        switch(field.type) {
-                            case 'select':
-                                input = document.createElement('select');
-                                input.id = field.id;
-                                input.name = field.id;
-                                
-                                const emptyOption = document.createElement('option');
-                                emptyOption.value = '';
-                                emptyOption.textContent = '-- Select --';
-                                input.appendChild(emptyOption);
-                                
-                                if (field.options) {
-                                    field.options.forEach(option => {
-                                        const optionElement = document.createElement('option');
-                                        optionElement.value = option;
-                                        optionElement.textContent = option;
-                                        if (field.defaultValue === option) {
-                                            optionElement.selected = true;
-                                        }
-                                        input.appendChild(optionElement);
-                                    });
-                                }
-                                break;
-                                
-                            case 'textarea':
-                                input = document.createElement('textarea');
-                                input.id = field.id;
-                                input.name = field.id;
-                                input.rows = 4;
-                                break;
-                                
-                            default:
-                                input = document.createElement('input');
-                                input.type = field.type;
-                                input.id = field.id;
-                                input.name = field.id;
-                                
-                                if (field.min !== undefined) input.min = field.min;
-                                if (field.max !== undefined) input.max = field.max;
-                                
-                                if (field.type === 'date') {
-                                    input.max = new Date().toISOString().split('T')[0];
-                                }
-                                
-                                if (field.defaultValue) {
-                                    input.value = field.defaultValue;
-                                }
-                                
-                                if (field.type === 'tel') {
-                                    input.pattern = "[0-9]{10}";
-                                    input.title = "10-digit phone number";
-                                }
+                        if (field.defaultValue) {
+                            input.value = field.defaultValue;
                         }
                         
-                        if (field.required) {
-                            input.required = true;
+                        if (field.min !== undefined) input.min = field.min;
+                        if (field.max !== undefined) input.max = field.max;
+                        
+                        if (field.type === 'date') {
+                            const today = new Date().toISOString().split('T')[0];
+                            input.max = today;
                         }
-                        
-                        input.placeholder = `Enter ${field.label.toLowerCase()}`;
-                        
-                        formGroup.appendChild(label);
-                        formGroup.appendChild(input);
-                        formGrid.appendChild(formGroup);
-                    });
+                    }
                     
-                    formSection.appendChild(header);
-                    formSection.appendChild(formGrid);
-                    formContainer.appendChild(formSection);
+                    if (field.required) input.required = true;
+                    
+                    input.oninput = saveCurrentSectionData;
+                    
+                    group.appendChild(label);
+                    group.appendChild(input);
+                    grid.appendChild(group);
                 });
-            }
+                
+                section.appendChild(grid);
+                formContainer.appendChild(section);
+            });
+        }
 
-            showTab(n) {
-                this.saveCurrentFormData();
-                
-                document.querySelectorAll('.form-section').forEach(section => {
-                    section.classList.remove('active');
-                });
-                document.querySelectorAll('.tab').forEach(tab => {
-                    tab.classList.remove('active');
-                });
-                
-                document.getElementById(`form-${n}`).classList.add('active');
-                document.querySelectorAll('.tab')[n].classList.add('active');
-                
-                this.currentTab = n;
-                this.updateButtons();
-                this.updateProgress();
-            }
+        // ========== NAVIGATION ==========
+        function showSection(index) {
+            if (!validateCurrentSection()) return false;
+            
+            saveCurrentSectionData();
+            
+            document.querySelectorAll('.form-section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+            
+            document.getElementById(`section-${index}`).classList.add('active');
+            document.querySelectorAll('.tab')[index].classList.add('active');
+            
+            currentSection = index;
+            updateProgress();
+            updateButtons();
+            
+            return true;
+        }
 
-            updateButtons() {
-                const prevBtn = document.getElementById('prevBtn');
-                const nextBtn = document.getElementById('nextBtn');
-                const submitBtn = document.getElementById('submitBtn');
-                
-                prevBtn.style.display = this.currentTab === 0 ? 'none' : 'inline-block';
-                
-                if (this.currentTab === FORM_CONFIG.sheets.length - 1) {
-                    nextBtn.style.display = 'none';
-                    submitBtn.style.display = 'inline-block';
-                } else {
-                    nextBtn.style.display = 'inline-block';
-                    submitBtn.style.display = 'none';
+        function switchToSection(index) {
+            if (index !== currentSection) {
+                showSection(index);
+            }
+        }
+
+        function nextSection() {
+            if (validateCurrentSection()) {
+                if (currentSection < CONFIG.sheets.length - 1) {
+                    showSection(currentSection + 1);
                 }
             }
+        }
 
-            updateProgress() {
-                const progress = ((this.currentTab + 1) / FORM_CONFIG.sheets.length) * 100;
-                document.getElementById('progressFill').style.width = `${progress}%`;
+        function prevSection() {
+            if (currentSection > 0) {
+                showSection(currentSection - 1);
             }
+        }
 
-            saveCurrentFormData() {
-                const currentForm = document.getElementById(`form-${this.currentTab}`);
-                const inputs = currentForm.querySelectorAll('input, select, textarea');
+        // ========== VALIDATION ==========
+        function validateCurrentSection() {
+            const currentForm = document.getElementById(`section-${currentSection}`);
+            const requiredInputs = currentForm.querySelectorAll('[required]');
+            
+            for (const input of requiredInputs) {
+                if (!input.value.trim()) {
+                    showMessage(`Please fill in: ${input.previousElementSibling.textContent}`, 'error');
+                    input.focus();
+                    return false;
+                }
                 
-                inputs.forEach(input => {
-                    this.formData[input.name] = input.value;
-                });
-            }
-
-            validateCurrentForm() {
-                const currentForm = document.getElementById(`form-${this.currentTab}`);
-                const requiredInputs = currentForm.querySelectorAll('[required]');
-                
-                for (let input of requiredInputs) {
-                    if (!input.value.trim()) {
+                // Email validation
+                if (input.type === 'email' && input.value) {
+                    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                    if (!emailRegex.test(input.value)) {
+                        showMessage('Please enter a valid email address', 'error');
                         input.focus();
-                        this.showMessage(`Please fill in "${input.previousElementSibling.textContent}"`, 'error');
                         return false;
                     }
                 }
                 
-                const emailInputs = currentForm.querySelectorAll('input[type="email"]');
-                for (let input of emailInputs) {
-                    if (input.value && !this.isValidEmail(input.value)) {
+                // Phone validation
+                if (input.type === 'tel' && input.value) {
+                    const phoneRegex = /^[0-9]{10}$/;
+                    if (!phoneRegex.test(input.value.replace(/\D/g, ''))) {
+                        showMessage('Please enter a valid 10-digit phone number', 'error');
                         input.focus();
-                        this.showMessage('Please enter a valid email address', 'error');
                         return false;
                     }
                 }
-                
-                return true;
             }
+            
+            return true;
+        }
 
-            isValidEmail(email) {
-                const re = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                return re.test(email);
+        // ========== DATA MANAGEMENT ==========
+        function saveCurrentSectionData() {
+            const currentForm = document.getElementById(`section-${currentSection}`);
+            const inputs = currentForm.querySelectorAll('input, select, textarea');
+            inputs.forEach(input => {
+                formData[input.name] = input.value;
+            });
+        }
+
+        // ========== PROGRESS & UI ==========
+        function updateProgress() {
+            const progress = ((currentSection + 1) / CONFIG.sheets.length) * 100;
+            const percent = Math.round(progress);
+            
+            document.getElementById('progressFill').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `Step ${currentSection + 1} of ${CONFIG.sheets.length}`;
+            document.getElementById('completionPercent').textContent = `${percent}% Complete`;
+        }
+
+        function updateButtons() {
+            const prevBtn = document.getElementById('prevBtn');
+            const nextBtn = document.getElementById('nextBtn');
+            const submitBtn = document.getElementById('submitBtn');
+            
+            prevBtn.disabled = currentSection === 0;
+            
+            if (currentSection === CONFIG.sheets.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-flex';
+            } else {
+                nextBtn.style.display = 'inline-flex';
+                submitBtn.style.display = 'none';
             }
+        }
 
-            async submitAllData() {
-                this.saveCurrentFormData();
-                
-                for (let i = 0; i < FORM_CONFIG.sheets.length; i++) {
-                    const sheet = FORM_CONFIG.sheets[i];
-                    const requiredFields = sheet.fields.filter(f => f.required);
-                    
-                    for (let field of requiredFields) {
-                        if (!this.formData[field.id]) {
-                            this.showMessage(`Please fill: "${field.label}" in "${sheet.tabName}"`, 'error');
-                            this.showTab(i);
-                            return;
-                        }
-                    }
-                }
-                
-                try {
-                    this.showMessage('Submitting data... Please wait.', 'info');
-                    
-                    // Submit using JSONP or form submission method
-                    const success = await this.submitUsingFormMethod();
-                    
-                    if (success) {
-                        this.showMessage('✅ Data submitted successfully! Form will reset in 3 seconds...', 'success');
-                        
-                        setTimeout(() => {
-                            this.resetForm();
-                            this.showTab(0);
-                        }, 3000);
-                    } else {
-                        this.showMessage('⚠️ Data may not have been saved. Check Google Sheets.', 'error');
-                    }
-                    
-                } catch (error) {
-                    console.error('Submission error:', error);
-                    this.showMessage(`❌ Error: ${error.message}`, 'error');
-                }
-            }
-
-            // Alternative submission method using form POST
-            async submitUsingFormMethod() {
-                return new Promise((resolve) => {
-                    // Submit each sheet
-                    let submittedCount = 0;
-                    const totalSheets = FORM_CONFIG.sheets.length;
-                    
-                    FORM_CONFIG.sheets.forEach(sheet => {
-                        const sheetData = {};
-                        sheet.fields.forEach(field => {
-                            sheetData[field.id] = this.formData[field.id] || '';
-                        });
-                        
-                        // Create hidden form for each sheet
-                        const form = document.createElement('form');
-                        form.method = 'POST';
-                        form.action = FORM_CONFIG.scriptUrl;
-                        form.target = '_blank';
-                        form.style.display = 'none';
-                        
-                        const sheetNameInput = document.createElement('input');
-                        sheetNameInput.type = 'hidden';
-                        sheetNameInput.name = 'sheetName';
-                        sheetNameInput.value = sheet.name;
-                        
-                        const rowDataInput = document.createElement('input');
-                        rowDataInput.type = 'hidden';
-                        rowDataInput.name = 'rowData';
-                        rowDataInput.value = JSON.stringify(sheetData);
-                        
-                        form.appendChild(sheetNameInput);
-                        form.appendChild(rowDataInput);
-                        document.body.appendChild(form);
-                        
-                        // Submit form (will open new tab/window)
-                        form.submit();
-                        document.body.removeChild(form);
-                        
-                        submittedCount++;
-                        
-                        // Show progress
-                        this.showMessage(`Submitting ${submittedCount}/${totalSheets}: ${sheet.tabName}`, 'info');
-                    });
-                    
-                    // Consider it successful if we tried to submit all
-                    resolve(true);
-                });
-            }
-
-            // Simple GET request test
-            async testConnection() {
-                const statusDiv = document.getElementById('statusMessage');
-                const connectionStatus = document.getElementById('connectionStatus');
-                
-                statusDiv.textContent = 'Testing connection...';
-                statusDiv.className = 'status-message info';
-                statusDiv.style.display = 'block';
-                connectionStatus.textContent = 'Testing...';
-                connectionStatus.className = 'connection-status';
-                
-                try {
-                    // Use a simple fetch with mode 'no-cors'
-                    const response = await fetch(FORM_CONFIG.scriptUrl, {
-                        method: 'GET',
-                        mode: 'no-cors',
-                        cache: 'no-cache'
-                    });
-                    
-                    // If we get here without error, the request was attempted
-                    connectionStatus.textContent = 'Connected (Test Mode)';
-                    connectionStatus.className = 'connection-status connected';
-                    statusDiv.textContent = '✅ Connection test completed. Form submission will work when you click Submit.';
-                    statusDiv.className = 'status-message success';
-                    
-                    return true;
-                    
-                } catch (error) {
-                    console.error('Connection test error:', error);
-                    
-                    // Fallback: Use iframe method
-                    connectionStatus.textContent = 'Using fallback method';
-                    connectionStatus.className = 'connection-status';
-                    
-                    // Test with iframe
-                    const iframe = document.createElement('iframe');
-                    iframe.style.display = 'none';
-                    iframe.src = FORM_CONFIG.scriptUrl;
-                    document.body.appendChild(iframe);
-                    
-                    setTimeout(() => {
-                        document.body.removeChild(iframe);
-                        connectionStatus.textContent = 'Ready (Fallback)';
-                        connectionStatus.className = 'connection-status connected';
-                        statusDiv.textContent = '✅ Connection established using fallback method.';
-                        statusDiv.className = 'status-message success';
-                    }, 2000);
-                    
-                    return true;
-                }
-            }
-
-            testConnectionOnLoad() {
-                // Test connection automatically after page loads
+        // ========== MESSAGES ==========
+        function showMessage(text, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = text;
+            messageDiv.className = `message ${type}`;
+            
+            if (type === 'success') {
                 setTimeout(() => {
-                    this.testConnection();
-                }, 1000);
-            }
-
-            resetForm() {
-                document.querySelectorAll('input, select, textarea').forEach(input => {
-                    if (input.type === 'select-one') {
-                        input.selectedIndex = 0;
-                    } else {
-                        input.value = '';
-                    }
-                });
-                
-                this.formData = {};
-                
-                setTimeout(() => {
-                    this.showMessage('', '');
+                    messageDiv.style.display = 'none';
                 }, 5000);
             }
+        }
 
-            showMessage(message, type) {
-                const statusDiv = document.getElementById('statusMessage');
-                statusDiv.textContent = message;
-                statusDiv.className = 'status-message';
+        // ========== CONNECTION TEST ==========
+        async function autoTestConnection() {
+            try {
+                const response = await fetch(`${CONFIG.scriptUrl}?test=true`);
+                const data = await response.json();
                 
-                if (type) {
-                    statusDiv.classList.add(type);
+                if (data.success) {
+                    document.getElementById('statusText').textContent = `Connected to: ${data.spreadsheet}`;
+                    document.getElementById('statusIndicator').className = 'status-indicator connected';
+                    console.log('✅ Connection successful:', data);
                 }
-                
-                statusDiv.style.display = message ? 'block' : 'none';
-                
-                if (type === 'success' && message) {
-                    setTimeout(() => {
-                        statusDiv.style.display = 'none';
-                    }, 5000);
-                }
-            }
-
-            setupEventListeners() {
-                document.getElementById('nextBtn').addEventListener('click', () => {
-                    if (this.validateCurrentForm()) {
-                        this.saveCurrentFormData();
-                        this.showTab(this.currentTab + 1);
-                    }
-                });
-                
-                document.getElementById('prevBtn').addEventListener('click', () => {
-                    this.saveCurrentFormData();
-                    this.showTab(this.currentTab - 1);
-                });
-                
-                document.getElementById('submitBtn').addEventListener('click', () => {
-                    if (this.validateCurrentForm()) {
-                        this.submitAllData();
-                    }
-                });
-                
-                document.addEventListener('input', (e) => {
-                    if (e.target.matches('input, select, textarea')) {
-                        this.formData[e.target.name] = e.target.value;
-                    }
-                });
+            } catch (error) {
+                console.log('Auto-connection test failed');
             }
         }
 
-        // Global test function
         async function testConnection() {
-            const app = window.onboardingApp;
-            await app.testConnection();
+            const testBtn = document.getElementById('testBtn');
+            const originalText = testBtn.innerHTML;
+            
+            testBtn.innerHTML = '<span class="loader"></span> Testing...';
+            testBtn.disabled = true;
+            
+            try {
+                const response = await fetch(`${CONFIG.scriptUrl}?test=true`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    showMessage(`✅ Connected to "${data.spreadsheet}" with ${data.sheetCount} sheets`, 'success');
+                    document.getElementById('statusText').textContent = `Connected to: ${data.spreadsheet}`;
+                    document.getElementById('statusIndicator').className = 'status-indicator connected';
+                } else {
+                    showMessage(`❌ Connection failed: ${data.error}`, 'error');
+                }
+            } catch (error) {
+                showMessage(`❌ Connection error: ${error.message}`, 'error');
+            } finally {
+                testBtn.innerHTML = originalText;
+                testBtn.disabled = false;
+            }
         }
 
-        // Initialize app
-        document.addEventListener('DOMContentLoaded', () => {
-            window.onboardingApp = new OnBoardingApp();
+        // ========== SUBMISSION ==========
+        async function submitAllData() {
+            if (isSubmitting) return;
+            
+            if (!validateCurrentSection()) return;
+            saveCurrentSectionData();
+            
+            isSubmitting = true;
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            submitBtn.innerHTML = '<span class="loader"></span> Submitting...';
+            submitBtn.disabled = true;
+            
+            showMessage('Submitting data to Google Sheets... Please wait.', 'info');
+            
+            try {
+                let successCount = 0;
+                let failedSheets = [];
+                
+                // Submit each sheet
+                for (const sheet of CONFIG.sheets) {
+                    const sheetData = {};
+                    sheet.fields.forEach(field => {
+                        sheetData[field.id] = formData[field.id] || '';
+                    });
+                    
+                    const response = await fetch(CONFIG.scriptUrl, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({
+                            sheetName: sheet.name,
+                            rowData: sheetData
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    if (result.success) {
+                        successCount++;
+                        console.log(`✅ ${sheet.name}: ${result.message}`);
+                    } else {
+                        failedSheets.push(sheet.name);
+                        console.error(`❌ ${sheet.name}: ${result.error}`);
+                    }
+                }
+                
+                if (successCount === CONFIG.sheets.length) {
+                    showMessage('✅ All data submitted successfully! Form will reset in 3 seconds...', 'success');
+                    
+                    setTimeout(() => {
+                        document.querySelectorAll('input, select, textarea').forEach(input => {
+                            if (input.type === 'select-one') {
+                                input.selectedIndex = 0;
+                            } else {
+                                input.value = '';
+                            }
+                        });
+                        formData = {};
+                        showSection(0);
+                        showMessage('Form reset. Ready for next employee!', 'info');
+                    }, 3000);
+                    
+                } else {
+                    showMessage(`Submitted ${successCount}/${CONFIG.sheets.length} sheets. Failed: ${failedSheets.join(', ')}`, 'error');
+                }
+                
+            } catch (error) {
+                showMessage(`❌ Submission error: ${error.message}`, 'error');
+                console.error('Submission error:', error);
+                
+            } finally {
+                isSubmitting = false;
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            }
+        }
+
+        // ========== KEYBOARD SHORTCUTS ==========
+        document.addEventListener('keydown', (e) => {
+            // Ctrl + Enter to submit
+            if (e.ctrlKey && e.key === 'Enter' && currentSection === CONFIG.sheets.length - 1) {
+                e.preventDefault();
+                submitAllData();
+            }
+            
+            // Enter to go to next (except in textareas)
+            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
+                e.preventDefault();
+                if (currentSection < CONFIG.sheets.length - 1) {
+                    nextSection();
+                }
+            }
+            
+            // Arrow keys for navigation
+            if (e.key === 'ArrowLeft' && currentSection > 0) {
+                e.preventDefault();
+                prevSection();
+            }
+            if (e.key === 'ArrowRight' && currentSection < CONFIG.sheets.length - 1) {
+                e.preventDefault();
+                nextSection();
+            }
         });
+
+        // ========== INITIALIZE ==========
+        document.addEventListener('DOMContentLoaded', init);
     </script>
 </body>
 </html>
