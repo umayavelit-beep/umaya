@@ -1755,126 +1755,157 @@
             }
         }
 
-        // ========== SUBMISSION ==========
-        async function submitAllData() {
-            if (isSubmitting) return;
+      // ========== SUBMISSION ==========
+async function submitAllData() {
+    if (isSubmitting) return;
+    
+    if (!validateCurrentSection()) return;
+    saveCurrentSectionData();
+    
+    isSubmitting = true;
+    const submitBtn = document.getElementById('submitBtn');
+    const originalText = submitBtn.innerHTML;
+    
+    submitBtn.innerHTML = '<span class="loader"></span> Submitting...';
+    submitBtn.disabled = true;
+    
+    showMessage('Submitting data to Google Sheets... Please wait.', 'info');
+    logDebug('Starting data submission...');
+    
+    try {
+        let successCount = 0;
+        let failedSheets = [];
+        
+        // Submit each sheet
+        for (const sheet of CONFIG.sheets) {
+            const sheetData = {};
+            sheet.fields.forEach(field => {
+                sheetData[field.id] = formData[field.id] || '';
+            });
             
-            if (!validateCurrentSection()) return;
-            saveCurrentSectionData();
-            
-            isSubmitting = true;
-            const submitBtn = document.getElementById('submitBtn');
-            const originalText = submitBtn.innerHTML;
-            
-            submitBtn.innerHTML = '<span class="loader"></span> Submitting...';
-            submitBtn.disabled = true;
-            
-            showMessage('Submitting data to Google Sheets... Please wait.', 'info');
-            logDebug('Starting data submission...');
+            logDebug(`Preparing data for ${sheet.name}`);
             
             try {
-                let successCount = 0;
-                let failedSheets = [];
+                // Create a controller for timeout
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 second timeout
                 
-                // Submit each sheet
-                for (const sheet of CONFIG.sheets) {
-                    const sheetData = {};
-                    sheet.fields.forEach(field => {
-                        sheetData[field.id] = formData[field.id] || '';
-                    });
-                    
-                    logDebug(`Preparing data for ${sheet.name}: ${JSON.stringify(sheetData).substring(0, 100)}...`);
-                    
-                    try {
-                        const response = await fetch(CONFIG.scriptUrl, {
-                            method: 'POST',
-                            headers: { 
-                                'Content-Type': 'application/json',
-                                'Accept': 'application/json'
-                            },
-                            body: JSON.stringify({
-                                sheetName: sheet.name,
-                                rowData: sheetData
-                            })
-                        });
-                        
-                        if (!response.ok) {
-                            throw new Error(`HTTP ${response.status}`);
-                        }
-                        
-                        const result = await response.json();
-                        logDebug(`Response for ${sheet.name}: ${JSON.stringify(result)}`);
-                        
-                        if (result.success) {
-                            successCount++;
-                            logDebug(`✅ ${sheet.name}: ${result.message}`);
-                        } else {
-                            failedSheets.push(sheet.name);
-                            logDebug(`❌ ${sheet.name}: ${result.error}`);
-                        }
-                    } catch (error) {
-                        failedSheets.push(sheet.name);
-                        logDebug(`❌ ${sheet.name} submission error: ${error.message}`);
-                    }
+                const response = await fetch(CONFIG.scriptUrl, {
+                    method: 'POST',
+                    headers: { 
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        sheetName: sheet.name,
+                        rowData: sheetData
+                    }),
+                    signal: controller.signal,
+                    mode: 'cors' // Explicitly request CORS mode
+                });
+                
+                clearTimeout(timeoutId);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                 }
                 
-                if (successCount === CONFIG.sheets.length) {
-                    showMessage('✅ All data submitted successfully! Form will reset in 3 seconds...', 'success');
-                    logDebug('All data submitted successfully!');
-                    
-                    setTimeout(() => {
-                        document.querySelectorAll('input, select, textarea').forEach(input => {
-                            if (input.type === 'select-one') {
-                                input.selectedIndex = 0;
-                            } else {
-                                input.value = '';
-                            }
-                        });
-                        formData = {};
-                        showSection(0);
-                        showMessage('Form reset. Ready for next employee!', 'info');
-                        logDebug('Form reset successfully');
-                    }, 3000);
-                    
+                const result = await response.json();
+                logDebug(`Response for ${sheet.name}: ${JSON.stringify(result)}`);
+                
+                if (result.success) {
+                    successCount++;
+                    logDebug(`✅ ${sheet.name}: ${result.message}`);
                 } else {
-                    showMessage(`Submitted ${successCount}/${CONFIG.sheets.length} sheets. Failed: ${failedSheets.join(', ')}`, 'error');
-                    logDebug(`Partial submission: ${successCount} success, ${failedSheets.length} failed`);
+                    failedSheets.push(`${sheet.name}: ${result.error}`);
+                    logDebug(`❌ ${sheet.name}: ${result.error}`);
                 }
-                
             } catch (error) {
-                showMessage(`❌ Submission error: ${error.message}`, 'error');
-                logDebug(`Submission error: ${error.message}`);
+                failedSheets.push(`${sheet.name}: ${error.message}`);
+                logDebug(`❌ ${sheet.name} submission error: ${error.message}`);
                 
-            } finally {
-                isSubmitting = false;
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
+                // Add more details for CORS errors
+                if (error.message.includes('NetworkError') || error.message.includes('fetch')) {
+                    logDebug(`🔧 CORS Issue Detected - Make sure Google Apps Script has CORS headers`);
+                    logDebug(`🔧 Script URL: ${CONFIG.scriptUrl}`);
+                }
             }
         }
+        
+        if (successCount === CONFIG.sheets.length) {
+            showMessage('✅ All data submitted successfully! Form will reset in 3 seconds...', 'success');
+            logDebug('All data submitted successfully!');
+            
+            setTimeout(() => {
+                document.querySelectorAll('input, select, textarea').forEach(input => {
+                    if (input.type === 'select-one') {
+                        input.selectedIndex = 0;
+                    } else {
+                        input.value = '';
+                    }
+                });
+                formData = {};
+                showSection(0);
+                showMessage('Form reset. Ready for next employee!', 'info');
+                logDebug('Form reset successfully');
+            }, 3000);
+            
+        } else {
+            showMessage(
+                `Submitted ${successCount}/${CONFIG.sheets.length} sheets. Failed: ${failedSheets.join(', ')}<br><br>` +
+                '<strong>CORS Issue Detected!</strong><br>' +
+                'Solution: Update Google Apps Script with CORS headers.<br>' +
+                'Run this test: <button onclick="testCors()" style="padding: 5px 10px; margin: 5px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer;">Test CORS</button>',
+                'error'
+            );
+            logDebug(`Partial submission: ${successCount} success, ${failedSheets.length} failed`);
+        }
+        
+    } catch (error) {
+        showMessage(`❌ Submission error: ${error.message}`, 'error');
+        logDebug(`Submission error: ${error.message}`);
+        
+    } finally {
+        isSubmitting = false;
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+    }
+}
 
-        // ========== KEYBOARD SHORTCUTS ==========
-        document.addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter' && currentSection === CONFIG.sheets.length - 1) {
-                e.preventDefault();
-                submitAllData();
-            }
-            
-            if (e.key === 'Enter' && e.target.tagName !== 'TEXTAREA') {
-                e.preventDefault();
-                if (currentSection < CONFIG.sheets.length - 1) {
-                    nextSection();
-                }
-            }
-            
-            if (e.key === 'ArrowLeft' && currentSection > 0) {
-                e.preventDefault();
-                prevSection();
-            }
-            if (e.key === 'ArrowRight' && currentSection < CONFIG.sheets.length - 1) {
-                e.preventDefault();
-                nextSection();
-            }
-        });
+// Add this test function to your HTML script
+function testCors() {
+    const testData = {
+        sheetName: "Employee details",
+        rowData: {
+            "Associate Code": "CORS_TEST",
+            "First Name": "Test",
+            "Surname": "CORS"
+        }
+    };
+    
+    fetch(CONFIG.scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(testData)
+    })
+    .then(response => {
+        logDebug(`CORS Test Response Status: ${response.status}`);
+        logDebug(`CORS Test Response Headers: ${JSON.stringify([...response.headers])}`);
+        return response.json();
+    })
+    .then(data => {
+        logDebug(`CORS Test Response Data: ${JSON.stringify(data)}`);
+        if (data.success) {
+            showMessage('✅ CORS test successful!', 'success');
+        } else {
+            showMessage(`❌ CORS test failed: ${data.error}`, 'error');
+        }
+    })
+    .catch(error => {
+        logDebug(`CORS Test Error: ${error.message}`);
+        showMessage(`❌ CORS error: ${error.message}`, 'error');
+    });
+}
 
         // ========== INITIALIZE ==========
         document.addEventListener('DOMContentLoaded', init);
