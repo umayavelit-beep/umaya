@@ -571,6 +571,558 @@
             opacity: 1;
             transform: translateY(0);
         }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Roboto', 'Helvetica', Arial, sans-serif;
+        }
+        
+        body {
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .app-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+            overflow: hidden;
+            animation: fadeIn 0.8s ease;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .app-header {
+            background: linear-gradient(135deg, #2c3e50 0%, #3498db 100%);
+            color: white;
+            padding: 35px 40px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, #e74c3c, #f39c12, #2ecc71, #3498db);
+        }
+        
+        .app-title {
+            font-size: 2.8rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 15px;
+        }
+        
+        .app-subtitle {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            margin-bottom: 25px;
+            max-width: 800px;
+            margin-left: auto;
+            margin-right: auto;
+            line-height: 1.6;
+        }
+        
+        .status-bar {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(10px);
+            padding: 15px 25px;
+            border-radius: 12px;
+            display: inline-flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        
+        .status-indicator {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            background: #e74c3c;
+            position: relative;
+        }
+        
+        .status-indicator.connected {
+            background: #2ecc71;
+            box-shadow: 0 0 0 5px rgba(46, 204, 113, 0.2);
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(46, 204, 113, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(46, 204, 113, 0); }
+        }
+        
+        .progress-section {
+            background: #f8f9fa;
+            padding: 25px 40px;
+            border-bottom: 1px solid #e9ecef;
+        }
+        
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .progress-bar {
+            height: 10px;
+            background: #e9ecef;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3498db, #2ecc71);
+            width: 0%;
+            transition: width 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border-radius: 5px;
+        }
+        
+        .tabs-container {
+            background: white;
+            border-bottom: 2px solid #f1f3f4;
+            padding: 0 20px;
+            display: flex;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+        
+        .tabs-container::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .tab {
+            padding: 20px 25px;
+            cursor: pointer;
+            font-weight: 600;
+            color: #5f6368;
+            white-space: nowrap;
+            border-bottom: 3px solid transparent;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+        
+        .tab:hover {
+            background: #f8f9fa;
+            color: #3498db;
+        }
+        
+        .tab.active {
+            color: #3498db;
+            border-bottom-color: #3498db;
+            background: linear-gradient(to bottom, #f8f9fa, white);
+        }
+        
+        .tab-number {
+            width: 28px;
+            height: 28px;
+            background: #e8eaed;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.9rem;
+            font-weight: 700;
+            transition: all 0.3s ease;
+        }
+        
+        .tab.active .tab-number {
+            background: #3498db;
+            color: white;
+            transform: scale(1.1);
+        }
+        
+        .tab-icon {
+            font-size: 1.3rem;
+        }
+        
+        .message-container {
+            padding: 0 40px;
+            margin-top: 20px;
+        }
+        
+        .message {
+            padding: 18px 24px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: none;
+            animation: slideDown 0.4s ease;
+            font-weight: 500;
+        }
+        
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .message.success {
+            background: linear-gradient(135deg, #d4edda, #c3e6cb);
+            color: #155724;
+            border: 1px solid #b1dfbb;
+            display: block;
+        }
+        
+        .message.error {
+            background: linear-gradient(135deg, #f8d7da, #f5c6cb);
+            color: #721c24;
+            border: 1px solid #f1b0b7;
+            display: block;
+        }
+        
+        .message.info {
+            background: linear-gradient(135deg, #d1ecf1, #bee5eb);
+            color: #0c5460;
+            border: 1px solid #abdde5;
+            display: block;
+        }
+        
+        .form-container {
+            padding: 40px;
+            min-height: 550px;
+            max-height: 600px;
+            overflow-y: auto;
+            scrollbar-width: thin;
+            scrollbar-color: #3498db #f1f3f4;
+        }
+        
+        .form-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        .form-container::-webkit-scrollbar-track {
+            background: #f1f3f4;
+            border-radius: 4px;
+        }
+        
+        .form-container::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 4px;
+        }
+        
+        .form-section {
+            display: none;
+            animation: fadeInUp 0.6s ease;
+        }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .form-section.active {
+            display: block;
+        }
+        
+        .section-header {
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #f0f0f0;
+        }
+        
+        .section-header h2 {
+            color: #2c3e50;
+            font-size: 1.9rem;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        
+        .section-header p {
+            color: #7f8c8d;
+            font-size: 1.05rem;
+        }
+        
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 30px;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            font-weight: 600;
+            color: #34495e;
+            font-size: 0.95rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .required::after {
+            content: " *";
+            color: #e74c3c;
+            font-weight: bold;
+        }
+        
+        input, select, textarea {
+            width: 100%;
+            padding: 16px;
+            border: 2px solid #dfe6e9;
+            border-radius: 12px;
+            font-size: 15px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            background: white;
+            color: #2d3436;
+        }
+        
+        input:hover, select:hover, textarea:hover {
+            border-color: #b2bec3;
+        }
+        
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 4px rgba(52, 152, 219, 0.2);
+            transform: translateY(-2px);
+        }
+        
+        textarea {
+            min-height: 120px;
+            resize: vertical;
+            line-height: 1.5;
+        }
+        
+        select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%232c3e50' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 16px center;
+            background-size: 16px;
+            padding-right: 45px;
+        }
+        
+        .actions-container {
+            padding: 25px 40px;
+            background: #f8f9fa;
+            border-top: 1px solid #e9ecef;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .btn {
+            padding: 16px 35px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .btn-prev {
+            background: #6c757d;
+            color: white;
+        }
+        
+        .btn-prev:hover:not(:disabled) {
+            background: #5a6268;
+            transform: translateX(-5px);
+            box-shadow: 0 10px 25px rgba(108, 117, 125, 0.3);
+        }
+        
+        .btn-next {
+            background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);
+            color: white;
+        }
+        
+        .btn-next:hover:not(:disabled) {
+            transform: translateX(5px);
+            box-shadow: 0 15px 35px rgba(52, 152, 219, 0.4);
+        }
+        
+        .btn-submit {
+            background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+            color: white;
+            padding: 16px 45px;
+        }
+        
+        .btn-submit:hover:not(:disabled) {
+            transform: translateY(-3px);
+            box-shadow: 0 20px 40px rgba(46, 204, 113, 0.4);
+        }
+        
+        .btn-test {
+            background: linear-gradient(135deg, #f39c12 0%, #e67e22 100%);
+            color: white;
+            padding: 14px 28px;
+            font-size: 15px;
+        }
+        
+        .btn-test:hover:not(:disabled) {
+            transform: scale(1.05);
+            box-shadow: 0 10px 25px rgba(243, 156, 18, 0.3);
+        }
+        
+        .loader {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255, 255, 255, 0.3);
+            border-top: 3px solid white;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        @media (max-width: 1200px) {
+            .form-grid {
+                grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            }
+        }
+        
+        @media (max-width: 992px) {
+            .app-title {
+                font-size: 2.2rem;
+            }
+            
+            .app-header {
+                padding: 25px 30px;
+            }
+            
+            .form-container {
+                padding: 30px;
+            }
+            
+            .form-grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+                gap: 25px;
+            }
+        }
+        
+        @media (max-width: 768px) {
+            body {
+                padding: 10px;
+            }
+            
+            .app-container {
+                border-radius: 15px;
+            }
+            
+            .app-title {
+                font-size: 1.9rem;
+                flex-direction: column;
+                gap: 10px;
+            }
+            
+            .app-header, .form-container, .actions-container {
+                padding: 20px;
+            }
+            
+            .form-grid {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .tabs-container {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+            
+            .tab {
+                flex: 1;
+                min-width: 160px;
+                padding: 15px;
+                justify-content: center;
+            }
+            
+            .tab-icon {
+                display: none;
+            }
+            
+            .actions-container {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .btn-prev, .btn-next, .btn-submit {
+                padding: 18px;
+            }
+        }
+        
+        input:invalid, select:invalid, textarea:invalid {
+            border-color: #e74c3c;
+        }
+        
+        input:valid, select:valid, textarea:valid {
+            border-color: #2ecc71;
+        }
+        
+        .form-group {
+            position: relative;
+        }
+        
+        .form-group:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 0;
+            background: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 0.85rem;
+            white-space: nowrap;
+            z-index: 1000;
+            margin-bottom: 5px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: all 0.3s ease;
+            pointer-events: none;
+        }
+        
+        .form-group:hover::after {
+            opacity: 1;
+            transform: translateY(0);
+        }
     </style>
 </head>
 <body>
@@ -596,6 +1148,16 @@
             </div>
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+        
+        <!-- Debug Console (hidden by default) -->
+        <div style="padding: 0 40px; margin-top: 10px;">
+            <button onclick="toggleDebug()" style="background: #6c757d; color: white; border: none; padding: 8px 15px; border-radius: 5px; font-size: 12px; cursor: pointer;">
+                Toggle Debug Console
+            </button>
+            <div id="debugConsole" style="display: none; background: #2c3e50; color: white; padding: 15px; border-radius: 8px; margin-top: 10px; font-family: monospace; font-size: 12px; max-height: 200px; overflow-y: auto;">
+                <div id="debugLog"></div>
             </div>
         </div>
         
@@ -636,10 +1198,10 @@
     <script>
         // ========== CONFIGURATION ==========
         const CONFIG = {
-            // UPDATE THIS WITH YOUR WEB APP URL
-            scriptUrl: 'https://script.google.com/macros/s/AKfycby_KpVbrAWkoBjspVf5IcKAPS9p-to_AveOfJcdaYZ7NJRPrdApvWhbGBclo3GvCRw2SQ/exec',
+            // ⚠️ REPLACE THIS WITH YOUR ACTUAL WEB APP URL ⚠️
+            scriptUrl: 'https://script.google.com/macros/s/AKfycbxM8Ivk6_FsaIX9vfvrgLw12IRJlzRSjmJ0_CEB6_xXdIc3WdGk49ulYxWaoUNOJsAWog/exec',
             
-            // All 11 sheets with complete fields
+            // All 11 sheets configuration
             sheets: [
                 {
                     name: "Employee details",
@@ -702,7 +1264,181 @@
                         { id: "Personal mobile number", label: "Personal Mobile Number", type: "tel" }
                     ]
                 },
-                // ... (keep all other sheets exactly as they are)
+                {
+                    name: "Emergency contact details",
+                    title: "Emergency Contact",
+                    icon: "🚨",
+                    description: "Emergency contact person details",
+                    fields: [
+                        { id: "Employee ID", label: "Employee ID", type: "text", required: true },
+                        { id: "Contact Person Name", label: "Contact Person Name", type: "text", required: true },
+                        { id: "Relationship", label: "Relationship", type: "select", options: ["Spouse", "Parent", "Sibling", "Child", "Relative", "Friend"] },
+                        { id: "Address", label: "Address", type: "text" },
+                        { id: "City", label: "City", type: "text" },
+                        { id: "State", label: "State", type: "text" },
+                        { id: "Zip Code", label: "Zip Code", type: "text" },
+                        { id: "Nationality", label: "Nationality", type: "text" },
+                        { id: "Mobile Number", label: "Mobile Number", type: "tel", required: true }
+                    ]
+                },
+                {
+                    name: "Bank details",
+                    title: "Bank Information",
+                    icon: "🏦",
+                    description: "Employee's bank account details",
+                    fields: [
+                        { id: "Employee Number", label: "Employee Number", type: "text", required: true },
+                        { id: "Account Holder Name", label: "Account Holder Name", type: "text", required: true },
+                        { id: "Bank Type", label: "Bank Type", type: "select", options: ["C", "S", "P", "O"] },
+                        { id: "Corporate Bank Name", label: "Corporate Bank Name", type: "text" },
+                        { id: "Bank Name", label: "Bank Name", type: "text", required: true },
+                        { id: "Employee Bank Account No", label: "Bank Account Number", type: "text", required: true },
+                        { id: "Sort Code", label: "Sort Code", type: "text" },
+                        { id: "Account Type", label: "Account Type", type: "select", options: ["Salary", "Savings", "Current", "Joint"] },
+                        { id: "Currency", label: "Currency", type: "text", defaultValue: "Indian Rupee" },
+                        { id: "Bank URL", label: "Bank URL", type: "url" },
+                        { id: "Bank Phone", label: "Bank Phone", type: "tel" },
+                        { id: "Bank Address", label: "Bank Address", type: "text" },
+                        { id: "Bank Branch Name", label: "Bank Branch Name", type: "text" },
+                        { id: "Contact Person", label: "Contact Person", type: "text" },
+                        { id: "Charge Code", label: "Charge Code", type: "text" },
+                        { id: "Swift Code", label: "Swift Code", type: "text" },
+                        { id: "Transfer Type", label: "Transfer Type", type: "text" },
+                        { id: "%NET PAY", label: "% of Net Pay", type: "number", min: 0, max: 100 },
+                        { id: "Is Salary Account", label: "Salary Account?", type: "select", options: ["Y", "N"] },
+                        { id: "Country of Bank", label: "Country of Bank", type: "text" },
+                        { id: "IFS Number", label: "IFS Number", type: "text" }
+                    ]
+                },
+                {
+                    name: "Family details",
+                    title: "Family Information",
+                    icon: "👨‍👩‍👧‍👦",
+                    description: "Family member details",
+                    fields: [
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Grandparent", "Other"], required: true },
+                        { id: "Name", label: "Name", type: "text", required: true },
+                        { id: "Date of Birth", label: "Date of Birth", type: "date" },
+                        { id: "Gender", label: "Gender", type: "select", options: ["Male", "Female", "Other"] },
+                        { id: "Dependent", label: "Dependent?", type: "select", options: ["Yes", "No"] },
+                        { id: "Nationality", label: "Nationality", type: "text" },
+                        { id: "Occuption", label: "Occupation", type: "text" },
+                        { id: "Minor", label: "Minor?", type: "select", options: ["Yes", "No"] },
+                        { id: "Address", label: "Address", type: "text" },
+                        { id: "Smoker", label: "Smoker?", type: "select", options: ["Yes", "No"], defaultValue: "No" },
+                        { id: "Student", label: "Student?", type: "select", options: ["Yes", "No"], defaultValue: "No" },
+                        { id: "Insured", label: "Insured?", type: "select", options: ["Yes", "No"], defaultValue: "No" }
+                    ]
+                },
+                {
+                    name: "Past employment details",
+                    title: "Employment History",
+                    icon: "💼",
+                    description: "Previous employment details",
+                    fields: [
+                        { id: "Assoicate No", label: "Associate Number", type: "text" },
+                        { id: "Company Name", label: "Company Name", type: "text" },
+                        { id: "Address", label: "Company Address", type: "text" },
+                        { id: "Job Title", label: "Job Title", type: "text" },
+                        { id: "From Date", label: "From Date", type: "date" },
+                        { id: "To Date", label: "To Date", type: "date" },
+                        { id: "Salary On Leaving", label: "Salary on Leaving", type: "number" },
+                        { id: "Currency", label: "Currency", type: "text" },
+                        { id: "Designation On Joining", label: "Designation on Joining", type: "text" },
+                        { id: "Designation On Leaving", label: "Designation on Leaving", type: "text" },
+                        { id: "Nuber of Reporting People", label: "Number of Reporting People", type: "number" },
+                        { id: "Industry Type", label: "Industry Type", type: "text" },
+                        { id: "Roles", label: "Roles", type: "text" },
+                        { id: "Key Experience", label: "Key Experience", type: "textarea" },
+                        { id: "Reson for Leaving", label: "Reason for Leaving", type: "textarea" },
+                        { id: "Breaks in Career", label: "Breaks in Career", type: "text" },
+                        { id: "No.of Months Experience", label: "Months of Experience", type: "number" },
+                        { id: "Contact Number", label: "Contact Number", type: "tel" }
+                    ]
+                },
+                {
+                    name: "Driving license",
+                    title: "Driving License",
+                    icon: "🚗",
+                    description: "Driving license details",
+                    fields: [
+                        { id: "Assoicate No", label: "Associate Number", type: "text" },
+                        { id: "License Number", label: "License Number", type: "text" },
+                        { id: "Place of Insurance", label: "Place of Insurance", type: "text" },
+                        { id: "Issue Date", label: "Issue Date", type: "date" },
+                        { id: "Expriy Date", label: "Expiry Date", type: "date" },
+                        { id: "IDP Issue Date", label: "IDP Issue Date", type: "date" },
+                        { id: "IDP Expiry Date", label: "IDP Expiry Date", type: "date" },
+                        { id: "IDP Issue Place", label: "IDP Issue Place", type: "text" }
+                    ]
+                },
+                {
+                    name: "Education details",
+                    title: "Education Details",
+                    icon: "🎓",
+                    description: "Educational qualifications",
+                    fields: [
+                        { id: "Type of Establishment", label: "Type of Establishment", type: "text" },
+                        { id: "Name of Establishment", label: "Name of Establishment", type: "text" },
+                        { id: "Disciplince", label: "Discipline", type: "text" },
+                        { id: "Affiliated To", label: "Affiliated To", type: "text" },
+                        { id: "Address of Institute", label: "Institute Address", type: "text" },
+                        { id: "Passing Year", label: "Passing Year", type: "number", min: 1900, max: 2100 },
+                        { id: "Grade", label: "Grade", type: "text" },
+                        { id: "Level", label: "Level", type: "text" },
+                        { id: "Subject", label: "Subject", type: "text" },
+                        { id: "Major Filed", label: "Major Field", type: "text" },
+                        { id: "Minor Filed", label: "Minor Field", type: "text" },
+                        { id: "Attended From", label: "Attended From", type: "date" },
+                        { id: "Attended To", label: "Attended To", type: "date" }
+                    ]
+                },
+                {
+                    name: "EPF nominee details (FORM 2)",
+                    title: "EPF Nominee",
+                    icon: "📄",
+                    description: "EPF nominee details",
+                    fields: [
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
+                        { id: "Date of Birth", label: "Date of Birth", type: "date" },
+                        { id: "% Amount of Nominee", label: "Percentage Amount", type: "number", min: 0, max: 100 },
+                        { id: "Name and Address of Guardian", label: "Guardian Name & Address", type: "textarea" }
+                    ]
+                },
+                {
+                    name: "ESI nominee details (FORM 1)Br",
+                    title: "ESI Nominee",
+                    icon: "🏥",
+                    description: "ESI nominee details",
+                    fields: [
+                        { id: "Branch Office", label: "Branch Office", type: "text" },
+                        { id: "Dispensery", label: "Dispensary", type: "text" },
+                        { id: "Date of Appoinment", label: "Date of Appointment", type: "date" },
+                        { id: "Insurance No", label: "Insurance Number", type: "text" },
+                        { id: "Employer code No", label: "Employer Code", type: "text" },
+                        { id: "Employer Name", label: "Employer Name", type: "text" },
+                        { id: "Email Address", label: "Email Address", type: "email" },
+                        { id: "Address of the Employer", label: "Employer Address", type: "text" },
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
+                        { id: "Date of Birth", label: "Date of Birth", type: "date" },
+                        { id: "Address of the Employee", label: "Employee Address", type: "text" }
+                    ]
+                },
+                {
+                    name: "Gratuity nominee details (FORM",
+                    title: "Gratuity Nominee",
+                    icon: "💰",
+                    description: "Gratuity nominee details",
+                    fields: [
+                        { id: "Relation Ship", label: "Relationship", type: "select", options: ["Spouse", "Child", "Parent", "Sibling", "Other"] },
+                        { id: "Relation Ship Name", label: "Nominee Name", type: "text" },
+                        { id: "Date of Birth", label: "Date of Birth", type: "date" },
+                        { id: "% Amount of Nominee", label: "Percentage Amount", type: "number", min: 0, max: 100 },
+                        { id: "Name and Address of Guardian", label: "Guardian Name & Address", type: "textarea" }
+                    ]
+                }
             ]
         };
 
@@ -710,6 +1446,25 @@
         let currentSection = 0;
         let formData = {};
         let isSubmitting = false;
+        let debugMode = false;
+
+        // ========== DEBUG FUNCTIONS ==========
+        function toggleDebug() {
+            debugMode = !debugMode;
+            const debugConsole = document.getElementById('debugConsole');
+            debugConsole.style.display = debugMode ? 'block' : 'none';
+            if (debugMode) {
+                logDebug('Debug mode enabled');
+            }
+        }
+
+        function logDebug(message) {
+            const debugLog = document.getElementById('debugLog');
+            const timestamp = new Date().toLocaleTimeString();
+            debugLog.innerHTML += `[${timestamp}] ${message}<br>`;
+            debugLog.scrollTop = debugLog.scrollHeight;
+            console.log(message);
+        }
 
         // ========== INITIALIZATION ==========
         function init() {
@@ -719,6 +1474,7 @@
             updateProgress();
             updateButtons();
             autoTestConnection();
+            logDebug('Application initialized');
         }
 
         // ========== TAB MANAGEMENT ==========
@@ -824,6 +1580,7 @@
                 section.appendChild(grid);
                 formContainer.appendChild(section);
             });
+            logDebug('Forms created successfully');
         }
 
         // ========== NAVIGATION ==========
@@ -842,6 +1599,7 @@
             updateProgress();
             updateButtons();
             
+            logDebug(`Switched to section ${index + 1}: ${CONFIG.sheets[index].title}`);
             return true;
         }
 
@@ -906,6 +1664,7 @@
             inputs.forEach(input => {
                 formData[input.name] = input.value;
             });
+            logDebug(`Saved data for section ${currentSection + 1}`);
         }
 
         // ========== PROGRESS & UI ==========
@@ -941,6 +1700,8 @@
             messageDiv.className = `message ${type}`;
             messageDiv.style.display = 'block';
             
+            logDebug(`Message [${type}]: ${text}`);
+            
             if (type === 'success') {
                 setTimeout(() => {
                     messageDiv.style.display = 'none';
@@ -957,10 +1718,10 @@
                 if (data.success) {
                     document.getElementById('statusText').textContent = `Connected to: ${data.spreadsheet}`;
                     document.getElementById('statusIndicator').className = 'status-indicator connected';
-                    console.log('✅ Connection successful:', data);
+                    logDebug(`Auto-connection successful: ${data.spreadsheet}`);
                 }
             } catch (error) {
-                console.log('Auto-connection test failed:', error);
+                logDebug(`Auto-connection failed: ${error.message}`);
             }
         }
 
@@ -972,6 +1733,7 @@
             testBtn.disabled = true;
             
             try {
+                logDebug(`Testing connection to: ${CONFIG.scriptUrl}`);
                 const response = await fetch(`${CONFIG.scriptUrl}?test=true`);
                 const data = await response.json();
                 
@@ -979,12 +1741,14 @@
                     showMessage(`✅ Connected to "${data.spreadsheet}" with ${data.sheetCount} sheets`, 'success');
                     document.getElementById('statusText').textContent = `Connected to: ${data.spreadsheet}`;
                     document.getElementById('statusIndicator').className = 'status-indicator connected';
+                    logDebug(`Connection successful: ${JSON.stringify(data)}`);
                 } else {
                     showMessage(`❌ Connection failed: ${data.error}`, 'error');
+                    logDebug(`Connection failed: ${data.error}`);
                 }
             } catch (error) {
                 showMessage(`❌ Connection error: ${error.message}`, 'error');
-                console.error('Test connection error:', error);
+                logDebug(`Connection error: ${error.message}`);
             } finally {
                 testBtn.innerHTML = originalText;
                 testBtn.disabled = false;
@@ -1006,6 +1770,7 @@
             submitBtn.disabled = true;
             
             showMessage('Submitting data to Google Sheets... Please wait.', 'info');
+            logDebug('Starting data submission...');
             
             try {
                 let successCount = 0;
@@ -1018,7 +1783,7 @@
                         sheetData[field.id] = formData[field.id] || '';
                     });
                     
-                    console.log(`Submitting to ${sheet.name}:`, sheetData);
+                    logDebug(`Preparing data for ${sheet.name}: ${JSON.stringify(sheetData).substring(0, 100)}...`);
                     
                     try {
                         const response = await fetch(CONFIG.scriptUrl, {
@@ -1030,8 +1795,7 @@
                             body: JSON.stringify({
                                 sheetName: sheet.name,
                                 rowData: sheetData
-                            }),
-                            mode: 'cors'
+                            })
                         });
                         
                         if (!response.ok) {
@@ -1039,21 +1803,24 @@
                         }
                         
                         const result = await response.json();
-                        console.log(`Response for ${sheet.name}:`, result);
+                        logDebug(`Response for ${sheet.name}: ${JSON.stringify(result)}`);
                         
                         if (result.success) {
                             successCount++;
+                            logDebug(`✅ ${sheet.name}: ${result.message}`);
                         } else {
-                            failedSheets.push(`${sheet.name}: ${result.error}`);
+                            failedSheets.push(sheet.name);
+                            logDebug(`❌ ${sheet.name}: ${result.error}`);
                         }
                     } catch (error) {
-                        failedSheets.push(`${sheet.name}: ${error.message}`);
-                        console.error(`❌ ${sheet.name}:`, error);
+                        failedSheets.push(sheet.name);
+                        logDebug(`❌ ${sheet.name} submission error: ${error.message}`);
                     }
                 }
                 
                 if (successCount === CONFIG.sheets.length) {
                     showMessage('✅ All data submitted successfully! Form will reset in 3 seconds...', 'success');
+                    logDebug('All data submitted successfully!');
                     
                     setTimeout(() => {
                         document.querySelectorAll('input, select, textarea').forEach(input => {
@@ -1066,15 +1833,17 @@
                         formData = {};
                         showSection(0);
                         showMessage('Form reset. Ready for next employee!', 'info');
+                        logDebug('Form reset successfully');
                     }, 3000);
                     
                 } else {
                     showMessage(`Submitted ${successCount}/${CONFIG.sheets.length} sheets. Failed: ${failedSheets.join(', ')}`, 'error');
+                    logDebug(`Partial submission: ${successCount} success, ${failedSheets.length} failed`);
                 }
                 
             } catch (error) {
                 showMessage(`❌ Submission error: ${error.message}`, 'error');
-                console.error('Submission error:', error);
+                logDebug(`Submission error: ${error.message}`);
                 
             } finally {
                 isSubmitting = false;
