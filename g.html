@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cashier-wise Customer Count Report</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+        
+        body {
+            background-color: #f5f7fa;
+            color: #333;
+            line-height: 1.6;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 10px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            overflow: hidden;
+        }
+        
+        header {
+            background: linear-gradient(135deg, #1a6dcc 0%, #0d4d9c 100%);
+            color: white;
+            padding: 25px 30px;
+            border-bottom: 5px solid #0a3d7a;
+        }
+        
+        h1 {
+            font-size: 26px;
+            margin-bottom: 8px;
+            font-weight: 600;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+            opacity: 0.9;
+            margin-bottom: 5px;
+        }
+        
+        .date-range {
+            font-size: 14px;
+            background-color: rgba(255, 255, 255, 0.15);
+            padding: 5px 10px;
+            border-radius: 4px;
+            display: inline-block;
+            margin-top: 10px;
+        }
+        
+        .controls {
+            padding: 20px 30px;
+            background-color: #f8f9fa;
+            border-bottom: 1px solid #eaeaea;
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        
+        .file-upload {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+        }
+        
+        .btn {
+            background-color: #1a6dcc;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .btn:hover {
+            background-color: #0d4d9c;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(13, 77, 156, 0.2);
+        }
+        
+        .btn-success {
+            background-color: #2e7d32;
+        }
+        
+        .btn-success:hover {
+            background-color: #1b5e20;
+        }
+        
+        .file-upload input[type="file"] {
+            position: absolute;
+            left: 0;
+            top: 0;
+            opacity: 0;
+            width: 100%;
+            height: 100%;
+            cursor: pointer;
+        }
+        
+        .report-section {
+            padding: 20px 30px;
+        }
+        
+        .report-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #eaeaea;
+        }
+        
+        .report-title {
+            font-size: 22px;
+            color: #0d4d9c;
+            font-weight: 600;
+        }
+        
+        .stats-summary {
+            display: flex;
+            gap: 20px;
+            background-color: #f0f7ff;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+        
+        .stat-box {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 15px;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+        }
+        
+        .stat-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: #1a6dcc;
+            margin-bottom: 5px;
+        }
+        
+        .stat-label {
+            font-size: 14px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 10px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+        }
+        
+        th {
+            background-color: #1a6dcc;
+            color: white;
+            text-align: left;
+            padding: 15px 12px;
+            font-weight: 600;
+            border: none;
+        }
+        
+        tr {
+            border-bottom: 1px solid #eaeaea;
+            transition: background-color 0.2s;
+        }
+        
+        tr:hover {
+            background-color: #f8fafd;
+        }
+        
+        td {
+            padding: 14px 12px;
+            color: #333;
+        }
+        
+        .cashier-code {
+            font-weight: 600;
+            color: #1a6dcc;
+        }
+        
+        .ftd-value {
+            font-weight: 600;
+            color: #0d4d9c;
+        }
+        
+        .mtd-value {
+            font-weight: 600;
+            color: #2e7d32;
+        }
+        
+        .total-row {
+            background-color: #f0f7ff;
+            font-weight: 700;
+        }
+        
+        .total-row td {
+            border-top: 2px solid #1a6dcc;
+            font-size: 16px;
+        }
+        
+        .footer {
+            padding: 20px 30px;
+            text-align: center;
+            color: #666;
+            font-size: 14px;
+            border-top: 1px solid #eaeaea;
+            background-color: #f8f9fa;
+        }
+        
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 5px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.15);
+            transform: translateX(150%);
+            transition: transform 0.4s ease;
+        }
+        
+        .notification.success {
+            background-color: #2e7d32;
+        }
+        
+        .notification.error {
+            background-color: #c62828;
+        }
+        
+        .notification.show {
+            transform: translateX(0);
+        }
+        
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top: 4px solid #1a6dcc;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-panel {
+            background-color: #e8f4fd;
+            border-left: 4px solid #1a6dcc;
+            padding: 15px 20px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        
+        .info-text {
+            font-size: 15px;
+            color: #0d4d9c;
+        }
+        
+        .highlight {
+            background-color: #fff3cd;
+            color: #856404;
+            padding: 3px 8px;
+            border-radius: 3px;
+            font-weight: 600;
+        }
+        
+        .date-detection {
+            background-color: #d4edda;
+            color: #155724;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+        
+        .capture-marker {
+            border-left: 4px solid #2e7d32;
+            padding-left: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #2e7d32;
+            font-weight: 500;
+        }
+        
+        @media (max-width: 768px) {
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .btn {
+                width: 100%;
+                justify-content: center;
+            }
+            
+            .stats-summary {
+                flex-direction: column;
+            }
+            
+            table {
+                display: block;
+                overflow-x: auto;
+            }
+            
+            .report-header {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Cashier-wise Customer Count Report</h1>
+            <div class="subtitle">Pothys - Madurai Branch</div>
+            <div class="date-range" id="dateRange">Upload a CSV file to generate report</div>
+        </header>
+        
+        <div class="controls">
+            <div class="file-upload">
+                <button class="btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                        <path d="M.5 9.9a.5.5 0 0 1 .5.5v2.5a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1v-2.5a.5.5 0 0 1 1 0v2.5a2 2 0 0 1-2 2H2a2 2 0 0 1-2-2v-2.5a.5.5 0 0 1 .5-.5z"/>
+                        <path d="M7.646 11.854a.5.5 0 0 0 .708 0l3-3a.5.5 0 0 0-.708-.708L8.5 10.293V1.5a.5.5 0 0 0-1 0v8.793L5.354 8.146a.5.5 0 1 0-.708.708l3 3z"/>
+                    </svg>
+                    Upload CSV File
+                </button>
+                <input type="file" id="csvFile" accept=".csv">
+            </div>
+            
+            <button class="btn btn-success" id="copyImage">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+                    <path d="M4.5 3a2.5 2.5 0 0 1 5 0 2.5 2.5 0 0 1 5 0v.5h.5a2 2 0 0 1 1.99 2.199l-.2 1.984A3 3 0 0 1 13.5 10h-1.305l1.204 1.204A.5.5 0 0 1 13.1 12H2.9a.5.5 0 0 1-.409-.791L3.805 10H2.5a3 3 0 0 1-2.99-3.317L.5 5.5A2 2 0 0 1 2.5 3.5h.5V3zm1 0v.5h3V3a1.5 1.5 0 0 0-3 0zm6 0v.5h3V3a1.5 1.5 0 0 0-3 0z"/>
+                </svg>
+                Copy Report as Image
+            </button>
+        </div>
+        
+        <div class="loading" id="loadingIndicator">
+            <div class="spinner"></div>
+            <p>Processing CSV data...</p>
+        </div>
+        
+        <div class="report-section">
+            <div class="info-panel">
+                <div class="info-text">
+                    FTD (For The Day) is calculated for: <span class="highlight" id="ftdDate">--/--/----</span>
+                    <div class="date-detection" id="dateDetection">
+                        Upload a CSV file to auto-detect FTD date
+                    </div>
+                </div>
+            </div>
+            
+            <!-- IMAGE CAPTURE STARTS FROM HERE -->
+            <div class="capture-marker">Image capture </div>
+            
+            <!-- THIS IS THE STARTING POINT FOR IMAGE CAPTURE -->
+            <div class="report-content" id="reportContent">
+                <div class="report-header">
+                    <div class="report-title" id="reportHeading">GREENCARD ISSUE REPORT FTD & MTD - MADURAI BRANCH</div>
+                    <div class="last-update" id="lastUpdate"></div>
+                </div>
+                
+                <div class="stats-summary">
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalCashiers">0</div>
+                        <div class="stat-label">Counters</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalFTD">0</div>
+                        <div class="stat-label">FTD Total</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalMTD">0</div>
+                        <div class="stat-label">MTD Total</div>
+                    </div>
+                    <div class="stat-box">
+                        <div class="stat-value" id="totalCustomers">0</div>
+                        <div class="stat-label">Total Customers</div>
+                    </div>
+                </div>
+                
+                <div id="reportTable"></div>
+            </div>
+        </div>
+        
+        <div class="footer">
+           
+            <p style="font-size: 12px; margin-top: 10px; color: #888;">
+                
+            </p>
+        </div>
+    </div>
+    
+    <div class="notification" id="notification"></div>
+
+    <!-- Include html2canvas for image capture -->
+    <script src="https://html2canvas.hertzen.com/dist/html2canvas.min.js"></script>
+
+    <script>
+        // Cashier mapping based on the second file
+        const cashierMapping = {
+            "GCC4": { name: "BALA M", floor: "BASEMENT" },
+            "GCC15": { name: "MUTHURAJ", floor: "BASEMENT" },
+            "GCC16": { name: "PARTHIBAN", floor: "BASEMENT" },
+            "GCC17": { name: "PALANI", floor: "BASEMENT" },
+            "GCC1": { name: "VAITHEEWARAN", floor: "GROUND FLOOR" },
+            "GCC18": { name: "MURUGAN", floor: "GROUND FLOOR" },
+            "GCC19": { name: "KUPPUSAMY", floor: "GROUND FLOOR" },
+            "GCC20": { name: "BALAMURUGAN", floor: "GROUND FLOOR" },
+            "CG5": { name: "SOMASUNDARAM (Home Furnishing)", floor: "GROUND FLOOR" },
+            "GCC2": { name: "JOHNPAUL", floor: "1 ST FLOOR" },
+            "GCC6": { name: "KARUPPASAMY", floor: "1 ST FLOOR" },
+            "GCC7": { name: "MUTHUKUMAR", floor: "1 ST FLOOR" },
+            "GCC8": { name: "ARUMUGAM", floor: "1 ST FLOOR" },
+            "GCC3": { name: "SENTHILKUMAR", floor: "2ND FLOOR" },
+            "GCC9": { name: "SIVA", floor: "2ND FLOOR" },
+            "GCC10": { name: "KALIMANICKAM", floor: "2ND FLOOR" },
+            "GCC11": { name: "KARUPPIAH", floor: "2ND FLOOR" },
+            "GCC5": { name: "MUTHUKRISHNAN", floor: "3RD FLOOR" },
+            "GCC12": { name: "SIVAGURUNATHAN", floor: "3RD FLOOR" },
+            "GCC13": { name: "MANIKANDAN", floor: "3RD FLOOR" },
+            "GCC14": { name: "RAJAMANICKAM", floor: "3RD FLOOR" },
+            "gc": { name: "GREEN CARD", floor: "GREEN CARD COUNTER" }
+        };
+
+        // Month names for display
+        const monthNames = [
+            "JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE",
+            "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"
+        ];
+
+        // DOM Elements
+        const csvFileInput = document.getElementById('csvFile');
+        const copyImageBtn = document.getElementById('copyImage');
+        const loadingIndicator = document.getElementById('loadingIndicator');
+        const notification = document.getElementById('notification');
+        const reportTable = document.getElementById('reportTable');
+        const totalCashiers = document.getElementById('totalCashiers');
+        const totalFTD = document.getElementById('totalFTD');
+        const totalMTD = document.getElementById('totalMTD');
+        const totalCustomers = document.getElementById('totalCustomers');
+        const lastUpdate = document.getElementById('lastUpdate');
+        const dateRange = document.getElementById('dateRange');
+        const ftdDateElement = document.getElementById('ftdDate');
+        const dateDetection = document.getElementById('dateDetection');
+        const reportHeading = document.getElementById('reportHeading');
+        const reportContent = document.getElementById('reportContent');
+
+        // Global variables
+        let currentCashierData = {};
+        let currentFtdDate = '';
+        let allDates = [];
+        let reportMonth = '';
+        let reportYear = '';
+
+        // Parse CSV data
+        function parseCSV(csvText) {
+            showLoading(true);
+            
+            try {
+                const lines = csvText.split('\n');
+                const cashierData = {};
+                let currentCashier = null;
+                let dateRangeText = "";
+                allDates = [];
+                
+                // Reset global variables
+                currentCashierData = {};
+                currentFtdDate = '';
+                reportMonth = '';
+                reportYear = '';
+                
+                for (let line of lines) {
+                    line = line.trim();
+                    if (line === '') continue;
+                    
+                    // Remove quotes and split by comma
+                    const cells = line.replace(/"/g, '').split(',');
+                    
+                    // Extract date range from report header if available
+                    if (line.includes('Report From') && line.includes('to')) {
+                        const match = line.match(/Report From (.*?) to (.*?)(?:,|$)/);
+                        if (match) {
+                            dateRangeText = `${match[1].trim()} to ${match[2].trim()}`;
+                            dateRange.textContent = `Report Period: ${dateRangeText}`;
+                            
+                            // Extract month and year from the date range
+                            const startDate = match[1].trim();
+                            const dateParts = startDate.split('-');
+                            if (dateParts.length === 3) {
+                                const day = parseInt(dateParts[0]);
+                                const month = parseInt(dateParts[1]);
+                                const year = parseInt(dateParts[2]);
+                                
+                                reportMonth = monthNames[month - 1] || '';
+                                reportYear = year;
+                            }
+                        }
+                    }
+                    
+                    // Check if this is a cashier header line (cashier code in first cell, empty second cell)
+                    if (cells.length >= 2 && cells[0] !== '' && cells[1] === '') {
+                        currentCashier = cells[0];
+                        if (!cashierData[currentCashier]) {
+                            cashierData[currentCashier] = [];
+                        }
+                    }
+                    // Check if this is a data row (date, cashier code, count)
+                    else if (cells.length >= 3 && cells[0] !== '' && cells[1] !== '' && cells[2] !== '' && 
+                            cells[0] !== 'DOJ' && cells[1] !== 'Cashier Code') {
+                        const date = cells[0];
+                        const cashierCode = cells[1];
+                        const count = parseInt(cells[2]) || 0;
+                        
+                        if (!cashierData[cashierCode]) {
+                            cashierData[cashierCode] = [];
+                        }
+                        
+                        cashierData[cashierCode].push({ date, count });
+                        
+                        // Collect all unique dates
+                        if (!allDates.includes(date)) {
+                            allDates.push(date);
+                        }
+                        
+                        // If we haven't extracted month/year from header, extract from data
+                        if (!reportMonth) {
+                            const dateParts = date.split('-');
+                            if (dateParts.length === 3) {
+                                const month = parseInt(dateParts[1]);
+                                const year = parseInt(dateParts[2]);
+                                reportMonth = monthNames[month - 1] || '';
+                                reportYear = year;
+                            }
+                        }
+                    }
+                }
+                
+                // Store cashier data globally
+                currentCashierData = cashierData;
+                
+                // Auto-detect the last date for FTD calculation
+                if (allDates.l
