@@ -572,9 +572,9 @@ class UnifiedHandler(BaseHTTPRequestHandlerInHerit):
                 self._write(cb + "({'mac_address':'" + mac_hex + "','status':'success'})")
             elif qs.get('barcodes', [''])[0]:
                 self.printit(qs.get('barcodes', [''])[0])
-                self._write("Working!!!\\\\n")
+                self._write("Working!!!\n")
             else:
-                self._write("Server is running, but no valid parameters provided.\\\\n")
+                self._write("Server is running, but no valid parameters provided.\n")
         except Exception as e:
             traceback.print_exc()
             self.send_error(500, "Internal Server Error")
