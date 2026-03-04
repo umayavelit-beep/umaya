@@ -241,7 +241,7 @@
     <div class="container">
         <header>
             <h1>🚀 Alpos Python</h1>
-            <p class="subtitle">Compatibility: Linux Mint 19.3 - 22.2</p>
+            <p class="subtitle">Compatible with Linux Mint 19.3 - 22.2</p>
         </header>
         
         <section class="section">
@@ -296,47 +296,44 @@ sudo apt-get install -f</code>
         
         <section class="section">
             <h2 class="section-title">🔍 Printer Port Detection</h2>
-            <p>Printer Port Check Commands:</p>
+            <p>First, list all connected USB devices:</p>
             
             <div class="code-block">
                 <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/usb/lp0</code>
+                <code>lsusb</code>
+            </div>
+            
+            <p>Test the printer ports to find which one is active. The command that successfully prints indicates your correct printer port:</p>
+            
+            <div class="code-block">
+                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                <code>ls > /dev/usb/lp0</code>
             </div>
             
             <div class="code-block">
                 <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/usb/lp1</code>
+                <code>ls > /dev/usb/lp1</code>
             </div>
             
             <div class="code-block">
                 <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/usb/lp2</code>
+                <code>ls > /dev/usb/lp2</code>
             </div>
             
             <div class="code-block">
                 <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/usb/lp3</code>
-            </div>
-            
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/lp0</code>
-            </div>
-            
-            <div class="code-block">
-                <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
-                <code>sudo su ls >/dev/usblp0</code>
+                <code>ls > /dev/usb/lp3</code>
             </div>
             
             <div class="note">
-                <p><strong>Note:</strong> The command that successfully prints indicates your correct printer port.</p>
+                <p><strong>Note:</strong> If a command prints successfully (you see output or the printer responds), that is your correct printer port. Usually it will be <strong>/dev/usb/lp0</strong>, <strong>/dev/usb/lp1</strong>, or <strong>/dev/usb/lp2</strong>.</p>
             </div>
         </section>
         
         <section class="section">
-            <h2 class="section-title">🛠️ Universal Configuration</h2>
+            <h2 class="section-title">⚙️ Printer Port Configuration</h2>
             <div class="warning">
-                <p><strong>Important:</strong> Select your printer port from the dropdown below. The configuration command will update automatically.</p>
+                <p><strong>Important:</strong> Select your printer port from the dropdown below. The configuration command will update automatically with your selected port.</p>
             </div>
             
             <div class="printer-config">
@@ -345,119 +342,62 @@ sudo apt-get install -f</code>
                     <select id="printer-path" onchange="updateCommand()">
                         <option value="/dev/usb/lp0">/dev/usb/lp0</option>
                         <option value="/dev/usb/lp1">/dev/usb/lp1</option>
-                        <option value="/dev/usb/lp2" selected>/dev/usb/lp2</option>
+                        <option value="/dev/usb/lp2">/dev/usb/lp2</option>
                         <option value="/dev/usb/lp3">/dev/usb/lp3</option>
-                        <option value="/dev/lp0">/dev/lp0</option>
-                        <option value="/dev/usblp0">/dev/usblp0</option>
                     </select>
                 </div>
                 
-                <p>🖨️ Configuration command with selected printer path:</p>
+                <p>🖨️ Follow these steps to configure your printer port:</p>
+                
+                <ol>
+                    <li><strong>Stop the HTTP server service:</strong></li>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <code>sudo systemctl stop http-server.service</code>
+                    </div>
+                    
+                    <li><strong>Edit the Python file with root privileges:</strong></li>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <code>sudo nano /usr/local/bin/http_server.py</code>
+                    </div>
+                    
+                    <li><strong>Find and change the target_path line:</strong></li>
+                    <p>Look for this line in the file:</p>
+                    <div class="code-block">
+                        <code>target_path = '/dev/usb/lp0'</code>
+                    </div>
+                    <p>Change it to your tested printer port (e.g., <strong>/dev/usb/lp1</strong> or <strong>/dev/usb/lp2</strong>):</p>
+                    <div class="code-block">
+                        <code>target_path = '<span id="selected-path-display">/dev/usb/lp2</span>'</code>
+                    </div>
+                    <p>Save the file (in nano: Ctrl+O, then Enter, then Ctrl+X to exit).</p>
+                    
+                    <li><strong>Restart the HTTP server service:</strong></li>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <code>sudo systemctl start http-server.service</code>
+                    </div>
+                </ol>
                 
                 <div class="command-box" id="config-command">
                     <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
                     <code id="command-text"># Stop the service first
 sudo systemctl stop http-server.service
 
-# Apply custom configuration
-sudo bash -c 'cat > /usr/local/bin/http_server.py << EOF
-#!/usr/bin/env python3
-import sys, socket, traceback, base64, io, os, time
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
-from uuid import getnode as get_mac
+# Edit the Python file
+sudo nano /usr/local/bin/http_server.py
 
-PORT_NUMBER = 8080
-
-class BaseHTTPRequestHandlerInHerit(BaseHTTPRequestHandler):
-    def handle_one_request(self):
-        try:
-            self.raw_requestline = self.rfile.readline(65537000)
-            if len(self.raw_requestline) > 65536000:
-                self.send_error(414)
-                return
-            if not self.raw_requestline:
-                self.close_connection = 1
-                return
-            if not self.parse_request():
-                return
-            method = getattr(self, 'do_' + self.command, None)
-            if not method:
-                self.send_error(501, "Unsupported method")
-                return
-            method()
-            self.wfile.flush()
-        except socket.timeout as e:
-            self.log_error("Request timed out: %r" % e)
-            self.close_connection = 1
-
-class UnifiedHandler(BaseHTTPRequestHandlerInHerit):
-    def printit(self, content):
-        try:
-            if not content:
-                return
-            if isinstance(content, str):
-                content = content.encode('utf-8')
-
-            if os.path.exists('/var/p.txt'):
-                os.remove('/var/p.txt')
-
-            with open('/var/p.txt', "wb") as f1:
-                f1.write(content)
-
-            target_path = '/dev/usb/lp2'
-            if os.path.exists(target_path):
-                with open(target_path, "wb") as fo:
-                    fo.write(content)
-
-            print("Wrote content to /var/p.txt and printer device")
-        except Exception as e:
-            print("Error writing file:", e)
-
-    def do_GET(self):
-        o = urlparse('http://localhost:8080' + self.path)
-        qs = parse_qs(o.query)
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-        mac = get_mac()
-        mac_hex = ':'.join(("%012X" % mac)[i:i + 2] for i in range(0, 12, 2))
-
-        try:
-            if qs.get('printer_text', [''])[0]:
-                self.printit(qs.get('printer_text', [''])[0])
-                cb = qs.get('callback', [''])[0]
-                self._write(cb + "({'mac_address':'" + mac_hex + "','status':'success'})")
-            elif qs.get('barcodes', [''])[0]:
-                self.printit(qs.get('barcodes', [''])[0])
-                self._write("Working!!!\n")
-            else:
-                self._write("Server is running, but no valid parameters provided.\n")
-        except Exception as e:
-            traceback.print_exc()
-            self.send_error(500, "Internal Server Error")
-
-    def _write(self, content):
-        if isinstance(content, str):
-            content = content.encode('utf-8')
-        self.wfile.write(content)
-
-def run_server():
-    try:
-        server = HTTPServer(('', PORT_NUMBER), UnifiedHandler)
-        print("Started httpserver on port", PORT_NUMBER)
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("^C received, shutting down the web server")
-        server.socket.close()
-
-if __name__ == '__main__':
-    run_server()
-EOF'
-
-# Restart the service
-sudo systemctl restart http-server.service</code>
+# After editing, restart the service
+sudo systemctl start http-server.service</code>
+                </div>
+                
+                <div class="note">
+                    <p><strong>Tip:</strong> You can also use this automated command to directly replace the target_path with your selected port:</p>
+                    <div class="code-block">
+                        <button class="copy-btn" onclick="copyToClipboard(this)">Copy</button>
+                        <code id="sed-command">sudo sed -i "s|target_path = .*|target_path = '/dev/usb/lp2'|" /usr/local/bin/http_server.py</code>
+                    </div>
                 </div>
             </div>
         </section>
@@ -495,112 +435,28 @@ sudo systemctl restart http-server.service</code>
         function updateCommand() {
             const printerPath = document.getElementById('printer-path').value;
             const commandText = document.getElementById('command-text');
+            const sedCommand = document.getElementById('sed-command');
+            const selectedPathDisplay = document.getElementById('selected-path-display');
             
-            // Update the command with the selected printer path
-            const baseCommand = `# Stop the service first
+            // Update the displayed path
+            if (selectedPathDisplay) {
+                selectedPathDisplay.textContent = printerPath;
+            }
+            
+            // Update the basic command
+            commandText.textContent = `# Stop the service first
 sudo systemctl stop http-server.service
 
-# Apply custom configuration
-sudo bash -c 'cat > /usr/local/bin/http_server.py << EOF
-#!/usr/bin/env python3
-import sys, socket, traceback, base64, io, os, time
-from http.server import BaseHTTPRequestHandler, HTTPServer
-from urllib.parse import urlparse, parse_qs
-from uuid import getnode as get_mac
+# Edit the Python file
+sudo nano /usr/local/bin/http_server.py
 
-PORT_NUMBER = 8080
-
-class BaseHTTPRequestHandlerInHerit(BaseHTTPRequestHandler):
-    def handle_one_request(self):
-        try:
-            self.raw_requestline = self.rfile.readline(65537000)
-            if len(self.raw_requestline) > 65536000:
-                self.send_error(414)
-                return
-            if not self.raw_requestline:
-                self.close_connection = 1
-                return
-            if not self.parse_request():
-                return
-            method = getattr(self, 'do_' + self.command, None)
-            if not method:
-                self.send_error(501, "Unsupported method")
-                return
-            method()
-            self.wfile.flush()
-        except socket.timeout as e:
-            self.log_error("Request timed out: %r" % e)
-            self.close_connection = 1
-
-class UnifiedHandler(BaseHTTPRequestHandlerInHerit):
-    def printit(self, content):
-        try:
-            if not content:
-                return
-            if isinstance(content, str):
-                content = content.encode('utf-8')
-
-            if os.path.exists('/var/p.txt'):
-                os.remove('/var/p.txt')
-
-            with open('/var/p.txt', "wb") as f1:
-                f1.write(content)
-
-            target_path = '${printerPath}'
-            if os.path.exists(target_path):
-                with open(target_path, "wb") as fo:
-                    fo.write(content)
-
-            print("Wrote content to /var/p.txt and printer device")
-        except Exception as e:
-            print("Error writing file:", e)
-
-    def do_GET(self):
-        o = urlparse('http://localhost:8080' + self.path)
-        qs = parse_qs(o.query)
-        self.send_response(200)
-        self.send_header('Content-type', 'text/html')
-        self.end_headers()
-
-        mac = get_mac()
-        mac_hex = ':'.join(("%012X" % mac)[i:i + 2] for i in range(0, 12, 2))
-
-        try:
-            if qs.get('printer_text', [''])[0]:
-                self.printit(qs.get('printer_text', [''])[0])
-                cb = qs.get('callback', [''])[0]
-                self._write(cb + "({'mac_address':'" + mac_hex + "','status':'success'})")
-            elif qs.get('barcodes', [''])[0]:
-                self.printit(qs.get('barcodes', [''])[0])
-                self._write("Working!!!\n")
-            else:
-                self._write("Server is running, but no valid parameters provided.\n")
-        except Exception as e:
-            traceback.print_exc()
-            self.send_error(500, "Internal Server Error")
-
-    def _write(self, content):
-        if isinstance(content, str):
-            content = content.encode('utf-8')
-        self.wfile.write(content)
-
-def run_server():
-    try:
-        server = HTTPServer(('', PORT_NUMBER), UnifiedHandler)
-        print("Started httpserver on port", PORT_NUMBER)
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("^C received, shutting down the web server")
-        server.socket.close()
-
-if __name__ == '__main__':
-    run_server()
-EOF'
-
-# Restart the service
-sudo systemctl restart http-server.service`;
+# After editing, restart the service
+sudo systemctl start http-server.service`;
             
-            commandText.textContent = baseCommand;
+            // Update the sed command
+            if (sedCommand) {
+                sedCommand.textContent = `sudo sed -i "s|target_path = .*|target_path = '${printerPath}'|" /usr/local/bin/http_server.py`;
+            }
         }
         
         // Initialize with default value
