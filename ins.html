@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>10x Reels · ArtStudio Filters</title>
+  <title>10x Reels · Auto Adaptor</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * {
@@ -60,7 +60,7 @@
       background: linear-gradient(0deg, rgba(0,0,0,0.85) 20%, transparent);
       display: flex;
       flex-direction: column;
-      gap: 16px;
+      gap: 20px;
       border: none;
     }
 
@@ -83,40 +83,6 @@
     .thumb-badge.active {
       border-color: #f02e65;
       transform: scale(1.02);
-    }
-
-    /* filter selector – new artistic row */
-    .filter-selector {
-      display: flex;
-      gap: 10px;
-      justify-content: center;
-      margin-bottom: 6px;
-      flex-wrap: wrap;
-    }
-    .filter-pill {
-      background: rgba(30,30,34,0.8);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border: 1px solid #4f4f4f;
-      color: #ddd;
-      padding: 8px 16px;
-      border-radius: 40px;
-      font-size: 13px;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-      transition: 0.2s;
-    }
-    .filter-pill i {
-      font-size: 16px;
-    }
-    .filter-pill.active {
-      background: #f02e65;
-      color: white;
-      border-color: #f02e65;
-      box-shadow: 0 0 12px #f02e65;
     }
 
     .action-bar {
@@ -147,6 +113,22 @@
       cursor: pointer;
     }
     .btn-icon:active { background: #2f2f2f; }
+    .btn-icon.disabled, .btn-icon:disabled { opacity: 0.3; pointer-events: none; }
+
+    .upload-hint {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      background: #272727;
+      border-radius: 40px;
+      padding: 4px 14px 4px 10px;
+      border: 1px solid #4a4a4a;
+      font-size: 14px;
+      font-weight: 500;
+      color: #ddd;
+      cursor: pointer;
+    }
+    .upload-hint i { font-size: 18px; color: #f02e65; }
 
     .duration-picker {
       display: flex;
@@ -234,6 +216,23 @@
       font-weight: 400;
       letter-spacing: 0.2px;
     }
+
+    /* auto‑adaptor badge */
+    .auto-adaptor-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: #2b2b2b;
+      border-radius: 40px;
+      padding: 4px 14px 4px 10px;
+      border: 1px solid #f02e65;
+      font-size: 13px;
+      font-weight: 500;
+      color: #fff;
+      margin-right: 8px;
+    }
+    .auto-adaptor-badge i { color: #39e58c; }
+
     i { pointer-events: none; }
   </style>
 </head>
@@ -246,14 +245,6 @@
   <div class="film-strip" id="filmStrip"></div>
 
   <div class="overlay-controls">
-    <!-- filter row: four artistic designs -->
-    <div class="filter-selector" id="filterSelector">
-      <div class="filter-pill" data-filter="pencil"><i class="fas fa-pencil-alt"></i> Pencil</div>
-      <div class="filter-pill" data-filter="stitch"><i class="fas fa-tshirt"></i> Stitch</div>
-      <div class="filter-pill" data-filter="oil"><i class="fas fa-paint-brush"></i> Oil</div>
-      <div class="filter-pill" data-filter="pop"><i class="fas fa-star"></i> Pop Art</div>
-    </div>
-
     <div class="preview-section">
       <video id="videoPreview" class="preview-video" muted playsinline></video>
       <button id="downloadVideoBtn" class="download-btn" disabled><i class="fas fa-arrow-down"></i> HD</button>
@@ -263,6 +254,11 @@
       <label for="file-input" class="btn-icon"><i class="fas fa-images"></i></label>
       <input type="file" id="file-input" accept="image/*" multiple hidden>
 
+      <!-- auto‑adaptor pill (visual + toggle) -->
+      <div class="auto-adaptor-badge" id="autoAdaptorPill">
+        <i class="fas fa-robot"></i> <span>Auto‑fit</span> <i class="fas fa-toggle-on" style="color:#f02e65; font-size:20px;" id="adaptorToggleIcon"></i>
+      </div>
+
       <div class="duration-picker">
         <span><i class="far fa-clock"></i></span>
         <input type="number" id="durationInput" value="38" min="25" max="58" step="1">
@@ -270,7 +266,7 @@
 
       <button id="renderStartBtn" class="render-btn"><i class="fas fa-magic"></i> Render</button>
     </div>
-    <div class="status-text" id="statusMsg"><i class="fas fa-palette"></i> pick a style · 2‑3 photos</div>
+    <div class="status-text" id="statusMsg"><i class="fas fa-microchip"></i> auto adaptor ON · 2‑3 photos</div>
   </div>
 </div>
 
@@ -285,24 +281,37 @@
     const previewVideo = document.getElementById('videoPreview');
     const statusMsg = document.getElementById('statusMsg');
     const durationInput = document.getElementById('durationInput');
-    const filterPills = document.querySelectorAll('.filter-pill');
+    const adaptorPill = document.getElementById('autoAdaptorPill');
+    const toggleIcon = document.getElementById('adaptorToggleIcon');
 
-    // ---------- ART FILTERS ----------
-    let currentFilter = 'pencil'; // default pencil
-    filterPills.forEach(pill => {
-      pill.addEventListener('click', () => {
-        filterPills.forEach(p => p.classList.remove('active'));
-        pill.classList.add('active');
-        currentFilter = pill.dataset.filter;
-        statusMsg.innerHTML = `🎨 ${currentFilter} filter active`;
-        // redraw first image if any
-        if (loadedImages.length > 0) {
-          drawImageOnCanvas(loadedImages[0], 1.0, 0, 0, 0);
-        }
-      });
+    // ---------- AUTO ADAPTOR FEATURE ----------
+    // When enabled, images are automatically centered and scaled to fill the frame (cover)
+    // plus subtle ken burns & vignette? but we keep simple: "intelligent attachment"
+    // Actually we implement three adaptive behaviours:
+    // 1. always cover (no empty bars)
+    // 2. align based on face (dummy) — but we simulate "smart gravity"
+    // 3. optional "pan" effect across image – but that's extra.
+    // For 10x we add: AUTO‑ADAPTOR toggle – when ON, images are attached with a slight zoom & pan variation per segment.
+    // When OFF: plain cover (baseline)
+    let autoAdaptorEnabled = true;  // default ON
+
+    // toggle on pill click
+    adaptorPill.addEventListener('click', (e) => {
+      autoAdaptorEnabled = !autoAdaptorEnabled;
+      if (autoAdaptorEnabled) {
+        toggleIcon.className = 'fas fa-toggle-on';
+        toggleIcon.style.color = '#f02e65';
+        statusMsg.innerHTML = '<i class="fas fa-robot"></i> auto adaptor ON · intelligent framing';
+      } else {
+        toggleIcon.className = 'fas fa-toggle-off';
+        toggleIcon.style.color = '#aaa';
+        statusMsg.innerHTML = '<i class="fas fa-image"></i> auto adaptor OFF · standard fit';
+      }
+      // redraw first image if exists to show effect
+      if (loadedImages.length > 0) {
+        drawImageOnCanvas(loadedImages[0], 1.0);
+      }
     });
-    // set pencil active on load
-    document.querySelector('[data-filter="pencil"]').classList.add('active');
 
     // state
     let loadedImages = [];
@@ -349,112 +358,60 @@
       }
     }
 
-    // ---------- FILTER KERNELS & EFFECTS ----------
-    function applyFilter(imageData, filterName) {
-      const data = imageData.data;
-      const w = imageData.width, h = imageData.height;
-      const len = data.length;
-
-      if (filterName === 'pencil') {
-        // simple desaturate + edge emphasis: grayscale + contrast
-        for (let i = 0; i < len; i += 4) {
-          let r = data[i], g = data[i+1], b = data[i+2];
-          let gray = 0.3 * r + 0.59 * g + 0.11 * b;
-          // invert and boost contrast for sketch look
-          gray = 255 - gray;
-          gray = gray < 128 ? 0 : (gray - 128) * 2.2;
-          data[i] = data[i+1] = data[i+2] = Math.min(255, gray + 30);
-        }
-      } 
-      else if (filterName === 'stitch') {
-        // "modern stitch" -> patchwork / pixelated + warm tint
-        for (let i = 0; i < len; i += 4) {
-          let r = data[i], g = data[i+1], b = data[i+2];
-          // posterize + crosshatch (simple block)
-          let gray = (r + g + b) / 3;
-          let block = Math.floor(gray / 43) * 43; // 6 levels
-          data[i] = Math.min(255, block + 30);
-          data[i+1] = Math.min(255, block * 0.7 + 80);
-          data[i+2] = Math.min(255, block * 0.5 + 100);
-        }
-      }
-      else if (filterName === 'oil') {
-        // oil painting effect: heavy smooth + saturation + swirl (emulated by median-like)
-        // simplified: strong saturation, slight blur feel by averaging neighbors? too heavy. use vibrant + fake brush
-        for (let i = 0; i < len; i += 4) {
-          let r = data[i], g = data[i+1], b = data[i+2];
-          // boost saturation (simple)
-          let gray = (r + g + b) / 3;
-          let intensity = 1.8;
-          r = gray + intensity * (r - gray);
-          g = gray + intensity * (g - gray);
-          b = gray + intensity * (b - gray);
-          data[i] = Math.min(255, r * 1.1);
-          data[i+1] = Math.min(255, g * 0.9);
-          data[i+2] = Math.min(255, b * 1.05);
-        }
-      }
-      else if (filterName === 'pop') {
-        // pop art: high contrast, color quantization, comic style
-        for (let i = 0; i < len; i += 4) {
-          let r = data[i], g = data[i+1], b = data[i+2];
-          let gray = (r + g + b) / 3;
-          // posterize 4 levels per channel
-          r = Math.floor(r / 64) * 64 + 32;
-          g = Math.floor(g / 64) * 64 + 32;
-          b = Math.floor(b / 64) * 64 + 32;
-          // add cyan / magenta pop
-          data[i] = Math.min(255, r + 20);
-          data[i+1] = Math.min(255, g);
-          data[i+2] = Math.min(255, b + 30);
-        }
-      }
-      return imageData;
-    }
-
-    // draw image with current filter + optional shift/zoom (same signature as before)
-    function drawImageOnCanvas(img, opacity = 1.0, zoomExtra = 0, shiftX = 0, shiftY = 0) {
+    // ----- INTELLIGENT AUTO ADAPTOR DRAW -----
+    // If autoAdaptorEnabled, we apply a slight zoom & shift based on image ratio and time.
+    // For static preview we use a mild zoom (1.05) and centering, but during animation we do dynamic.
+    // For drawing single image:
+    function drawImageOnCanvas(img, opacity = 1.0, extraZoom = 1.0, shiftX = 0, shiftY = 0) {
       const w = canvas.width, h = canvas.height;
-      // draw image off-screen to apply filter
-      const offscreen = document.createElement('canvas');
-      offscreen.width = w;
-      offscreen.height = h;
-      const offCtx = offscreen.getContext('2d');
-
+      ctx.clearRect(0, 0, w, h);
       const imgW = img.width, imgH = img.height;
+
+      // base scale to cover full area
       const scaleCover = Math.max(w / imgW, h / imgH);
-      let finalScale = scaleCover * (1.0 + 0.06 * zoomExtra);
-      let drawW = imgW * finalScale;
-      let drawH = imgH * finalScale;
+      let finalScale = scaleCover;
+      let offsetX = 0, offsetY = 0;
+
+      if (autoAdaptorEnabled) {
+        // "auto adaptor" — add gentle zoom (1.0 to 1.1) and shift to keep subject interesting
+        // Use combination: slight zoom + gravity towards edges based on aspect difference
+        finalScale = scaleCover * (1.0 + 0.06 * extraZoom); // extraZoom from 0..1
+        // shift: we use time/segment to move a bit, but for static preview we just center + small random offset
+        // better: center dominant: if image wider than canvas, shift horizontally to show center; else vertical
+        // we already cover, but we can bias slightly:
+        if (imgW / imgH > w / h) { // image wider than canvas -> we have extra width, shift horizontally
+          const maxShift = (finalScale * imgW - w) / 2 / finalScale; // in image pixels
+          offsetX = shiftX * maxShift * 0.8; // shiftX between -1 and 1
+        } else {
+          const maxShift = (finalScale * imgH - h) / 2 / finalScale;
+          offsetY = shiftY * maxShift * 0.8;
+        }
+      } else {
+        finalScale = scaleCover; // plain cover
+      }
+
+      const drawW = imgW * finalScale;
+      const drawH = imgH * finalScale;
+      // base X,Y to center
       let x = (w - drawW) / 2;
       let y = (h - drawH) / 2;
 
-      // shift logic (auto adaptor kept)
-      if (imgW / imgH > w / h) {
-        const maxShift = (finalScale * imgW - w) / 2 / finalScale;
-        x -= shiftX * maxShift * 0.8 * finalScale;
-      } else {
-        const maxShift = (finalScale * imgH - h) / 2 / finalScale;
-        y -= shiftY * maxShift * 0.8 * finalScale;
+      // apply offset from auto-adaptor (convert image pixel offset to screen)
+      if (autoAdaptorEnabled) {
+        x -= offsetX * finalScale;
+        y -= offsetY * finalScale;
+        // clamp to avoid black edges? we allow slight edge but it's ok
+        // optional clamp to keep image fill:
+        x = Math.min(0, Math.max(x, w - drawW));
+        y = Math.min(0, Math.max(y, h - drawH));
       }
-      x = Math.min(0, Math.max(x, w - drawW));
-      y = Math.min(0, Math.max(y, h - drawH));
 
-      offCtx.drawImage(img, x, y, drawW, drawH);
-
-      // apply selected artistic filter
-      let imageData = offCtx.getImageData(0, 0, w, h);
-      imageData = applyFilter(imageData, currentFilter);
-      offCtx.putImageData(imageData, 0, 0);
-
-      // draw onto main canvas with opacity
-      ctx.clearRect(0, 0, w, h);
       ctx.globalAlpha = opacity;
-      ctx.drawImage(offscreen, 0, 0, w, h);
+      ctx.drawImage(img, x, y, drawW, drawH);
       ctx.globalAlpha = 1;
     }
 
-    // renderFrame with filter applied via drawImageOnCanvas
+    // enhanced render with per‑frame auto‑adaptor parameters (time‑varying shift)
     function renderFrame(time, imgArray) {
       const n = imgArray.length;
       if (n === 0) return;
@@ -462,67 +419,69 @@
 
       const segDuration = 1 / n;
       const segIndex = Math.min(Math.floor(time / segDuration), n - 1);
+      const segStart = segIndex * segDuration;
       const segProgress = (time - segStart) / segDuration; // 0..1
-
-      // recompute segStart inside loop? define inside
-      const segStartLocal = segIndex * segDuration;
-      const segProgressLocal = (time - segStartLocal) / segDuration;
 
       const currentImg = imgArray[segIndex];
       const nextImg = imgArray[(segIndex + 1) % n];
       const fadeDuration = 0.4;
       let blend = 0;
       const crossStart = 0.6;
-      if (segProgressLocal >= crossStart) {
-        blend = (segProgressLocal - crossStart) / (1 - crossStart);
+      if (segProgress >= crossStart) {
+        blend = (segProgress - crossStart) / (1 - crossStart);
         blend = Math.min(blend, 1);
         blend = easeInOutCubic(blend);
       }
 
-      // dynamic shift for current
-      const tCycle = time * 2 * Math.PI;
-      let shiftX = Math.sin(tCycle * 0.8) * 0.7;
-      let shiftY = Math.cos(tCycle * 0.6) * 0.5;
-      let zoomExtra = 0.3 + 0.3 * Math.sin(tCycle * 1.2);
+      // auto‑adaptor dynamic parameters: gentle oscillation based on time
+      // shiftX, shiftY cycle between -1..1, extra zoom pulsates 0..1
+      const tCycle = time * 2 * Math.PI; // smooth wave
+      let shiftX = 0, shiftY = 0, zoomExtra = 0;
+      if (autoAdaptorEnabled) {
+        shiftX = Math.sin(tCycle * 0.8) * 0.7;   // between -0.7 and 0.7
+        shiftY = Math.cos(tCycle * 0.6) * 0.5;
+        zoomExtra = 0.3 + 0.3 * Math.sin(tCycle * 1.2); // range 0..0.6
+      }
+
+      // draw current with auto params
       drawImageOnCanvas(currentImg, 1, zoomExtra, shiftX, shiftY);
 
       if (blend > 0) {
-        // next with slightly different params
-        let shiftX2 = Math.sin(tCycle * 0.8 + 1.5) * 0.7;
-        let shiftY2 = Math.cos(tCycle * 0.6 + 2.0) * 0.5;
-        let zoomExtra2 = 0.3 + 0.3 * Math.cos(tCycle * 1.2 + 1.0);
-        // we need to draw on top using same drawImageOnCanvas but separate opacity handling
+        // for blended image, use slightly different shifts for dynamic transition
+        let shiftX2 = 0, shiftY2 = 0, zoomExtra2 = 0;
+        if (autoAdaptorEnabled) {
+          shiftX2 = Math.sin(tCycle * 0.8 + 1.5) * 0.7;
+          shiftY2 = Math.cos(tCycle * 0.6 + 2.0) * 0.5;
+          zoomExtra2 = 0.3 + 0.3 * Math.cos(tCycle * 1.2 + 1.0);
+        }
         const w = canvas.width, h = canvas.height;
-        const offscreen = document.createElement('canvas');
-        offscreen.width = w; offscreen.height = h;
-        const offCtx = offscreen.getContext('2d');
-
         const img = nextImg;
         const imgW = img.width, imgH = img.height;
         const scaleCover = Math.max(w / imgW, h / imgH);
-        let finalScale = scaleCover * (1.0 + 0.06 * zoomExtra2);
+        let finalScale = scaleCover;
+        let offsetX = 0, offsetY = 0;
+        if (autoAdaptorEnabled) {
+          finalScale = scaleCover * (1.0 + 0.06 * zoomExtra2);
+          if (imgW / imgH > w / h) {
+            const maxShift = (finalScale * imgW - w) / 2 / finalScale;
+            offsetX = shiftX2 * maxShift * 0.8;
+          } else {
+            const maxShift = (finalScale * imgH - h) / 2 / finalScale;
+            offsetY = shiftY2 * maxShift * 0.8;
+          }
+        } else {
+          finalScale = scaleCover;
+        }
         let drawW = imgW * finalScale;
         let drawH = imgH * finalScale;
-        let x = (w - drawW) / 2;
-        let y = (h - drawH) / 2;
-
-        if (imgW / imgH > w / h) {
-          const maxShift = (finalScale * imgW - w) / 2 / finalScale;
-          x -= shiftX2 * maxShift * 0.8 * finalScale;
-        } else {
-          const maxShift = (finalScale * imgH - h) / 2 / finalScale;
-          y -= shiftY2 * maxShift * 0.8 * finalScale;
+        let x = (w - drawW) / 2 - offsetX * finalScale;
+        let y = (h - drawH) / 2 - offsetY * finalScale;
+        if (autoAdaptorEnabled) {
+          x = Math.min(0, Math.max(x, w - drawW));
+          y = Math.min(0, Math.max(y, h - drawH));
         }
-        x = Math.min(0, Math.max(x, w - drawW));
-        y = Math.min(0, Math.max(y, h - drawH));
-
-        offCtx.drawImage(img, x, y, drawW, drawH);
-        let imageData = offCtx.getImageData(0, 0, w, h);
-        imageData = applyFilter(imageData, currentFilter);
-        offCtx.putImageData(imageData, 0, 0);
-
         ctx.globalAlpha = blend;
-        ctx.drawImage(offscreen, 0, 0, w, h);
+        ctx.drawImage(img, x, y, drawW, drawH);
         ctx.globalAlpha = 1;
       }
     }
@@ -537,7 +496,7 @@
         statusMsg.innerHTML = '⚠️ need 2 or 3 images (selected ' + files.length + ')';
         return;
       }
-      statusMsg.innerHTML = '🔄 loading with ' + currentFilter + ' filter...';
+      statusMsg.innerHTML = '🔄 loading with auto adaptor...';
       const promises = files.map(file => {
         return new Promise((resolve) => {
           const img = new Image();
@@ -549,9 +508,11 @@
       const imgs = await Promise.all(promises);
       loadedImages = imgs.filter(Boolean);
       if (loadedImages.length >= 2) {
-        statusMsg.innerHTML = `✅ ${currentFilter} filter · ${loadedImages.length} images`;
+        statusMsg.innerHTML = autoAdaptorEnabled ? 
+          '✅ auto adaptor active · intelligent framing' : 
+          '✅ images ready · auto adaptor off';
         updateFilmStrip(loadedImages);
-        drawImageOnCanvas(loadedImages[0], 1, 0.2, 0, 0);
+        drawImageOnCanvas(loadedImages[0], 1.0, 0.2, 0, 0);
       } else {
         statusMsg.innerHTML = '❌ failed to load some images';
       }
@@ -587,7 +548,7 @@
         previewVideo.src = url;
         previewVideo.style.display = 'block';
         downloadBtn.disabled = false;
-        statusMsg.innerHTML = `✅ reels with ${currentFilter} filter · ready`;
+        statusMsg.innerHTML = autoAdaptorEnabled ? '✅ reels with auto‑adaptor · ready' : '✅ reels ready (standard)';
         isRendering = false;
         renderBtn.disabled = false;
       };
@@ -596,7 +557,7 @@
       isRendering = true;
       renderBtn.disabled = true;
       downloadBtn.disabled = true;
-      statusMsg.innerHTML = `🎥 rendering ${currentFilter} filter ...`;
+      statusMsg.innerHTML = autoAdaptorEnabled ? '🎥 rendering with auto‑adaptor 10x...' : '🎥 rendering standard...';
 
       let frame = 0;
       function animate() {
@@ -623,11 +584,11 @@
       const url = URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `reels_${currentFilter}_${Date.now()}.webm`;
+      a.download = `reels_auto_${Date.now()}.webm`;
       a.click();
     });
 
-    // initial draw
+    // initial
     (function initDraw() {
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
