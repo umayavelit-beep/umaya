@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
-  <title>10x Reels · Auto Adaptor</title>
+  <!-- important meta for touch & scaling: allow user scaling but also enable pinch zoom on canvas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=3.0, user-scalable=yes, viewport-fit=cover" />
+  <title>10x Reels · finger zoom + auto‑rotate</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
   <style>
     * {
@@ -19,7 +20,7 @@
       justify-content: center;
       align-items: center;
       min-height: 100vh;
-      touch-action: pan-y;
+      touch-action: pan-y; /* allow vertical scroll, but canvas will handle pinch */
     }
 
     .reels-container {
@@ -41,6 +42,8 @@
       align-items: center;
       justify-content: center;
       background: #050505;
+      /* allow touch events on canvas so we can zoom */
+      touch-action: none;  /* we'll handle pinch via js */
     }
     canvas {
       width: 100%;
@@ -48,7 +51,9 @@
       display: block;
       background: black;
       object-fit: cover;
-      pointer-events: none;
+      /* pointer-events removed -> we need them for touch */
+      pointer-events: auto;
+      touch-action: none;
     }
 
     .overlay-controls {
@@ -62,6 +67,10 @@
       flex-direction: column;
       gap: 20px;
       border: none;
+      pointer-events: none; /* let touches pass through to canvas, but clickable children need override */
+    }
+    .overlay-controls > * {
+      pointer-events: auto; /* make controls clickable again */
     }
 
     .film-strip {
@@ -69,6 +78,9 @@
       gap: 8px;
       justify-content: center;
       margin-bottom: 4px;
+      position: relative;
+      z-index: 5;
+      pointer-events: auto;
     }
     .thumb-badge {
       width: 44px;
@@ -79,6 +91,7 @@
       object-fit: cover;
       box-shadow: 0 6px 12px rgba(0,0,0,0.6);
       transition: all 0.2s;
+      cursor: pointer;
     }
     .thumb-badge.active {
       border-color: #f02e65;
@@ -230,6 +243,7 @@
       font-weight: 500;
       color: #fff;
       margin-right: 8px;
+      cursor: pointer;
     }
     .auto-adaptor-badge i { color: #39e58c; }
 
@@ -242,6 +256,7 @@
     <canvas id="reelsCanvas" width="432" height="768"></canvas>
   </div>
 
+  <!-- film strip visible above overlay (z-index) -->
   <div class="film-strip" id="filmStrip"></div>
 
   <div class="overlay-controls">
@@ -266,7 +281,7 @@
 
       <button id="renderStartBtn" class="render-btn"><i class="fas fa-magic"></i> Render</button>
     </div>
-    <div class="status-text" id="statusMsg"><i class="fas fa-microchip"></i> auto adaptor ON · 2‑3 photos</div>
+    <div class="status-text" id="statusMsg"><i class="fas fa-microchip"></i> auto adaptor ON · pinch to zoom</div>
   </div>
 </div>
 
@@ -284,52 +299,189 @@
     const adaptorPill = document.getElementById('autoAdaptorPill');
     const toggleIcon = document.getElementById('adaptorToggleIcon');
 
-    // ---------- AUTO ADAPTOR FEATURE ----------
-    // When enabled, images are automatically centered and scaled to fill the frame (cover)
-    // plus subtle ken burns & vignette? but we keep simple: "intelligent attachment"
-    // Actually we implement three adaptive behaviours:
-    // 1. always cover (no empty bars)
-    // 2. align based on face (dummy) — but we simulate "smart gravity"
-    // 3. optional "pan" effect across image – but that's extra.
-    // For 10x we add: AUTO‑ADAPTOR toggle – when ON, images are attached with a slight zoom & pan variation per segment.
-    // When OFF: plain cover (baseline)
+    // ---------- AUTO ADAPTOR / ZOOM + PAN ----------
     let autoAdaptorEnabled = true;  // default ON
 
-    // toggle on pill click
     adaptorPill.addEventListener('click', (e) => {
       autoAdaptorEnabled = !autoAdaptorEnabled;
       if (autoAdaptorEnabled) {
         toggleIcon.className = 'fas fa-toggle-on';
         toggleIcon.style.color = '#f02e65';
-        statusMsg.innerHTML = '<i class="fas fa-robot"></i> auto adaptor ON · intelligent framing';
+        statusMsg.innerHTML = '<i class="fas fa-robot"></i> auto adaptor ON · pinch to zoom';
       } else {
         toggleIcon.className = 'fas fa-toggle-off';
         toggleIcon.style.color = '#aaa';
-        statusMsg.innerHTML = '<i class="fas fa-image"></i> auto adaptor OFF · standard fit';
+        statusMsg.innerHTML = '<i class="fas fa-image"></i> auto adaptor OFF · manual zoom';
       }
-      // redraw first image if exists to show effect
-      if (loadedImages.length > 0) {
-        drawImageOnCanvas(loadedImages[0], 1.0);
-      }
+      redrawCurrentImage(); 
     });
 
-    // state
+    // state for images
     let loadedImages = [];
+    let currentImageIndex = 0;          // for manual preview (thumb click / fallback)
     let isRendering = false;
     let mediaRecorder = null;
     let recordedChunks = [];
     let animationFrame = null;
 
+    // ----- ZOOM & PAN STATE (finger controlled) -----
+    let zoomLevel = 1.0;                // additional multiplicative zoom on top of base cover
+    let panX = 0, panY = 0;             // in canvas pixels (after zoom)
+    let lastTouchDistance = 0;
+    let lastTouchCenter = { x: 0, y: 0 };
+    let isTouching = false;
+    let touchStartDistance = 0;
+    let initialZoom = 1.0;
+    let initialPanX = 0, initialPanY = 0;
+    let dragStart = { x: 0, y: 0 };
+
+    // resize canvas
     function resizeCanvasToDisplay() {
       const container = canvas.parentElement;
       const w = container.clientWidth;
       const h = container.clientHeight;
       canvas.width = w;
       canvas.height = h;
+      redrawCurrentImage();
     }
     window.addEventListener('resize', resizeCanvasToDisplay);
     resizeCanvasToDisplay();
 
+    // redraw based on current image + zoom/pan
+    function redrawCurrentImage() {
+      if (loadedImages.length === 0) {
+        ctx.fillStyle = '#0a0a0a';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.font = 'bold 22px system-ui';
+        ctx.fillStyle = '#aaa';
+        ctx.textAlign = 'center';
+        ctx.fillText('⬆️ upload', canvas.width/2, canvas.height/2);
+        return;
+      }
+      const img = loadedImages[currentImageIndex % loadedImages.length];
+      drawImageOnCanvasWithZoom(img);
+    }
+
+    // core drawing respecting zoom & pan
+    function drawImageOnCanvasWithZoom(img) {
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+      if (!img) return;
+
+      const imgW = img.width, imgH = img.height;
+      // base cover scale (fill canvas)
+      const baseScale = Math.max(w / imgW, h / imgH);
+      // final scale = base * zoomLevel
+      const finalScale = baseScale * zoomLevel;
+
+      // compute image dimensions in canvas pixels
+      const drawW = imgW * finalScale;
+      const drawH = imgH * finalScale;
+
+      // default centered position without pan
+      let x0 = (w - drawW) / 2;
+      let y0 = (h - drawH) / 2;
+
+      // apply pan (panX, panY) in canvas coordinate space
+      let x = x0 + panX;
+      let y = y0 + panY;
+
+      // clamp pan to avoid leaving empty areas (optional: keep image covering canvas)
+      // we allow some overflow, but keep at least one edge inside to avoid black borders? 
+      // better: clamp so that image always fills canvas (no black edges)
+      // maximum left shift: drawW must cover left edge: x <= 0, and x >= w - drawW
+      if (drawW > w) {
+        x = Math.min(0, Math.max(x, w - drawW));
+      } else {
+        // if drawW smaller than canvas, keep centered (no pan actually)
+        x = (w - drawW) / 2;
+      }
+      if (drawH > h) {
+        y = Math.min(0, Math.max(y, h - drawH));
+      } else {
+        y = (h - drawH) / 2;
+      }
+
+      ctx.drawImage(img, x, y, drawW, drawH);
+    }
+
+    // ---- TOUCH HANDLERS for PINCH ZOOM & DRAG ----
+    function handleTouchStart(e) {
+      e.preventDefault();
+      if (loadedImages.length === 0) return;
+      const touches = e.touches;
+      if (touches.length === 2) {
+        // pinch start
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        lastTouchDistance = Math.hypot(dx, dy);
+        touchStartDistance = lastTouchDistance;
+        initialZoom = zoomLevel;
+
+        // center of pinch
+        lastTouchCenter.x = (touches[0].clientX + touches[1].clientX) / 2;
+        lastTouchCenter.y = (touches[0].clientY + touches[1].clientY) / 2;
+      } else if (touches.length === 1 && isTouching === false) {
+        // single touch for pan
+        dragStart.x = touches[0].clientX;
+        dragStart.y = touches[0].clientY;
+        initialPanX = panX;
+        initialPanY = panY;
+      }
+      isTouching = true;
+    }
+
+    function handleTouchMove(e) {
+      e.preventDefault();
+      if (loadedImages.length === 0) return;
+      const touches = e.touches;
+      if (touches.length === 2) {
+        // pinch zoom
+        const dx = touches[0].clientX - touches[1].clientX;
+        const dy = touches[0].clientY - touches[1].clientY;
+        const dist = Math.hypot(dx, dy);
+        if (lastTouchDistance > 0) {
+          const scaleFactor = dist / touchStartDistance;
+          let newZoom = initialZoom * scaleFactor;
+          newZoom = Math.max(0.8, Math.min(3.5, newZoom)); // limit zoom
+          zoomLevel = newZoom;
+
+          // optional: re-center based on pinch center? we'll just keep pan as is for simplicity
+          // you could implement pinch-to-zoom toward center, but for simplicity we keep current pan
+        }
+        redrawCurrentImage();
+      } else if (touches.length === 1) {
+        // pan
+        const tx = touches[0].clientX;
+        const ty = touches[0].clientY;
+        const deltaX = tx - dragStart.x;
+        const deltaY = ty - dragStart.y;
+        panX = initialPanX + deltaX;
+        panY = initialPanY + deltaY;
+        redrawCurrentImage();
+      }
+    }
+
+    function handleTouchEnd(e) {
+      e.preventDefault();
+      isTouching = false;
+      // reset start values? keep zoom
+    }
+
+    canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
+    canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
+    canvas.addEventListener('touchend', handleTouchEnd);
+    canvas.addEventListener('touchcancel', handleTouchEnd);
+
+    // optional double-tap reset
+    canvas.addEventListener('dblclick', (e) => {
+      e.preventDefault();
+      zoomLevel = 1.0;
+      panX = 0; panY = 0;
+      redrawCurrentImage();
+    });
+
+    // ---- FILM STRIP & IMAGE LOADING ----
     function updateFilmStrip(images) {
       filmStrip.innerHTML = '';
       if (!images.length) {
@@ -346,7 +498,18 @@
         const thumb = document.createElement('img');
         thumb.src = img.src;
         thumb.className = 'thumb-badge';
-        if (idx === 0) thumb.classList.add('active');
+        if (idx === currentImageIndex) thumb.classList.add('active');
+        thumb.addEventListener('click', () => {
+          currentImageIndex = idx;
+          // reset zoom/pan on manual thumb click? optional: keep zoom? we reset to 1
+          zoomLevel = 1.0;
+          panX = 0; panY = 0;
+          redrawCurrentImage();
+          document.querySelectorAll('.thumb-badge').forEach((el, i) => {
+            if (i === idx) el.classList.add('active');
+            else el.classList.remove('active');
+          });
+        });
         filmStrip.appendChild(thumb);
       });
       for (let i = images.length; i < 3; i++) {
@@ -356,138 +519,6 @@
         emptyDiv.style.opacity = '0.5';
         filmStrip.appendChild(emptyDiv);
       }
-    }
-
-    // ----- INTELLIGENT AUTO ADAPTOR DRAW -----
-    // If autoAdaptorEnabled, we apply a slight zoom & shift based on image ratio and time.
-    // For static preview we use a mild zoom (1.05) and centering, but during animation we do dynamic.
-    // For drawing single image:
-    function drawImageOnCanvas(img, opacity = 1.0, extraZoom = 1.0, shiftX = 0, shiftY = 0) {
-      const w = canvas.width, h = canvas.height;
-      ctx.clearRect(0, 0, w, h);
-      const imgW = img.width, imgH = img.height;
-
-      // base scale to cover full area
-      const scaleCover = Math.max(w / imgW, h / imgH);
-      let finalScale = scaleCover;
-      let offsetX = 0, offsetY = 0;
-
-      if (autoAdaptorEnabled) {
-        // "auto adaptor" — add gentle zoom (1.0 to 1.1) and shift to keep subject interesting
-        // Use combination: slight zoom + gravity towards edges based on aspect difference
-        finalScale = scaleCover * (1.0 + 0.06 * extraZoom); // extraZoom from 0..1
-        // shift: we use time/segment to move a bit, but for static preview we just center + small random offset
-        // better: center dominant: if image wider than canvas, shift horizontally to show center; else vertical
-        // we already cover, but we can bias slightly:
-        if (imgW / imgH > w / h) { // image wider than canvas -> we have extra width, shift horizontally
-          const maxShift = (finalScale * imgW - w) / 2 / finalScale; // in image pixels
-          offsetX = shiftX * maxShift * 0.8; // shiftX between -1 and 1
-        } else {
-          const maxShift = (finalScale * imgH - h) / 2 / finalScale;
-          offsetY = shiftY * maxShift * 0.8;
-        }
-      } else {
-        finalScale = scaleCover; // plain cover
-      }
-
-      const drawW = imgW * finalScale;
-      const drawH = imgH * finalScale;
-      // base X,Y to center
-      let x = (w - drawW) / 2;
-      let y = (h - drawH) / 2;
-
-      // apply offset from auto-adaptor (convert image pixel offset to screen)
-      if (autoAdaptorEnabled) {
-        x -= offsetX * finalScale;
-        y -= offsetY * finalScale;
-        // clamp to avoid black edges? we allow slight edge but it's ok
-        // optional clamp to keep image fill:
-        x = Math.min(0, Math.max(x, w - drawW));
-        y = Math.min(0, Math.max(y, h - drawH));
-      }
-
-      ctx.globalAlpha = opacity;
-      ctx.drawImage(img, x, y, drawW, drawH);
-      ctx.globalAlpha = 1;
-    }
-
-    // enhanced render with per‑frame auto‑adaptor parameters (time‑varying shift)
-    function renderFrame(time, imgArray) {
-      const n = imgArray.length;
-      if (n === 0) return;
-      if (n === 1) return drawImageOnCanvas(imgArray[0], 1, 0.5, 0, 0);
-
-      const segDuration = 1 / n;
-      const segIndex = Math.min(Math.floor(time / segDuration), n - 1);
-      const segStart = segIndex * segDuration;
-      const segProgress = (time - segStart) / segDuration; // 0..1
-
-      const currentImg = imgArray[segIndex];
-      const nextImg = imgArray[(segIndex + 1) % n];
-      const fadeDuration = 0.4;
-      let blend = 0;
-      const crossStart = 0.6;
-      if (segProgress >= crossStart) {
-        blend = (segProgress - crossStart) / (1 - crossStart);
-        blend = Math.min(blend, 1);
-        blend = easeInOutCubic(blend);
-      }
-
-      // auto‑adaptor dynamic parameters: gentle oscillation based on time
-      // shiftX, shiftY cycle between -1..1, extra zoom pulsates 0..1
-      const tCycle = time * 2 * Math.PI; // smooth wave
-      let shiftX = 0, shiftY = 0, zoomExtra = 0;
-      if (autoAdaptorEnabled) {
-        shiftX = Math.sin(tCycle * 0.8) * 0.7;   // between -0.7 and 0.7
-        shiftY = Math.cos(tCycle * 0.6) * 0.5;
-        zoomExtra = 0.3 + 0.3 * Math.sin(tCycle * 1.2); // range 0..0.6
-      }
-
-      // draw current with auto params
-      drawImageOnCanvas(currentImg, 1, zoomExtra, shiftX, shiftY);
-
-      if (blend > 0) {
-        // for blended image, use slightly different shifts for dynamic transition
-        let shiftX2 = 0, shiftY2 = 0, zoomExtra2 = 0;
-        if (autoAdaptorEnabled) {
-          shiftX2 = Math.sin(tCycle * 0.8 + 1.5) * 0.7;
-          shiftY2 = Math.cos(tCycle * 0.6 + 2.0) * 0.5;
-          zoomExtra2 = 0.3 + 0.3 * Math.cos(tCycle * 1.2 + 1.0);
-        }
-        const w = canvas.width, h = canvas.height;
-        const img = nextImg;
-        const imgW = img.width, imgH = img.height;
-        const scaleCover = Math.max(w / imgW, h / imgH);
-        let finalScale = scaleCover;
-        let offsetX = 0, offsetY = 0;
-        if (autoAdaptorEnabled) {
-          finalScale = scaleCover * (1.0 + 0.06 * zoomExtra2);
-          if (imgW / imgH > w / h) {
-            const maxShift = (finalScale * imgW - w) / 2 / finalScale;
-            offsetX = shiftX2 * maxShift * 0.8;
-          } else {
-            const maxShift = (finalScale * imgH - h) / 2 / finalScale;
-            offsetY = shiftY2 * maxShift * 0.8;
-          }
-        } else {
-          finalScale = scaleCover;
-        }
-        let drawW = imgW * finalScale;
-        let drawH = imgH * finalScale;
-        let x = (w - drawW) / 2 - offsetX * finalScale;
-        let y = (h - drawH) / 2 - offsetY * finalScale;
-        if (autoAdaptorEnabled) {
-          x = Math.min(0, Math.max(x, w - drawW));
-          y = Math.min(0, Math.max(y, h - drawH));
-        }
-        ctx.globalAlpha = blend;
-        ctx.drawImage(img, x, y, drawW, drawH);
-        ctx.globalAlpha = 1;
-      }
-    }
-
-    function easeInOutCubic(t) {
-      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
     }
 
     fileInput.addEventListener('change', async (e) => {
@@ -508,15 +539,106 @@
       const imgs = await Promise.all(promises);
       loadedImages = imgs.filter(Boolean);
       if (loadedImages.length >= 2) {
+        currentImageIndex = 0;
+        zoomLevel = 1.0; panX = 0; panY = 0;
         statusMsg.innerHTML = autoAdaptorEnabled ? 
-          '✅ auto adaptor active · intelligent framing' : 
+          '✅ auto adaptor active · pinch to zoom' : 
           '✅ images ready · auto adaptor off';
         updateFilmStrip(loadedImages);
-        drawImageOnCanvas(loadedImages[0], 1.0, 0.2, 0, 0);
+        redrawCurrentImage();
       } else {
         statusMsg.innerHTML = '❌ failed to load some images';
       }
     });
+
+    // ---- RENDER (video generation) ----
+    // We keep the auto‑adaptor dynamic effect only when autoAdaptorEnabled = true,
+    // but the preview/manual zoom is separate. For render we use the same effect as before.
+    // But we also incorporate current zoom/pan? no — render uses its own dynamic parameters.
+    // However we reset zoom for video render to avoid confusion.
+    function renderFrame(time, imgArray) {
+      const n = imgArray.length;
+      if (n === 0) return;
+      if (n === 1) return drawImageOnCanvasWithZoom(imgArray[0]); // but zoom should be reset for video? we'll set zoom=1 inside render
+      // For video we ignore manual zoom, use dynamic auto‑adaptor (if enabled)
+      // We'll use a dedicated draw function similar to original but incorporate autoAdaptorEnabled.
+      // Since we have drawImageOnCanvasWithZoom which uses global zoomLevel, but we need to override for render.
+      // Better: copy of original logic, but with autoAdaptorEnabled flag.
+      const w = canvas.width, h = canvas.height;
+      ctx.clearRect(0, 0, w, h);
+
+      const segDuration = 1 / n;
+      const segIndex = Math.min(Math.floor(time / segDuration), n - 1);
+      const segProgress = (time - segIndex * segDuration) / segDuration;
+
+      const currentImg = imgArray[segIndex];
+      const nextImg = imgArray[(segIndex + 1) % n];
+      const crossStart = 0.6;
+      let blend = 0;
+      if (segProgress >= crossStart) {
+        blend = (segProgress - crossStart) / (1 - crossStart);
+        blend = Math.min(blend, 1);
+        blend = easeInOutCubic(blend);
+      }
+
+      if (autoAdaptorEnabled) {
+        // dynamic gentle oscillation for zoom/pan (like original)
+        const tCycle = time * 2 * Math.PI;
+        let shiftX = Math.sin(tCycle * 0.8) * 0.7;
+        let shiftY = Math.cos(tCycle * 0.6) * 0.5;
+        let zoomExtra = 0.3 + 0.3 * Math.sin(tCycle * 1.2); // 0..0.6
+
+        drawImageAuto(currentImg, 1.0, zoomExtra, shiftX, shiftY);
+        if (blend > 0) {
+          let shiftX2 = Math.sin(tCycle * 0.8 + 1.5) * 0.7;
+          let shiftY2 = Math.cos(tCycle * 0.6 + 2.0) * 0.5;
+          let zoomExtra2 = 0.3 + 0.3 * Math.cos(tCycle * 1.2 + 1.0);
+          ctx.globalAlpha = blend;
+          drawImageAuto(nextImg, 1.0, zoomExtra2, shiftX2, shiftY2);
+          ctx.globalAlpha = 1;
+        }
+      } else {
+        // plain cover, no dynamic
+        drawImageAuto(currentImg, 1.0, 0, 0, 0);
+        if (blend > 0) {
+          ctx.globalAlpha = blend;
+          drawImageAuto(nextImg, 1.0, 0, 0, 0);
+          ctx.globalAlpha = 1;
+        }
+      }
+    }
+
+    function drawImageAuto(img, opacity = 1.0, extraZoom = 0, shiftX = 0, shiftY = 0) {
+      const w = canvas.width, h = canvas.height;
+      const imgW = img.width, imgH = img.height;
+      const scaleCover = Math.max(w / imgW, h / imgH);
+      let finalScale = scaleCover * (1.0 + 0.06 * extraZoom);
+      let offsetX = 0, offsetY = 0;
+      if (autoAdaptorEnabled) {
+        if (imgW / imgH > w / h) {
+          const maxShift = (finalScale * imgW - w) / 2 / finalScale;
+          offsetX = shiftX * maxShift * 0.8;
+        } else {
+          const maxShift = (finalScale * imgH - h) / 2 / finalScale;
+          offsetY = shiftY * maxShift * 0.8;
+        }
+      }
+      const drawW = imgW * finalScale;
+      const drawH = imgH * finalScale;
+      let x = (w - drawW) / 2 - offsetX * finalScale;
+      let y = (h - drawH) / 2 - offsetY * finalScale;
+      if (autoAdaptorEnabled) {
+        x = Math.min(0, Math.max(x, w - drawW));
+        y = Math.min(0, Math.max(y, h - drawH));
+      }
+      ctx.globalAlpha = opacity;
+      ctx.drawImage(img, x, y, drawW, drawH);
+      ctx.globalAlpha = 1;
+    }
+
+    function easeInOutCubic(t) {
+      return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+    }
 
     async function startRendering() {
       if (loadedImages.length < 2) {
@@ -532,6 +654,7 @@
       const fps = 30;
       const totalFrames = durationSec * fps;
 
+      // set canvas size for output
       canvas.width = 540;
       canvas.height = 960;
 
@@ -551,13 +674,16 @@
         statusMsg.innerHTML = autoAdaptorEnabled ? '✅ reels with auto‑adaptor · ready' : '✅ reels ready (standard)';
         isRendering = false;
         renderBtn.disabled = false;
+        // restore canvas size to display size after render
+        resizeCanvasToDisplay();
+        redrawCurrentImage();
       };
 
       mediaRecorder.start();
       isRendering = true;
       renderBtn.disabled = true;
       downloadBtn.disabled = true;
-      statusMsg.innerHTML = autoAdaptorEnabled ? '🎥 rendering with auto‑adaptor 10x...' : '🎥 rendering standard...';
+      statusMsg.innerHTML = autoAdaptorEnabled ? '🎥 rendering with auto‑adaptor...' : '🎥 rendering standard...';
 
       let frame = 0;
       function animate() {
@@ -569,8 +695,6 @@
           animationFrame = requestAnimationFrame(animate);
         } else {
           mediaRecorder.stop();
-          isRendering = false;
-          renderBtn.disabled = false;
         }
       }
       animate();
@@ -588,7 +712,7 @@
       a.click();
     });
 
-    // initial
+    // initial draw
     (function initDraw() {
       ctx.fillStyle = '#0a0a0a';
       ctx.fillRect(0, 0, canvas.width, canvas.height);
