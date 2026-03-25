@@ -145,4 +145,319 @@
   .manual-row { display: flex; gap: 8px; }
   .manual-row input {
     flex: 1; background: var(--surface); border: 1.5px solid var(--border);
-    border-radius: 10px;
+    border-radius: 10px; padding: 10px 13px;
+    color: var(--text); font-family: 'Syne', sans-serif; font-size: 0.9rem; outline: none;
+    transition: border-color 0.2s;
+  }
+  .manual-row input:focus { border-color: var(--accent); }
+  .manual-row .btn { flex: 0 0 auto; width: 44px; height: 44px; padding: 0; border-radius: 10px; font-size: 1.2rem; }
+
+  /* TOAST */
+  #toast {
+    position: fixed; bottom: 24px; left: 50%; transform: translateX(-50%) translateY(80px);
+    background: var(--accent); color: #000; font-weight: 700; font-size: 0.85rem;
+    padding: 10px 22px; border-radius: 99px;
+    transition: transform 0.3s cubic-bezier(.34,1.56,.64,1);
+    z-index: 999; white-space: nowrap; font-family: 'Space Mono', monospace;
+    box-shadow: 0 4px 24px #00e5a040;
+  }
+  #toast.show { transform: translateX(-50%) translateY(0); }
+  #toast.error { background: var(--danger); color: #fff; box-shadow: 0 4px 24px #ff4d6d40; }
+
+  /* LOG TABLE */
+  .log-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    overflow: hidden;
+    margin-bottom: 16px;
+  }
+  .log-header {
+    padding: 16px 20px;
+    display: flex; align-items: center; justify-content: space-between;
+    border-bottom: 1px solid var(--border);
+  }
+  .log-header h2 { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+  .log-count {
+    font-size: 0.72rem; font-family: 'Space Mono', monospace; color: var(--accent);
+    background: #00e5a015; border: 1px solid #00e5a030;
+    padding: 3px 10px; border-radius: 99px;
+  }
+
+  .table-wrap { overflow-x: auto; max-height: 340px; overflow-y: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+  thead th {
+    background: var(--surface);
+    padding: 10px 14px; text-align: left;
+    font-family: 'Space Mono', monospace; font-size: 0.7rem; color: var(--muted);
+    text-transform: uppercase; letter-spacing: 0.5px;
+    position: sticky; top: 0; z-index: 1;
+  }
+  tbody tr {
+    border-bottom: 1px solid var(--border);
+    animation: row-in 0.3s ease;
+  }
+  @keyframes row-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: none; } }
+  tbody tr:last-child { border-bottom: none; }
+  tbody td { padding: 10px 14px; vertical-align: top; }
+  .td-name { font-weight: 600; color: var(--text); }
+  .td-qr { font-family: 'Space Mono', monospace; color: var(--accent2); font-size: 0.75rem; max-width: 120px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .td-reason { color: var(--muted); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .td-time { color: var(--muted); font-family: 'Space Mono', monospace; font-size: 0.7rem; white-space: nowrap; }
+  .del-btn { background: none; border: none; cursor: pointer; color: var(--muted); font-size: 1rem; padding: 2px 4px; border-radius: 6px; transition: color 0.2s; }
+  .del-btn:hover { color: var(--danger); }
+
+  .empty-state { padding: 40px 20px; text-align: center; color: var(--muted); font-size: 0.85rem; }
+  .empty-state .icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.4; }
+
+  /* ACTIONS */
+  .actions { display: flex; gap: 10px; margin-bottom: 24px; }
+
+  /* scrollbar */
+  ::-webkit-scrollbar { width: 4px; height: 4px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 99px; }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header>
+    <div class="logo-mark">⬛</div>
+    <div>
+      <h1>QR <span>Scanner</span> Log</h1>
+      <div class="subtitle">scan · record · export</div>
+    </div>
+  </header>
+
+  <!-- FORM -->
+  <div class="form-card">
+    <h2>📋 Entry Details</h2>
+    <div class="field">
+      <label>WHO IS SCANNING?</label>
+      <input type="text" id="inp-name" placeholder="e.g. John Smith" autocomplete="off">
+    </div>
+    <div class="field">
+      <label>REASON / VALUE / NOTE</label>
+      <textarea id="inp-reason" placeholder="e.g. Inventory check, Attendance, Asset #A-42…"></textarea>
+    </div>
+  </div>
+
+  <!-- SCANNER -->
+  <div class="scanner-card">
+    <div class="scanner-header">
+      <h2>📷 Camera Scanner</h2>
+      <span class="badge idle" id="scan-badge">IDLE</span>
+    </div>
+    <div id="qr-reader"></div>
+    <div class="scan-controls">
+      <button class="btn btn-primary" id="btn-start" onclick="startScan()">▶ Start Camera</button>
+      <button class="btn btn-danger" id="btn-stop" onclick="stopScan()" disabled>■ Stop</button>
+    </div>
+    <div class="manual-area">
+      <div class="manual-row">
+        <input type="text" id="inp-manual" placeholder="Or type / paste QR value manually…" autocomplete="off" onkeydown="if(event.key==='Enter')addManual()">
+        <button class="btn btn-ghost" onclick="addManual()" title="Add manually">＋</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LOG -->
+  <div class="log-card">
+    <div class="log-header">
+      <h2>📊 Scan Log</h2>
+      <span class="log-count" id="log-count">0 entries</span>
+    </div>
+    <div class="table-wrap">
+      <table id="log-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Name</th>
+            <th>QR Value</th>
+            <th>Reason / Note</th>
+            <th>Time</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="log-body"></tbody>
+      </table>
+      <div class="empty-state" id="empty-state">
+        <div class="icon">🔲</div>
+        No scans yet — start camera or enter manually
+      </div>
+    </div>
+  </div>
+
+  <!-- ACTIONS -->
+  <div class="actions">
+    <button class="btn btn-primary" onclick="downloadCSV()" id="btn-csv" disabled>⬇ Download CSV</button>
+    <button class="btn btn-ghost" onclick="clearLog()" id="btn-clear" disabled>🗑 Clear All</button>
+  </div>
+
+</div>
+
+<div id="toast"></div>
+
+<script>
+  let scanner = null;
+  let isScanning = false;
+  let records = JSON.parse(localStorage.getItem('qr_records') || '[]');
+  let lastQR = '';
+  let cooldown = false;
+
+  function saveRecords() {
+    localStorage.setItem('qr_records', JSON.stringify(records));
+  }
+
+  function renderTable() {
+    const tbody = document.getElementById('log-body');
+    const empty = document.getElementById('empty-state');
+    const count = document.getElementById('log-count');
+    const btnCsv = document.getElementById('btn-csv');
+    const btnClear = document.getElementById('btn-clear');
+
+    count.textContent = records.length + ' ' + (records.length === 1 ? 'entry' : 'entries');
+    btnCsv.disabled = records.length === 0;
+    btnClear.disabled = records.length === 0;
+
+    if (records.length === 0) {
+      tbody.innerHTML = '';
+      empty.style.display = 'block';
+      return;
+    }
+    empty.style.display = 'none';
+
+    tbody.innerHTML = records.map((r, i) => `
+      <tr>
+        <td style="color:var(--muted);font-family:'Space Mono',monospace;font-size:0.72rem">${i + 1}</td>
+        <td class="td-name">${esc(r.name) || '<span style="color:var(--muted)">—</span>'}</td>
+        <td class="td-qr" title="${esc(r.qr)}">${esc(r.qr)}</td>
+        <td class="td-reason" title="${esc(r.reason)}">${esc(r.reason) || '<span style="color:var(--muted)">—</span>'}</td>
+        <td class="td-time">${r.time}</td>
+        <td><button class="del-btn" onclick="deleteRow(${i})" title="Delete">✕</button></td>
+      </tr>
+    `).join('');
+  }
+
+  function esc(s) {
+    if (!s) return '';
+    return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  }
+
+  function now() {
+    const d = new Date();
+    return d.toLocaleDateString() + ' ' + d.toLocaleTimeString([], {hour:'2-digit',minute:'2-digit',second:'2-digit'});
+  }
+
+  function addRecord(qrValue) {
+    const name = document.getElementById('inp-name').value.trim();
+    const reason = document.getElementById('inp-reason').value.trim();
+    records.unshift({ name, qr: qrValue, reason, time: now() });
+    saveRecords();
+    renderTable();
+    showToast('✓ Logged: ' + qrValue.substring(0, 28) + (qrValue.length > 28 ? '…' : ''));
+  }
+
+  function addManual() {
+    const val = document.getElementById('inp-manual').value.trim();
+    if (!val) { showToast('Enter a value first', true); return; }
+    addRecord(val);
+    document.getElementById('inp-manual').value = '';
+  }
+
+  function deleteRow(i) {
+    records.splice(i, 1);
+    saveRecords();
+    renderTable();
+  }
+
+  function clearLog() {
+    if (!confirm('Clear all ' + records.length + ' records?')) return;
+    records = [];
+    saveRecords();
+    renderTable();
+  }
+
+  function startScan() {
+    if (isScanning) return;
+    scanner = new Html5Qrcode('qr-reader');
+    const config = { fps: 12, qrbox: { width: 240, height: 240 }, aspectRatio: 1.0 };
+    scanner.start(
+      { facingMode: 'environment' },
+      config,
+      onScanSuccess,
+      () => {}
+    ).then(() => {
+      isScanning = true;
+      document.getElementById('btn-start').disabled = true;
+      document.getElementById('btn-stop').disabled = false;
+      document.getElementById('scan-badge').textContent = 'LIVE';
+      document.getElementById('scan-badge').className = 'badge live';
+    }).catch(err => {
+      showToast('Camera error: ' + err, true);
+    });
+  }
+
+  function stopScan() {
+    if (!isScanning || !scanner) return;
+    scanner.stop().then(() => {
+      isScanning = false;
+      scanner.clear();
+      document.getElementById('qr-reader').innerHTML = '';
+      document.getElementById('btn-start').disabled = false;
+      document.getElementById('btn-stop').disabled = true;
+      document.getElementById('scan-badge').textContent = 'IDLE';
+      document.getElementById('scan-badge').className = 'badge idle';
+    });
+  }
+
+  function onScanSuccess(decodedText) {
+    if (cooldown || decodedText === lastQR) return;
+    lastQR = decodedText;
+    cooldown = true;
+    addRecord(decodedText);
+    setTimeout(() => { cooldown = false; lastQR = ''; }, 2500);
+  }
+
+  function downloadCSV() {
+    if (records.length === 0) return;
+    const header = ['#', 'Name', 'QR Value', 'Reason / Note', 'Timestamp'];
+    const rows = records.map((r, i) => [
+      i + 1,
+      csvCell(r.name),
+      csvCell(r.qr),
+      csvCell(r.reason),
+      csvCell(r.time)
+    ]);
+    const csv = [header, ...rows].map(r => r.join(',')).join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'qr_scan_log_' + new Date().toISOString().slice(0,10) + '.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+    showToast('⬇ CSV downloaded!');
+  }
+
+  function csvCell(v) {
+    if (!v) return '';
+    v = String(v).replace(/"/g, '""');
+    return /[",\n]/.test(v) ? '"' + v + '"' : v;
+  }
+
+  let toastTimer;
+  function showToast(msg, isError = false) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.className = isError ? 'error' : '';
+    requestAnimationFrame(() => { t.classList.add('show'); });
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2800);
+  }
+
+  renderTable();
+</script>
+</body>
+</html>
