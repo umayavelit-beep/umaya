@@ -1,0 +1,1000 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>DB Migration Tool — Browser Edition</title>
+<style>
+  *{box-sizing:border-box}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+       margin:0;background:#f4f6f9;color:#1e2430}
+  header{background:#1e2430;color:#fff;padding:10px 20px;display:flex;
+         justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px}
+  header h1{margin:0;font-size:18px}
+  #statusbar{display:flex;gap:8px;flex-wrap:wrap;font-size:12px}
+  .pill{background:#2c3446;padding:4px 10px;border-radius:14px}
+  .pill.ok{background:#14532d}.pill.err{background:#7f1d1d}.pill.warn{background:#78350f}
+  nav{display:flex;flex-wrap:wrap;gap:4px;background:#e5e9f0;padding:8px 20px;
+      border-bottom:1px solid #cbd2dd}
+  nav button{background:transparent;border:1px solid transparent;padding:6px 12px;
+             cursor:pointer;border-radius:4px;font-size:13px}
+  nav button.active{background:#fff;border-color:#cbd2dd;font-weight:600}
+  main{padding:20px;max-width:1400px;margin:0 auto}
+  .tab{display:none}.tab.active{display:block}
+  .card{background:#fff;border:1px solid #dde3ec;border-radius:8px;padding:14px;
+        margin-bottom:12px;box-shadow:0 1px 2px rgba(0,0,0,.03)}
+  .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:900px){.grid2{grid-template-columns:1fr}}
+  h2{margin-top:0}h3{margin-top:0;font-size:13px;text-transform:uppercase;
+     letter-spacing:.5px;color:#4b5563}
+  button{padding:7px 14px;border-radius:4px;border:1px solid #cbd2dd;background:#fff;
+         cursor:pointer;font-size:13px}
+  button.primary{background:#2563eb;border-color:#2563eb;color:#fff;font-weight:600}
+  button.primary:hover{background:#1d4ed8}
+  button.danger{background:#b91c1c;border-color:#b91c1c;color:#fff}
+  button:disabled{opacity:.5;cursor:not-allowed}
+  .row{display:flex;flex-wrap:wrap;gap:12px;align-items:center;margin-bottom:12px}
+  .row label{display:flex;flex-direction:column;font-size:12px;color:#4b5563;gap:4px}
+  .row input[type=number],.row select{padding:5px 8px;border:1px solid #cbd2dd;
+                                       border-radius:4px}
+  .check{flex-direction:row!important;align-items:center;gap:6px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th,td{padding:6px 10px;border-bottom:1px solid #e5e9f0;text-align:left}
+  th{background:#f3f6fb;font-weight:600}
+  pre{background:#0f172a;color:#e2e8f0;padding:12px;border-radius:6px;overflow:auto;
+      font-size:12px;max-height:340px}
+  .bar{background:#e5e9f0;height:18px;border-radius:9px;overflow:hidden;margin:6px 0}
+  .bar>div{height:100%;width:0;background:linear-gradient(90deg,#2563eb,#22c55e);
+           transition:width .3s}
+  .ok{color:#166534;background:#dcfce7;padding:8px;border-radius:4px;display:inline-block}
+  .err{color:#7f1d1d;background:#fee2e2;padding:8px;border-radius:4px;display:inline-block}
+  .warn{color:#92400e;background:#fef3c7;padding:8px;border-radius:4px;display:inline-block}
+  .msg{font-size:13px;margin-top:8px;min-height:18px}
+  .msg.ok{color:#166534;background:none;padding:0}
+  .msg.err{color:#991b1b;background:none;padding:0}
+  .filebox{border:2px dashed #cbd2dd;border-radius:6px;padding:14px;text-align:center;
+           background:#fafbff;font-size:13px}
+  .filebox.loaded{border-color:#22c55e;background:#f0fdf4}
+  .filebox input{display:none}
+  .badge{display:inline-block;padding:2px 8px;border-radius:10px;font-size:11px;
+         background:#e5e9f0;color:#4b5563;margin-left:6px}
+  .badge.ok{background:#dcfce7;color:#166534}
+  .badge.err{background:#fee2e2;color:#7f1d1d}
+</style>
+</head>
+<body>
+
+<header>
+  <h1>🛢️ DB Migration Tool <span style="font-size:12px;opacity:.7">— Browser Edition (SQLite)</span></h1>
+  <div id="statusbar">
+    <span id="src-pill" class="pill">SOURCE: —</span>
+    <span id="tgt-pill" class="pill">TARGET: —</span>
+    <span id="sys-pill" class="pill">System: …</span>
+  </div>
+</header>
+
+<nav>
+  <button data-tab="conn" class="active">Connections</button>
+  <button data-tab="analysis">Analysis</button>
+  <button data-tab="compare">Schema Compare</button>
+  <button data-tab="tables">Table Selection</button>
+  <button data-tab="migration">Migration</button>
+  <button data-tab="verify">Verification</button>
+  <button data-tab="logs">Logs</button>
+</nav>
+
+<main>
+
+<section id="tab-conn" class="tab active">
+  <h2>Connections</h2>
+  <p style="font-size:13px;color:#4b5563">
+    Pick a SQLite file for each side. Files never leave your device — everything
+    runs inside this page.
+  </p>
+
+  <div class="grid2">
+    <div class="card">
+      <h3>SOURCE DATABASE — DB1</h3>
+      <div class="filebox" id="src-box">
+        <label for="src-file" style="cursor:pointer;display:block">
+          📂 <b>Choose SQLite file</b><br>
+          <span id="src-name" style="font-size:12px;color:#6b7280">no file selected</span>
+        </label>
+        <input type="file" id="src-file" accept=".sqlite,.db,.sqlite3,.db3">
+      </div>
+      <div style="margin-top:8px">
+        <button id="src-empty">Use empty in-memory DB</button>
+        <button id="src-close">Disconnect</button>
+      </div>
+      <p class="msg" id="m-source"></p>
+    </div>
+
+    <div class="card">
+      <h3>TARGET DATABASE — DB2</h3>
+      <div class="filebox" id="tgt-box">
+        <label for="tgt-file" style="cursor:pointer;display:block">
+          📂 <b>Choose SQLite file</b><br>
+          <span id="tgt-name" style="font-size:12px;color:#6b7280">no file selected</span>
+        </label>
+        <input type="file" id="tgt-file" accept=".sqlite,.db,.sqlite3,.db3">
+      </div>
+      <div style="margin-top:8px">
+        <button id="tgt-empty">Use empty in-memory DB</button>
+        <button id="tgt-close">Disconnect</button>
+      </div>
+      <p class="msg" id="m-target"></p>
+    </div>
+  </div>
+
+  <div class="card">
+    <h3>System resources (browser-reported)</h3>
+    <pre id="sysinfo">loading…</pre>
+  </div>
+</section>
+
+<section id="tab-analysis" class="tab">
+  <h2>Database Analysis</h2>
+  <button class="primary" id="btn-analyze">Analyze Databases</button>
+  <div id="analysis-out"></div>
+</section>
+
+<section id="tab-compare" class="tab">
+  <h2>Schema Compare (DB1 → DB2)</h2>
+  <button class="primary" id="btn-compare">Compare Schemas</button>
+  <div id="compare-out"></div>
+</section>
+
+<section id="tab-tables" class="tab">
+  <h2>Table Selection</h2>
+  <div class="row">
+    <label>Mode
+      <select id="mode">
+        <option value="insert_update">Insert + Update (recommended)</option>
+        <option value="insert">Insert only (missing)</option>
+        <option value="update">Update only (existing)</option>
+        <option value="upsert">Upsert (INSERT OR REPLACE)</option>
+      </select></label>
+    <label>Batch Size <input id="batch" type="number" value="500" min="100" max="50000"></label>
+    <label class="check"><input id="dry" type="checkbox"> Dry Run</label>
+    <label class="check"><input id="strict" type="checkbox"> Strict</label>
+    <label class="check"><input id="resume" type="checkbox" checked> Resume</label>
+  </div>
+  <div class="row">
+    <button id="btn-plan">Generate Plan</button>
+    <button id="btn-sql">Generate SQL Preview</button>
+    <button id="btn-reset-ck">Reset Checkpoints</button>
+    <button id="btn-export-tgt" class="primary">💾 Export Target DB</button>
+  </div>
+  <div id="tables-out"></div>
+  <div id="plan-out"></div>
+  <div id="sql-out"></div>
+</section>
+
+<section id="tab-migration" class="tab">
+  <h2>Migration</h2>
+  <div class="row">
+    <button id="btn-start" class="primary">▶ Start Migration</button>
+    <button id="btn-pause">⏸ Pause</button>
+    <button id="btn-resume-mig">⏵ Resume</button>
+    <button id="btn-stop" class="danger">⏹ Stop</button>
+  </div>
+  <div class="grid">
+    <div class="card"><h3>Current table</h3><p id="cur-table">—</p></div>
+    <div class="card"><h3>Status</h3><p id="cur-status">idle</p>
+      <div class="bar"><div id="progress-bar"></div></div></div>
+    <div class="card"><h3>Counters</h3>
+      <pre id="counters">inserted: 0
+updated: 0
+skipped: 0
+errors: 0</pre></div>
+  </div>
+  <h3>Live Log</h3>
+  <pre id="live-log"></pre>
+</section>
+
+<section id="tab-verify" class="tab">
+  <h2>Verification</h2>
+  <button class="primary" id="btn-verify">Run Verification</button>
+  <div id="verify-out"></div>
+</section>
+
+<section id="tab-logs" class="tab">
+  <h2>Error Log</h2>
+  <button class="primary" id="btn-errors">Refresh</button>
+  <div id="errors-out"></div>
+</section>
+
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/sql-wasm.js"></script>
+<script>
+/* =========================================================================
+ *  0. GLOBAL STATE
+ * ========================================================================= */
+const $ = id => document.getElementById(id);
+let SQL = null;             // sql.js module
+let dbSrc = null;           // SQL.Database for DB1
+let dbTgt = null;           // SQL.Database for DB2
+let srcName = null, tgtName = null;
+let schemaSrc = null, schemaTgt = null;
+let engineStop = false, enginePause = false, running = false;
+const LOG = [];
+const ERRORS = [];
+const CK_KEY = "dbmigrate.checkpoints";
+
+function log(msg) {
+  const ts = new Date().toTimeString().slice(0, 8);
+  const line = `[${ts}] ${msg}`;
+  LOG.push(line);
+  if (LOG.length > 500) LOG.shift();
+  const el = $("live-log");
+  if (el) { el.textContent = LOG.slice(-100).join("\n"); el.scrollTop = el.scrollHeight; }
+  console.log(line);
+}
+
+function logError(table, op, err) {
+  ERRORS.push({
+    timestamp: new Date().toISOString().slice(0,19).replace("T"," "),
+    table, operation: op, error: String(err && err.message || err)
+  });
+}
+
+/* =========================================================================
+ *  1. SYSTEM INFO
+ * ========================================================================= */
+async function systemInfo() {
+  const cores = navigator.hardwareConcurrency || 2;
+  const memGB = navigator.deviceMemory || 4;   // approximate, in GB
+  let quotaGB = 0, usageGB = 0;
+  try {
+    const est = await navigator.storage.estimate();
+    quotaGB = +(est.quota / 1e9).toFixed(2);
+    usageGB = +(est.usage / 1e9).toFixed(2);
+  } catch(e) {}
+  const avail = Math.max(1, memGB * 0.6);
+
+  let batch = 500;
+  if (avail < 1) batch = 200;
+  else if (avail < 2) batch = 500;
+  else if (avail < 4) batch = 1000;
+  else if (avail < 8) batch = 2000;
+  else batch = 5000;
+
+  return { cores, memGB, availGB: +avail.toFixed(2), quotaGB, usageGB,
+           recommended_batch: batch };
+}
+
+async function renderSystem() {
+  const s = await systemInfo();
+  $("sys-pill").textContent =
+    `CPU ${s.cores}c · RAM ~${s.memGB} GB · Storage ${s.quotaGB} GB`;
+  $("sysinfo").textContent =
+    `CPU logical cores   : ${s.cores}\n` +
+    `Device memory (approx): ${s.memGB} GB\n` +
+    `Assumed available    : ${s.availGB} GB\n` +
+    `Storage quota        : ${s.quotaGB} GB (used ${s.usageGB} GB)\n` +
+    `Recommended batch    : ${s.recommended_batch}\n\n` +
+    `NOTE: browsers report approximate memory. sql.js keeps the DB in RAM,\n` +
+    `so prefer smaller SQLite files (< 200 MB) in this edition.`;
+  const b = $("batch");
+  if (b && !b.dataset.touched) b.value = s.recommended_batch;
+}
+$("batch").addEventListener("input", e => e.target.dataset.touched = 1);
+
+/* =========================================================================
+ *  2. SQL HELPERS
+ * ========================================================================= */
+function qid(name) {
+  if (!/^[A-Za-z_][A-Za-z0-9_.$]*$/.test(name))
+    throw new Error("Unsafe SQL identifier: " + name);
+  return `"${name}"`;
+}
+
+function exec(db, sql) { return db.exec(sql); }
+
+function listTables(db) {
+  const r = db.exec(
+    "SELECT name FROM sqlite_master WHERE type='table' " +
+    "AND name NOT LIKE 'sqlite_%' ORDER BY name");
+  return r.length ? r[0].values.map(row => row[0]) : [];
+}
+
+function getColumns(db, table) {
+  const r = db.exec(`PRAGMA table_info(${qid(table)})`);
+  if (!r.length) return [];
+  const { columns, values } = r[0];
+  const ix = Object.fromEntries(columns.map((c, i) => [c, i]));
+  return values.map(row => ({
+    name: row[ix.name],
+    type: row[ix.type] || "",
+    nullable: !row[ix.notnull],
+    default: row[ix.dflt_value],
+    primary_key: !!row[ix.pk],
+    autoincrement: false
+  }));
+}
+
+function getPK(db, table) {
+  return getColumns(db, table).filter(c => c.primary_key).map(c => c.name);
+}
+
+function getFKs(db, table) {
+  const r = db.exec(`PRAGMA foreign_key_list(${qid(table)})`);
+  if (!r.length) return [];
+  const { columns, values } = r[0];
+  const ix = Object.fromEntries(columns.map((c, i) => [c, i]));
+  const grouped = {};
+  for (const row of values) {
+    const id = row[ix.id];
+    const g = grouped[id] = grouped[id] || {
+      name: `fk_${table}_${id}`, referred_table: row[ix.table],
+      columns: [], referred_columns: []
+    };
+    g.columns.push(row[ix.from]);
+    g.referred_columns.push(row[ix.to]);
+  }
+  return Object.values(grouped);
+}
+
+function getIndexes(db, table) {
+  const list = db.exec(`PRAGMA index_list(${qid(table)})`);
+  if (!list.length) return [];
+  const { columns, values } = list[0];
+  const ix = Object.fromEntries(columns.map((c, i) => [c, i]));
+  const out = [];
+  for (const row of values) {
+    const name = row[ix.name];
+    const unique = !!row[ix.unique];
+    const info = db.exec(`PRAGMA index_info(${qid(name)})`);
+    const cols = info.length ? info[0].values.map(v => v[2]) : [];
+    out.push({ name, unique, columns: cols });
+  }
+  return out;
+}
+
+function rowCount(db, table) {
+  const r = db.exec(`SELECT COUNT(*) FROM ${qid(table)}`);
+  return r.length ? r[0].values[0][0] : 0;
+}
+
+/* Keyset pagination — the heart of safe streaming */
+function streamBatch(db, table, pk, lastKey, size) {
+  const cols = pk.map(qid).join(", ");
+  let sql, params = [];
+  if (lastKey) {
+    const ph = pk.map(() => "?").join(", ");
+    sql = `SELECT * FROM ${qid(table)} WHERE (${cols}) > (${ph}) ` +
+          `ORDER BY ${cols} LIMIT ${size}`;
+    params = lastKey;
+  } else {
+    sql = `SELECT * FROM ${qid(table)} ORDER BY ${cols} LIMIT ${size}`;
+  }
+  const stmt = db.prepare(sql);
+  if (params.length) stmt.bind(params);
+  const rows = [];
+  while (stmt.step()) rows.push(stmt.getAsObject());
+  stmt.free();
+  const newLast = rows.length ? pk.map(c => rows[rows.length - 1][c]) : null;
+  return { rows, newLast };
+}
+
+function fetchByKeys(db, table, pk, keys) {
+  if (!keys.length) return [];
+  const cols = pk.map(qid).join(", ");
+  const out = [];
+  const CHUNK = 400;
+  for (let i = 0; i < keys.length; i += CHUNK) {
+    const sub = keys.slice(i, i + CHUNK);
+    const ph = sub.map(() => `(${pk.map(()=>"?").join(",")})`).join(",");
+    const params = sub.flat();
+    const stmt = db.prepare(
+      `SELECT * FROM ${qid(table)} WHERE (${cols}) IN (${ph})`);
+    stmt.bind(params);
+    while (stmt.step()) out.push(stmt.getAsObject());
+    stmt.free();
+  }
+  return out;
+}
+
+function insertRows(db, table, rows) {
+  if (!rows.length) return 0;
+  const cols = Object.keys(rows[0]);
+  const sql = `INSERT INTO ${qid(table)} (${cols.map(qid).join(",")}) ` +
+              `VALUES (${cols.map(()=>"?").join(",")})`;
+  const stmt = db.prepare(sql);
+  db.run("BEGIN");
+  try {
+    for (const r of rows) stmt.run(cols.map(c => r[c] === undefined ? null : r[c]));
+    db.run("COMMIT");
+  } catch (e) { db.run("ROLLBACK"); throw e; }
+  finally { stmt.free(); }
+  return rows.length;
+}
+
+function updateRows(db, table, pk, rows) {
+  if (!rows.length) return 0;
+  const cols = Object.keys(rows[0]).filter(c => !pk.includes(c));
+  if (!cols.length) return 0;
+  const setSql = cols.map(c => `${qid(c)}=?`).join(",");
+  const where = pk.map(c => `${qid(c)}=?`).join(" AND ");
+  const sql = `UPDATE ${qid(table)} SET ${setSql} WHERE ${where}`;
+  const stmt = db.prepare(sql);
+  db.run("BEGIN");
+  try {
+    for (const r of rows)
+      stmt.run([...cols.map(c => r[c]), ...pk.map(c => r[c])]);
+    db.run("COMMIT");
+  } catch (e) { db.run("ROLLBACK"); throw e; }
+  finally { stmt.free(); }
+  return rows.length;
+}
+
+function upsertRows(db, table, pk, rows) {
+  if (!rows.length) return 0;
+  const cols = Object.keys(rows[0]);
+  const sql = `INSERT OR REPLACE INTO ${qid(table)} (${cols.map(qid).join(",")}) ` +
+              `VALUES (${cols.map(()=>"?").join(",")})`;
+  const stmt = db.prepare(sql);
+  db.run("BEGIN");
+  try {
+    for (const r of rows) stmt.run(cols.map(c => r[c] === undefined ? null : r[c]));
+    db.run("COMMIT");
+  } catch (e) { db.run("ROLLBACK"); throw e; }
+  finally { stmt.free(); }
+  return rows.length;
+}
+
+/* =========================================================================
+ *  3. SCHEMA DISCOVERY & COMPARE
+ * ========================================================================= */
+function discover(db) {
+  const out = {};
+  for (const t of listTables(db)) {
+    out[t] = {
+      columns: getColumns(db, t),
+      primary_key: getPK(db, t),
+      foreign_keys: getFKs(db, t),
+      indexes: getIndexes(db, t),
+      row_count: null
+    };
+    try { out[t].row_count = rowCount(db, t); } catch(e) {}
+  }
+  return out;
+}
+
+function normType(t) {
+  t = (t || "").toLowerCase();
+  return t.replace("character varying", "varchar")
+          .replace("integer", "int")
+          .replace("boolean", "bool");
+}
+
+function compareSchemas(a, b) {
+  const sa = new Set(Object.keys(a)), sb = new Set(Object.keys(b));
+  const diffs = {
+    missing_tables: [...sa].filter(x => !sb.has(x)).sort(),
+    extra_tables:   [...sb].filter(x => !sa.has(x)).sort(),
+    table_diffs: {}
+  };
+  for (const t of [...sa].filter(x => sb.has(x)).sort()) {
+    const td = { missing_columns: [], extra_columns: [],
+                 type_mismatch: [], nullable_mismatch: [],
+                 pk_diff: null, missing_indexes: [], missing_fks: [] };
+    const ca = Object.fromEntries(a[t].columns.map(c => [c.name, c]));
+    const cb = Object.fromEntries(b[t].columns.map(c => [c.name, c]));
+    for (const n in ca) if (!(n in cb)) td.missing_columns.push(ca[n]);
+    for (const n in cb) if (!(n in ca)) td.extra_columns.push(cb[n]);
+    for (const n of Object.keys(ca).filter(x => x in cb)) {
+      if (normType(ca[n].type) !== normType(cb[n].type))
+        td.type_mismatch.push({ name:n, source:ca[n].type, target:cb[n].type });
+      if (ca[n].nullable !== cb[n].nullable)
+        td.nullable_mismatch.push({ name:n, source:ca[n].nullable, target:cb[n].nullable });
+    }
+    if (a[t].primary_key.join(",") !== b[t].primary_key.join(","))
+      td.pk_diff = { source: a[t].primary_key, target: b[t].primary_key };
+    const bIdx = new Set(b[t].indexes.map(i => i.name));
+    for (const i of a[t].indexes) if (!bIdx.has(i.name)) td.missing_indexes.push(i);
+    const bFk = new Set(b[t].foreign_keys.map(f => f.referred_table + "|" + f.columns.join(",")));
+    for (const f of a[t].foreign_keys)
+      if (!bFk.has(f.referred_table + "|" + f.columns.join(",")))
+        td.missing_fks.push(f);
+    if (Object.values(td).some(v => Array.isArray(v) ? v.length : v))
+      diffs.table_diffs[t] = td;
+  }
+  return diffs;
+}
+
+/* =========================================================================
+ *  4. DEPENDENCY ORDER
+ * ========================================================================= */
+function topoOrder(schema, selected) {
+  const sel = new Set(selected.filter(t => t in schema));
+  const graph = {};
+  for (const t of sel) {
+    graph[t] = new Set();
+    for (const fk of schema[t].foreign_keys || [])
+      if (sel.has(fk.referred_table) && fk.referred_table !== t)
+        graph[t].add(fk.referred_table);
+  }
+  const order = [];
+  const rem = Object.fromEntries(Object.entries(graph).map(([k,v]) => [k, new Set(v)]));
+  while (Object.keys(rem).length) {
+    let ready = Object.keys(rem).filter(t => rem[t].size === 0).sort();
+    if (!ready.length) ready = [Object.keys(rem).sort()[0]];
+    for (const t of ready) {
+      order.push(t);
+      delete rem[t];
+      for (const k in rem) rem[k].delete(t);
+    }
+  }
+  return order;
+}
+
+/* =========================================================================
+ *  5. CHECKPOINTS (localStorage)
+ * ========================================================================= */
+function loadCk() {
+  try { return JSON.parse(localStorage.getItem(CK_KEY) || "{}"); }
+  catch(e) { return {}; }
+}
+function saveCk(table, lastKey, processed, status) {
+  const c = loadCk();
+  c[table] = { last_key: lastKey, processed, status };
+  try { localStorage.setItem(CK_KEY, JSON.stringify(c)); } catch(e) {}
+}
+function clearCk() { localStorage.removeItem(CK_KEY); }
+
+/* =========================================================================
+ *  6. MIGRATION ENGINE
+ * ========================================================================= */
+const idMap = {};   // {table: {srcId: tgtId}}
+
+async function migrateTable(table, pk, fkMap, batchSize, mode, dryRun, strict, resume) {
+  const stats = { processed:0, inserted:0, updated:0, skipped:0, errors:0 };
+  const ck = resume ? loadCk()[table] : null;
+  let lastKey = ck && ck.last_key ? ck.last_key : null;
+  if (lastKey) log(`↻ Resume ${table} from ${JSON.stringify(lastKey)}`);
+
+  while (!engineStop) {
+    while (enginePause && !engineStop) await sleep(250);
+    if (engineStop) break;
+
+    let rows, newLast;
+    try {
+      ({ rows, newLast } = streamBatch(dbSrc, table, pk, lastKey, batchSize));
+    } catch (e) {
+      log(`✗ stream error ${table}: ${e.message}`);
+      logError(table, "STREAM", e);
+      stats.errors++;
+      if (strict) throw e;
+      break;
+    }
+    if (!rows.length) break;
+
+    // remap FK values using parent ID map
+    for (const r of rows) {
+      for (const col in fkMap) {
+        const [refTable] = fkMap[col];
+        if (col in r && r[col] !== null && idMap[refTable] &&
+            r[col] in idMap[refTable]) {
+          r[col] = idMap[refTable][r[col]];
+        }
+      }
+    }
+
+    // lookup existing target rows
+    const keys = rows.map(r => pk.map(c => r[c]));
+    let existing = [];
+    try {
+      existing = fetchByKeys(dbTgt, table, pk, keys);
+    } catch (e) {
+      log(`✗ target lookup ${table}: ${e.message}`);
+      logError(table, "LOOKUP", e);
+      stats.errors += rows.length;
+      if (strict) throw e;
+      lastKey = newLast;
+      continue;
+    }
+    const existMap = {};
+    for (const r of existing) existMap[JSON.stringify(pk.map(c => r[c]))] = r;
+
+    const toInsert = [], toUpdate = [];
+    for (const r of rows) {
+      const k = JSON.stringify(pk.map(c => r[c]));
+      if (!(k in existMap)) toInsert.push(r);
+      else if (rowDiffers(r, existMap[k])) toUpdate.push(r);
+    }
+
+    if (!dryRun) {
+      try {
+        if (["insert","insert_update","upsert"].includes(mode) && toInsert.length)
+          stats.inserted += (mode === "upsert")
+            ? upsertRows(dbTgt, table, pk, toInsert)
+            : insertRows(dbTgt, table, toInsert);
+        if (["update","insert_update","upsert"].includes(mode) && toUpdate.length) {
+          if (mode === "upsert")
+            stats.updated += upsertRows(dbTgt, table, pk, toUpdate);
+          else
+            stats.updated += updateRows(dbTgt, table, pk, toUpdate);
+        }
+      } catch (e) {
+        log(`✗ write ${table}: ${e.message}`);
+        logError(table, "WRITE", e);
+        stats.errors++;
+        if (strict) throw e;
+        lastKey = newLast;
+        continue;
+      }
+    }
+
+    stats.skipped += rows.length - toInsert.length - toUpdate.length;
+    stats.processed += rows.length;
+
+    // record id mapping (1:1 same-key rows assumed; extend for autoincrement)
+    idMap[table] = idMap[table] || {};
+    for (const r of toInsert)
+      idMap[table][r[pk[0]]] = r[pk[0]];
+
+    lastKey = newLast;
+    saveCk(table, lastKey, stats.processed, "running");
+    updateProgress(table, stats);
+    await sleep(0); // yield to UI
+  }
+
+  saveCk(table, lastKey, stats.processed, engineStop ? "stopped" : "done");
+  return stats;
+}
+
+function rowDiffers(a, b) {
+  for (const k in a) if (k in b && b[k] !== a[k]) return true;
+  return false;
+}
+
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+
+function updateProgress(table, stats) {
+  $("cur-table").textContent = table;
+  $("cur-status").textContent = "running";
+  $("counters").textContent =
+    `processed: ${stats.processed}\ninserted : ${stats.inserted}\n` +
+    `updated  : ${stats.updated}\nskipped  : ${stats.skipped}\n` +
+    `errors   : ${stats.errors}`;
+}
+
+/* =========================================================================
+ *  7. BACKGROUND RUNNER
+ * ========================================================================= */
+async function runMigration(tables, batchSize, mode, dryRun, strict, resume) {
+  running = true; engineStop = false; enginePause = false;
+  ERRORS.length = 0;
+  try {
+    const order = topoOrder(schemaSrc, tables);
+    log(`▶ Migration starting (batch=${batchSize}, mode=${mode}, dry_run=${dryRun})`);
+    log(`Order: ${order.join(" → ")}`);
+    let total = { inserted:0, updated:0, skipped:0, errors:0 };
+    for (const t of order) {
+      if (engineStop) { log("⏹ Stopped by user."); break; }
+      const pk = (schemaSrc[t] && schemaSrc[t].primary_key) || [];
+      if (!pk.length) { log(`⚠ ${t}: no primary key — skipped`); continue; }
+      const fkMap = {};
+      for (const fk of (schemaSrc[t].foreign_keys || []))
+        fk.columns.forEach((col, i) => fkMap[col] = [fk.referred_table, fk.referred_columns[i]]);
+      log(`→ ${t}`);
+      const s = await migrateTable(t, pk, fkMap, batchSize, mode, dryRun, strict, resume);
+      total.inserted += s.inserted; total.updated += s.updated;
+      total.skipped += s.skipped; total.errors += s.errors;
+      log(`✓ ${t}  +${s.inserted} ~${s.updated} =${s.skipped} !${s.errors}`);
+    }
+    log(`✅ Done. inserted=${total.inserted} updated=${total.updated} ` +
+        `skipped=${total.skipped} errors=${total.errors}`);
+    $("cur-status").textContent = "done";
+    $("progress-bar").style.width = "100%";
+  } catch (e) {
+    log(`❌ Migration crashed: ${e.message}`);
+    $("cur-status").textContent = "error";
+  } finally {
+    running = false;
+  }
+}
+
+/* =========================================================================
+ *  8. FILE LOADING / DB SETUP
+ * ========================================================================= */
+async function fileToDb(file) {
+  const buf = await file.arrayBuffer();
+  return new SQL.Database(new Uint8Array(buf));
+}
+
+async function loadSource(file) {
+  try {
+    dbSrc = await fileToDb(file);
+    srcName = file.name;
+    $("src-box").classList.add("loaded");
+    $("src-name").textContent = `${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    $("m-source").textContent = "🟢 Loaded";
+    $("m-source").className = "msg ok";
+    refreshPills();
+    log(`🟢 SOURCE loaded: ${file.name}`);
+  } catch (e) { $("m-source").textContent = "🔴 " + e.message;
+                $("m-source").className = "msg err"; }
+}
+
+async function loadTarget(file) {
+  try {
+    dbTgt = await fileToDb(file);
+    tgtName = file.name;
+    $("tgt-box").classList.add("loaded");
+    $("tgt-name").textContent = `${file.name} (${(file.size/1024).toFixed(0)} KB)`;
+    $("m-target").textContent = "🟢 Loaded";
+    $("m-target").className = "msg ok";
+    refreshPills();
+    log(`🟢 TARGET loaded: ${file.name}`);
+  } catch (e) { $("m-target").textContent = "🔴 " + e.message;
+                $("m-target").className = "msg err"; }
+}
+
+function refreshPills() {
+  const sp = $("src-pill"), tp = $("tgt-pill");
+  sp.textContent = "SOURCE: " + (dbSrc ? "🟢 Loaded" : "🔴 —");
+  sp.className = "pill " + (dbSrc ? "ok" : "err");
+  tp.textContent = "TARGET: " + (dbTgt ? "🟢 Loaded" : "🔴 —");
+  tp.className = "pill " + (dbTgt ? "ok" : "err");
+}
+
+function exportDb(db, filename) {
+  const data = db.export();
+  const blob = new Blob([data], { type: "application/x-sqlite3" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 5000);
+  log(`💾 Exported ${filename} (${(data.length/1024).toFixed(0)} KB)`);
+}
+
+/* =========================================================================
+ *  9. UI HANDLERS
+ * ========================================================================= */
+// tabs
+document.querySelectorAll("nav button").forEach(b => b.onclick = () => {
+  document.querySelectorAll("nav button").forEach(x => x.classList.remove("active"));
+  document.querySelectorAll(".tab").forEach(x => x.classList.remove("active"));
+  b.classList.add("active");
+  $("tab-" + b.dataset.tab).classList.add("active");
+});
+
+// file inputs
+$("src-file").onchange = e => e.target.files[0] && loadSource(e.target.files[0]);
+$("tgt-file").onchange = e => e.target.files[0] && loadTarget(e.target.files[0]);
+$("src-empty").onclick = () => {
+  dbSrc = new SQL.Database(); srcName = "in-memory.sqlite";
+  $("src-box").classList.add("loaded");
+  $("src-name").textContent = "empty in-memory database";
+  $("m-source").textContent = "🟢 Empty DB ready"; $("m-source").className = "msg ok";
+  refreshPills(); log("🟢 SOURCE = empty in-memory DB");
+};
+$("tgt-empty").onclick = () => {
+  dbTgt = new SQL.Database(); tgtName = "in-memory-target.sqlite";
+  $("tgt-box").classList.add("loaded");
+  $("tgt-name").textContent = "empty in-memory database";
+  $("m-target").textContent = "🟢 Empty DB ready"; $("m-target").className = "msg ok";
+  refreshPills(); log("🟢 TARGET = empty in-memory DB");
+};
+$("src-close").onclick = () => { dbSrc = null; srcName = null;
+  $("src-box").classList.remove("loaded"); $("src-name").textContent = "no file selected";
+  $("m-source").textContent = ""; refreshPills(); };
+$("tgt-close").onclick = () => { dbTgt = null; tgtName = null;
+  $("tgt-box").classList.remove("loaded"); $("tgt-name").textContent = "no file selected";
+  $("m-target").textContent = ""; refreshPills(); };
+
+// analyze
+$("btn-analyze").onclick = () => {
+  if (!dbSrc || !dbTgt) { alert("Load both SQLite files first."); return; }
+  $("analysis-out").innerHTML = "<p>Analyzing…</p>";
+  setTimeout(() => {
+    schemaSrc = discover(dbSrc);
+    schemaTgt = discover(dbTgt);
+    let html = "<h3>Tables</h3><table><tr><th>Table</th>" +
+               "<th>Source rows</th><th>Target rows</th></tr>";
+    Object.keys(schemaSrc).sort().forEach(t => {
+      const s = schemaSrc[t].row_count ?? "—";
+      const g = (schemaTgt[t] && schemaTgt[t].row_count != null)
+                ? schemaTgt[t].row_count : "—";
+      html += `<tr><td>${t}</td><td>${s}</td><td>${g}</td></tr>`;
+    });
+    html += "</table>";
+    $("analysis-out").innerHTML = html;
+    renderTables();
+    log(`✅ Analysis: ${Object.keys(schemaSrc).length} src tables, ` +
+        `${Object.keys(schemaTgt).length} tgt tables`);
+  }, 30);
+};
+
+// compare
+$("btn-compare").onclick = () => {
+  if (!schemaSrc || !schemaTgt) { alert("Run Analyze first."); return; }
+  const d = compareSchemas(schemaSrc, schemaTgt);
+  let html = "";
+  if (d.missing_tables.length)
+    html += `<div class="warn">⚠ Missing in target: ${d.missing_tables.join(", ")}</div><p></p>`;
+  if (d.extra_tables.length)
+    html += `<div class="warn">Extra in target: ${d.extra_tables.join(", ")}</div><p></p>`;
+  const names = Object.keys(d.table_diffs);
+  if (!names.length) html += `<div class="ok">No differences detected 🎉</div>`;
+  for (const t of names) {
+    const td = d.table_diffs[t];
+    html += `<div class="card"><h3>${t}</h3>`;
+    if (td.missing_columns.length)
+      html += `<p>Missing columns: ${td.missing_columns.map(c=>c.name+" "+c.type).join(", ")}</p>`;
+    if (td.extra_columns.length)
+      html += `<p>Extra columns: ${td.extra_columns.map(c=>c.name).join(", ")}</p>`;
+    td.type_mismatch.forEach(m =>
+      html += `<p>⚠ <b>${m.name}</b> — source: ${m.source} · target: ${m.target}</p>`);
+    td.nullable_mismatch.forEach(m =>
+      html += `<p>⚠ <b>${m.name}</b> nullable — src:${m.source} tgt:${m.target}</p>`);
+    if (td.pk_diff) html += `<p>⚠ Primary key differs</p>`;
+    if (td.missing_indexes.length)
+      html += `<p>Missing indexes: ${td.missing_indexes.map(i=>i.name).join(", ")}</p>`;
+    if (td.missing_fks.length) html += `<p>Missing FKs: ${td.missing_fks.length}</p>`;
+    html += `</div>`;
+  }
+  $("compare-out").innerHTML = html;
+};
+
+// table selection
+function renderTables() {
+  let html = `<table><tr><th>✓</th><th>Table</th><th>PK</th>` +
+             `<th>Source rows</th><th>Target rows</th></tr>`;
+  Object.keys(schemaSrc).sort().forEach(t => {
+    const pk = (schemaSrc[t].primary_key || []).join(", ") || "—";
+    const s = schemaSrc[t].row_count ?? "—";
+    const g = (schemaTgt[t] && schemaTgt[t].row_count != null)
+              ? schemaTgt[t].row_count : "—";
+    html += `<tr>
+      <td><input type="checkbox" class="tbl" value="${t}" checked></td>
+      <td>${t}</td><td>${pk}</td><td>${s}</td><td>${g}</td></tr>`;
+  });
+  html += "</table>";
+  $("tables-out").innerHTML = html;
+}
+const selectedTables = () =>
+  [...document.querySelectorAll(".tbl:checked")].map(c => c.value);
+
+// plan
+$("btn-plan").onclick = () => {
+  if (!schemaSrc) { alert("Run Analyze first."); return; }
+  const tables = selectedTables();
+  const batch = parseInt($("batch").value, 10);
+  const order = topoOrder(schemaSrc, tables);
+  const totalRows = order.reduce((a,t) => a + (schemaSrc[t].row_count || 0), 0);
+  const size = totalRows < 100_000 ? "Small"
+             : totalRows < 5_000_000 ? "Medium" : "Large";
+  $("plan-out").innerHTML =
+    `<div class="card"><h3>MIGRATION PLAN</h3>
+      <p>Tables selected: <b>${order.length}</b></p>
+      <p>Total source rows: <b>${totalRows}</b></p>
+      <p>Estimated operation: <b>${size}</b></p>
+      <p>Strategy: <b>Keyset pagination + batched writes</b></p>
+      <p>Batch size: <b>${batch}</b></p>
+      <p>Execution order (parents → children):</p>
+      <ol>${order.map(t=>`<li>${t}</li>`).join("")}</ol>
+    </div>`;
+};
+
+// generate SQL
+$("btn-sql").onclick = () => {
+  if (!schemaSrc || !schemaTgt) { alert("Run Analyze first."); return; }
+  const tables = selectedTables();
+  const stmts = [];
+  for (const t of tables) {
+    if (!schemaSrc[t]) continue;
+    const tgtCols = new Set((schemaTgt[t]?.columns || []).map(c => c.name));
+    for (const col of schemaSrc[t].columns) {
+      if (tgtCols.has(col.name)) continue;
+      const nn = col.nullable ? "" : " NOT NULL";
+      const df = col.default ? ` DEFAULT ${col.default}` : "";
+      stmts.push(`ALTER TABLE ${t} ADD COLUMN ${col.name} ${col.type}${nn}${df};`);
+    }
+    const tgtIdx = new Set((schemaTgt[t]?.indexes || []).map(i => i.name));
+    for (const idx of schemaSrc[t].indexes) {
+      if (tgtIdx.has(idx.name)) continue;
+      const uniq = idx.unique ? "UNIQUE " : "";
+      stmts.push(`CREATE ${uniq}INDEX ${idx.name} ON ${t} (${idx.columns.join(",")});`);
+    }
+  }
+  const body = stmts.join("\n") || "-- nothing to do --";
+  $("sql-out").innerHTML =
+    `<div class="card"><h3>Generated SQL (review before applying)</h3>
+       <pre>${body}</pre>
+       <button id="copy-sql">Copy SQL</button></div>`;
+  $("copy-sql").onclick = () => navigator.clipboard.writeText(body);
+};
+
+// reset checkpoints
+$("btn-reset-ck").onclick = () => {
+  clearCk();
+  alert("Checkpoints cleared.");
+};
+
+// export target
+$("btn-export-tgt").onclick = () => {
+  if (!dbTgt) { alert("No target database loaded."); return; }
+  const name = (tgtName || "target").replace(/\.(sqlite3?|db)$/i, "") + "-migrated.sqlite";
+  exportDb(dbTgt, name);
+};
+
+// start migration
+$("btn-start").onclick = () => {
+  if (!dbSrc || !dbTgt) { alert("Load both SQLite files first."); return; }
+  if (running) { alert("Migration already running."); return; }
+  const tables = selectedTables();
+  if (!tables.length) { alert("Select at least one table."); return; }
+  if (!schemaSrc) { alert("Run Analyze first."); return; }
+  const batch = Math.max(100, Math.min(50000, parseInt($("batch").value, 10) || 500));
+  runMigration(
+    tables, batch,
+    $("mode").value,
+    $("dry").checked,
+    $("strict").checked,
+    $("resume").checked
+  );
+};
+
+// control buttons
+$("btn-pause").onclick = () => { enginePause = true; log("⏸ Pause requested"); };
+$("btn-resume-mig").onclick = () => { enginePause = false; log("⏵ Resume"); };
+$("btn-stop").onclick = () => { engineStop = true; log("⏹ Stop requested (will finish current batch)"); };
+
+// verify
+$("btn-verify").onclick = () => {
+  if (!dbSrc || !dbTgt) { alert("Load both SQLite files first."); return; }
+  const tables = selectedTables().length ? selectedTables()
+                                         : Object.keys(schemaSrc || {});
+  let html = `<table><tr><th>Table</th><th>Source</th><th>Target</th><th>Status</th></tr>`;
+  for (const t of tables) {
+    try {
+      const s = rowCount(dbSrc, t);
+      const g = rowCount(dbTgt, t);
+      html += `<tr><td>${t}</td><td>${s}</td><td>${g}</td>
+               <td>${s===g ? "✓ Verified" : "⚠ Mismatch"}</td></tr>`;
+    } catch (e) {
+      html += `<tr><td>${t}</td><td>—</td><td>—</td>
+               <td class="err">${e.message}</td></tr>`;
+    }
+  }
+  html += "</table>";
+  $("verify-out").innerHTML = html;
+};
+
+// errors
+$("btn-errors").onclick = () => {
+  if (!ERRORS.length) { $("errors-out").innerHTML = `<div class="ok">No errors 🎉</div>`; return; }
+  let html = `<table><tr><th>Time</th><th>Table</th><th>Op</th><th>Error</th></tr>`;
+  for (const e of ERRORS) {
+    html += `<tr><td>${e.timestamp}</td><td>${e.table}</td>
+             <td>${e.operation}</td><td class="err">${e.error}</td></tr>`;
+  }
+  html += "</table>";
+  $("errors-out").innerHTML = html;
+};
+
+/* =========================================================================
+ * 10. BOOT
+ * ========================================================================= */
+(async function boot() {
+  try {
+    SQL = await initSqlJs({
+      locateFile: f => `https://cdn.jsdelivr.net/npm/sql.js@1.10.2/dist/${f}`
+    });
+    log("✅ sql.js loaded (SQLite " + SQL.Database.prototype ? "ready" : "?");
+  } catch (e) {
+    alert("Failed to load sql.js. Check your internet connection.");
+    return;
+  }
+  await renderSystem();
+  refreshPills();
+  log("Ready. Load SQLite files and click Analyze.");
+})();
+</script>
+</body>
+</html>
