@@ -87,13 +87,13 @@ tbody tr:hover{background:#EEF2FF}
     <div class="upload-left">
       <div class="upload-icon">⬆</div>
       <div>
-        <div class="upload-text-title">Upload stock ageing CSV</div>
-        <div class="upload-text-sub">Upload your CSV file to analyze stock ageing patterns</div>
+        <div class="upload-text-title">Upload stock ageing file (CSV or Excel)</div>
+        <div class="upload-text-sub">Supports .csv, .xlsx, .xls files to analyze stock ageing patterns</div>
       </div>
     </div>
     <div class="upload-button">
-      <button type="button"><span>Choose CSV file</span></button>
-      <input id="csvUpload" type="file" accept=".csv">
+      <button type="button"><span>Choose file</span></button>
+      <input id="csvUpload" type="file">
     </div>
   </div>
 
@@ -117,6 +117,14 @@ tbody tr:hover{background:#EEF2FF}
             <input type="checkbox" id="chk-specific-purchaser" value="specific-purchaser">
             <span class="label">Specific Purchaser</span>
           </label>
+        </div>
+      </div>
+      <div id="locationFilter" style="margin-top:12px;display:none;">
+        <div class="card-sub" style="margin-bottom:8px;">Location (by Shop or Warehouse):</div>
+        <div class="chip-row">
+          <label class="chip active"><input type="radio" name="location" value="all" checked><span class="label">All</span></label>
+          <label class="chip"><input type="radio" name="location" value="warehouse"><span class="label">Warehouse</span></label>
+          <label class="chip"><input type="radio" name="location" value="shop"><span class="label">Shop</span></label>
         </div>
       </div>
     </div>
@@ -198,6 +206,8 @@ let selectedValueType = 'cost';
 let specificCompany = null;
 let specificPurchaser = null;
 const exportData = {summary:null, detail:null};
+let selectedLocation = 'all';
+let showCol = null;
 
 const BUCKET_IDS = ['chk-overall','chk-last30','chk-last60','chk-last90','chk-last120','chk-last180','chk-last360','chk-oldstock','chk-nodate'];
 const AGE_BUCKETS = ['last30','last60','last90','last120','last180','last360','oldstock'];
@@ -221,6 +231,16 @@ document.addEventListener('DOMContentLoaded', () => {
     BUCKET_IDS.forEach(id => {
         const cb = document.getElementById(id);
         cb.addEventListener('change', () => onBucketToggle(cb));
+    });
+
+    // Location filter (All / Warehouse / Shop)
+    document.querySelectorAll('input[name="location"]').forEach(r => {
+        r.addEventListener('change', e => {
+            selectedLocation = e.target.value;
+            document.querySelectorAll('#locationFilter .chip').forEach(c=>c.classList.remove('active'));
+            e.target.closest('.chip').classList.add('active');
+            updateDisplay();
+        });
     });
 
     // Specific grouping checkboxes
@@ -274,14 +294,38 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 function handleFileUpload(e){
-    const file = e.target.files[0];
+    const input = e.target;
+    const file = input.files[0];
     if (!file) return;
-    Papa.parse(file,{
-        header:true,
-        skipEmptyLines:true,
-        complete: res => processData(res.data),
-        error: err => alert('CSV error: '+err.message)
-    });
+    const ext = (file.name.split('.').pop() || '').toLowerCase();
+
+    if (['xlsx','xls','xlsm','xlsb'].includes(ext)) {
+        if (typeof XLSX === 'undefined') { alert('Excel library not loaded. Check internet connection.'); input.value=''; return; }
+        const reader = new FileReader();
+        reader.onload = ev => {
+            try {
+                const wb = XLSX.read(new Uint8Array(ev.target.result), {type:'array'});
+                const ws = wb.Sheets[wb.SheetNames[0]];          // first sheet
+                const rows = XLSX.utils.sheet_to_json(ws, {defval:'', raw:true});
+                processData(rows);
+            } catch(err) {
+                alert('Excel error: '+err.message);
+            }
+            input.value = '';                                    // allow re-selecting same file
+        };
+        reader.onerror = () => { alert('Unable to read file'); input.value=''; };
+        reader.readAsArrayBuffer(file);
+    } else if (['csv','txt','tsv',''].includes(ext)) {
+        Papa.parse(file,{
+            header:true,
+            skipEmptyLines:true,
+            complete: res => { processData(res.data); input.value=''; },
+            error: err => { alert('CSV error: '+err.message); input.value=''; }
+        });
+    } else {
+        alert('Unsupported file type: .'+ext+'\nPlease upload a CSV or Excel (.xlsx / .xls) file.');
+        input.value = '';
+    }
 }
 
 function processData(data){
@@ -294,6 +338,27 @@ function processData(data){
         columnMap[trimmed.toLowerCase()] = trimmed;
     });
 
+    // Flexible column names: "Net Landing" / "NetLanding" / "net_landing" etc. all work
+    const norm = t => t.toLowerCase().replace(/[\s_\-.]/g,'');
+    ['entrydate','stockqty','product unit','cost','net landing','company name','purchaser name','product name','type name','brand name','style name'].forEach(std=>{
+        if(columnMap[std]) return;
+        const hit = Object.keys(columnMap).find(k=>norm(k)===norm(std));
+        if(hit) columnMap[std] = columnMap[hit];
+    });
+
+    // Show ID column (flexible name match): ShowID / Show ID / Show_ID / ShopID ...
+    showCol = null;
+    Object.keys(columnMap).forEach(k=>{
+        const n = k.replace(/[\s_\-]/g,'');
+        if(!showCol && ['showid','shopid','showroomid'].includes(n)) showCol = columnMap[k];
+    });
+    selectedLocation = 'all';
+    document.querySelectorAll('input[name="location"]').forEach(r=>{
+        r.checked = r.value==='all';
+        r.closest('.chip').classList.toggle('active', r.value==='all');
+    });
+    document.getElementById('locationFilter').style.display = showCol ? 'block' : 'none';
+
     if(!columnMap['entrydate']){
         alert('EntryDate column not found in CSV');
         return;
@@ -304,12 +369,13 @@ function processData(data){
         Object.keys(row).forEach(k=> cleaned[k.trim()] = row[k]);
         cleaned._ageInDays = calcAgeDays(cleaned[columnMap['entrydate']]);
         cleaned._ageBucket = bucketFromDays(cleaned._ageInDays);
+        cleaned._loc = locFromShowId(showCol ? cleaned[showCol] : null);
         return cleaned;
     });
 
     hasMCMData = parsedData.some(r=>{
         const u = r[columnMap['product unit']];
-        return u && u.toUpperCase().trim()==='MCM';
+        return u && String(u).toUpperCase().trim()==='MCM';
     });
 
     // "No Date" chip only when such rows exist
@@ -347,6 +413,12 @@ function processData(data){
 // Returns a local-midnight Date, or null if missing / invalid
 function parseEntryDate(v){
     if(v === null || v === undefined) return null;
+    if(v instanceof Date) return isNaN(v) ? null : new Date(v.getFullYear(), v.getMonth(), v.getDate());
+    // Excel serial date number (days since 1899-12-30)
+    if(typeof v === 'number'){
+        if(v < 20000 || v > 80000) return null;
+        return new Date(1899, 11, 30 + Math.floor(v));
+    }
     const s = String(v).trim();
     if(!s || s.startsWith('0000')) return null;      // MySQL zero dates (with or without time)
 
@@ -392,6 +464,13 @@ function bucketFromDays(d){
     if(d<=180) return 'last180';
     if(d<=360) return 'last360';
     return 'oldstock';
+}
+
+/* ---------- Location: Show ID 2 = Shop, anything else = Warehouse ---------- */
+function locFromShowId(v){
+    if(v === null || v === undefined) return 'warehouse';
+    const n = Number(String(v).trim());
+    return n === 2 ? 'shop' : 'warehouse';
 }
 
 /* ---------- Filters UI ---------- */
@@ -449,16 +528,17 @@ function filterByBuckets(data){
 }
 
 function filterBySpecificGrouping(data) {
+    if (selectedLocation !== 'all') data = data.filter(r => r._loc === selectedLocation);
     if (specificCompany) {
         return data.filter(r => {
             const company = r[columnMap['company name']];
-            return company && company.toLowerCase().includes(specificCompany.toLowerCase());
+            return company && String(company).toLowerCase().includes(specificCompany.toLowerCase());
         });
     }
     if (specificPurchaser) {
         return data.filter(r => {
             const purchaser = r[columnMap['purchaser name']];
-            return purchaser && purchaser.toLowerCase().includes(specificPurchaser.toLowerCase());
+            return purchaser && String(purchaser).toLowerCase().includes(specificPurchaser.toLowerCase());
         });
     }
     return data;
@@ -480,7 +560,8 @@ function updateDisplay(){
     const now = new Date();
     const ts = now.toLocaleString('en-IN',{timeZone:'Asia/Kolkata',hour12:true,day:'2-digit',month:'short',year:'numeric',hour:'2-digit',minute:'2-digit'});
     const asOn = now.toLocaleDateString('en-IN',{timeZone:'Asia/Kolkata',day:'2-digit',month:'short',year:'numeric'});
-    const meta = 'Report Generated: '+ts+'  |  Age calculated as on '+asOn;
+    const locName = {all:'All',warehouse:'Warehouse',shop:'Shop'}[selectedLocation];
+    const meta = 'Report Generated: '+ts+'  |  Age calculated as on '+asOn+(showCol ? '  |  Location: '+locName : '');
     document.getElementById('summaryMeta').textContent = meta;
     document.getElementById('detailMeta').textContent = meta;
 
@@ -495,7 +576,7 @@ function updateDisplay(){
 }
 
 function sumQty(rows, unitCol, qtyCol, unit){
-    return rows.filter(r=>r[unitCol]?.toUpperCase().trim()===unit)
+    return rows.filter(r=>String(r[unitCol]??'').toUpperCase().trim()===unit)
                .reduce((s,r)=>s+Number(r[qtyCol]||0),0);
 }
 
@@ -607,7 +688,7 @@ function updateDetailTable(){
         const qty = Number(r[qtyCol]||0);
         const cost = Number(r[costCol]||0);
         const net  = Number(r[netCol]||0);
-        const u = r[unitCol]?.toUpperCase().trim();
+        const u = String(r[unitCol]??'').toUpperCase().trim();
 
         if(u==='PCS') grouped[key][b].pcs += qty;
         else if(u==='MCM') grouped[key][b].mcm += qty;
